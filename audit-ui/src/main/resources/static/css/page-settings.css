@@ -1,0 +1,89 @@
+/* Settings (design 15-A): sections on the left, My preferences in the middle, Review rules on the right. */
+.set{gap:14px}
+.set-head h1{font-size:23px;margin-bottom:3px}
+.set-head p{font-size:14px}
+.set-grid{display:grid;grid-template-columns:230px minmax(0,1fr) 430px;gap:18px;align-items:start}
+.set-side{position:sticky;top:68px;padding:10px 0;display:flex;flex-direction:column}
+.set-side a{display:block;padding:10px 18px;color:var(--ink);text-decoration:none;border-inline-start:3px solid transparent;font-size:14.5px}
+.set-side a:hover{background:var(--panel-sub)}
+.set-side a.on{background:var(--info-bg);color:var(--info-fg);font-weight:600;border-inline-start-color:var(--accent-text)}
+.set-head2{padding:18px 22px;background:var(--panel)}
+.set-head2 h2{font-size:17px}
+.set-main{grid-column:2}
+.set-rules{grid-column:3}
+.set-more{grid-column:2 / 4;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;align-items:start}
+.set-more .panel:first-child{grid-column:1 / -1}
+.set-more .table-plain th{background:var(--panel-sub)}
+.set-lang{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:5px 0;border-bottom:1px solid var(--border-faint)}
+.set-lang:last-child{border-bottom:0}
+
+/* one preference: label on the left, control on the right */
+.set-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;padding:18px 22px;border-top:1px solid var(--border-soft);scroll-margin-top:70px}
+.set-row:first-of-type{border-top:1px solid var(--border-soft)}
+.set-label b{display:block;font-size:14.5px;font-weight:600}
+.set-label .sub{margin-top:2px;line-height:1.4}
+.set-ctl{min-width:0}
+.set-planned{margin-top:6px;white-space:normal;display:inline-block}
+.set-preview{margin-top:12px;display:flex;flex-direction:column;gap:6px;font-size:12.5px;line-height:1.4}
+.set-preview .tag{font-size:11.5px;font-weight:600;padding:1px 7px}
+
+/* choices that look like buttons (real radio buttons and checkboxes underneath) */
+.set-seg{display:flex;gap:6px;flex-wrap:wrap}
+.set-stack{display:flex;flex-direction:column;gap:8px}
+.set label>input[type="radio"],.set label>input[type="checkbox"]:not(.switch){position:absolute;opacity:0;width:1px;height:1px}
+.set-seg label,.set-stack label{display:block;position:relative}
+.set-seg label>span,.set-stack label>span{display:flex;align-items:center;justify-content:center;min-height:40px;padding:0 14px;border:1px solid var(--border-input);border-radius:var(--radius);background:var(--panel);color:var(--ink);cursor:pointer;font-size:14.5px;text-align:center}
+.set-stack label>span{justify-content:flex-start;padding:0 16px}
+.set-seg label>span:hover,.set-stack label>span:hover{border-color:var(--accent-text)}
+.set label>input:not(.switch):checked+span{background:var(--accent-wash);border-color:var(--accent-text);color:var(--accent-text);font-weight:600;box-shadow:inset 0 0 0 1px var(--accent-text)}
+.set label>input:not(.switch):focus-visible+span{box-shadow:var(--focus)}
+.set fieldset[disabled] label>span{cursor:default}
+.set fieldset[disabled] label>input:not(.switch):checked+span{box-shadow:none}
+.set fieldset{border:0;margin:0;padding:0;min-width:0}
+.set .select{max-width:100%}
+
+/* email toggles */
+.set-toggles{display:flex;flex-direction:column;gap:12px}
+.set-toggle{display:flex;align-items:center;gap:12px;cursor:pointer;font-size:14.5px}
+.set-toggle .switch{flex:none}
+.set-rules .set-toggle{justify-content:space-between}
+
+.set-save{padding:4px 22px 20px;display:flex;justify-content:flex-end}
+
+/* saved searches */
+.set-saved{border-top:1px solid var(--border-soft)}
+.set-savedlist{display:flex;flex-direction:column;gap:10px}
+.set-card{display:flex;align-items:flex-start;gap:12px;border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;background:var(--panel)}
+.set-card-name{font-weight:500;color:var(--ink);text-decoration:none}
+.set-card-name:hover{text-decoration:underline;color:var(--accent-text)}
+.set-lines{display:flex;flex-direction:column;color:var(--ink-2);margin-top:3px;font-size:12.5px;line-height:1.45;word-break:break-all}
+.set-remove{border:0;background:none;color:var(--bad-fg);font-weight:600;font-size:14px;padding:4px 2px;cursor:pointer}
+.set-remove:hover{text-decoration:underline}
+
+/* review rules */
+.set-rulesform{padding:4px 22px 0}
+.rule{padding:14px 0 4px;display:flex;flex-direction:column;gap:4px}
+.rule b{font-size:14.5px;font-weight:600}
+.rule .sub{font-size:12.5px}
+.rule-num{display:flex;align-items:center;gap:8px;margin-top:6px}
+.num-in{width:74px;min-height:42px;text-align:start}
+.rule .set-seg{margin-top:6px}
+.rule-planned{margin-top:14px;padding:14px 16px 12px;border:1.5px dashed var(--ink-3);border-radius:var(--radius);background:var(--panel-tint)}
+.rule-ph{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.set-note{margin:16px 22px 22px;padding:14px 16px;background:var(--off-bg);border-radius:var(--radius);font-size:13px;color:var(--ink-2);display:flex;flex-direction:column;gap:6px;line-height:1.45}
+.set-note a{font-weight:600}
+.set-rules .set-save{padding:12px 0 0}
+
+@media (max-width:1250px){
+  .set-grid{grid-template-columns:200px minmax(0,1fr)}
+  .set-rules{grid-column:2}
+  .set-more{grid-column:2}
+}
+@media (max-width:900px){
+  .set-grid{grid-template-columns:minmax(0,1fr)}
+  .set-side{position:static;flex-direction:row;flex-wrap:wrap;padding:6px}
+  .set-side a{padding:8px 12px;border-inline-start:0}
+  .set-main,.set-rules,.set-more{grid-column:1}
+  .set-row{grid-template-columns:minmax(0,1fr)}
+  .set-more{grid-template-columns:minmax(0,1fr)}
+}

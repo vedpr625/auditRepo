@@ -64,4 +64,19 @@ public class AuditFilter {
 
     /** ETREAT-only toggle — absorbed into tab=etreat, kept for backwards compat */
     private boolean etreatsOnly;
+
+    // ── Explore (added): time range, result group, grouping, extra checks ────────
+    /** Time range: 1h | 24h | 7d | 30d | all (blank = no limit unless since/until or dateFrom/dateTo are given). */
+    private String range;
+    /** Exact window, ISO-8601 instants (set by dragging on the chart); they win over range. */
+    private String since;
+    private String until;
+    /** Result group: ok (outcome 0) or failed (outcome 4, 8 or 12). */
+    private String result;
+    /** Group the table by: none | submitted | actor | patient | event. */
+    private String groupBy = "none";
+    /** "none" keeps only treatment claims by clinicians whose care link to the patient cannot be found (Demo: stand-in registry). */
+    private String link;
+    /** Event id whose detail panel is open when the page loads. */
+    private String open;
 }

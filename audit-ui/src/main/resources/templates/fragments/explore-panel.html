@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- Right-hand event panel on Explore, loaded with htmx from GET /audit/panel/{id}. -->
+<th:block th:fragment="missing">
+  <div class="px-empty" th:text="#{explore.panel.missing}">Not available.</div>
+</th:block>
+
+<th:block th:fragment="panel">
+  <div class="px" th:attr="data-id=${p.item.id}">
+    <div class="px-head">
+      <div>
+        <div class="px-eyebrow" th:text="#{explore.panel.eyebrow}">Event</div>
+        <h2 th:text="#{${p.item.whatKey}}">Viewed patient record</h2>
+      </div>
+      <button type="button" class="px-close" id="panelClose" th:attr="aria-label=#{explore.panel.close}" th:title="#{explore.panel.close}">&#215;</button>
+    </div>
+    <div class="px-when">
+      <span class="tag" th:classappend="${p.item.result == 'ok'} ? 'tag-ok' : (${p.item.result == 'failed'} ? 'tag-bad' : 'tag-warn')" th:text="#{'explore.res.' + ${p.item.result}}">OK</span>
+      <th:block th:replace="~{fragments/layout :: whenFull(${p.item.at})}"></th:block>
+    </div>
+    <div class="px-desc" th:if="${p.item.desc != null}" th:text="${p.item.desc}">Access refused (403)</div>
+
+    <dl class="dl-stack px-dl">
+      <dt th:text="#{explore.panel.who}">Who</dt>
+      <dd><b th:text="${p.item.actorName}">Dr. N. Perera</b>
+        <span class="mono" th:if="${p.item.actorRef != null}" th:text="${#strings.substringAfter(p.item.actorRef, '/')}">dr-n-perera</span>
+        <div class="sub"><span th:text="#{'people.role.' + ${p.item.actorRole}}">Practitioner</span>, <span th:text="#{explore.panel.who.sent}">as sent</span></div></dd>
+
+      <dt th:text="#{explore.panel.patient}">Patient</dt>
+      <dd th:if="${p.item.patientId != null}">
+        <a class="mono" th:href="@{/patient/{id}(id=${p.item.patientId})}" th:text="${p.item.patientId}">P-10407</a>
+        <div class="sub" th:if="${p.patientState == 'shown'}" th:text="${p.patientLine}">Registered in Colombo, 41 y</div>
+        <div class="sub" th:if="${p.patientState == 'withheld'}" th:text="#{explore.panel.withheld}">Withheld</div>
+        <div class="sub" th:if="${p.patientState == 'missing'}" th:text="#{explore.panel.missingreg}">Not found</div>
+        <div class="sub" th:if="${p.patientState == 'down'}" th:text="#{explore.panel.regdown}">Registry down</div>
+      </dd>
+      <dd th:if="${p.item.patientId == null}" class="muted">—</dd>
+
+      <dt th:text="#{explore.panel.submitted}">Submitted by</dt>
+      <dd><span th:text="${p.item.systemLabel}">HHIMS</span><span th:if="${!#strings.isEmpty(p.item.facilityLabel)}"> · <span th:text="${p.item.facilityLabel}">Colombo NH</span></span></dd>
+
+      <dt th:text="#{explore.panel.context}">Care context</dt>
+      <dd>
+        <span th:if="${p.encounter != null}" th:text="#{explore.panel.visit(${p.encounter})}">Visit E-88213</span><span th:if="${p.encounter == null}" class="muted" th:text="#{explore.panel.novisit}">No visit</span><span th:if="${p.item.dept != null}"> · <span th:text="${p.item.dept}">OPD-3</span></span>
+        <div class="sub" th:text="#{explore.panel.purpose(${p.purpose})}">Purpose: Treatment</div>
+        <div class="sub" th:if="${p.item.row.breakGlass and !p.item.noReason}" th:text="#{explore.panel.break(${p.item.row.breakGlassReason})}">Reason</div>
+        <div class="sub warn-text" th:if="${p.item.noReason}" th:text="#{explore.panel.break.none}">Reason not given</div>
+        <div class="sub" th:if="${p.patientState == 'shown' and p.careLink != 'na'}" th:text="#{'explore.panel.link.' + ${p.careLink}}">Care link</div>
+        <div class="sub" th:if="${p.item.reviewStatus != null and p.item.reviewStatus != 'pending'}" th:text="#{explore.panel.reviewstate(#{'explore.review.' + ${p.item.reviewStatus}})}">Review</div>
+      </dd>
+    </dl>
+
+    <div class="px-same" th:if="${p.sameKnown}">
+      <b th:text="#{explore.panel.same} + ':'">Same patient, last 6 hours:</b>
+      <span th:text="#{explore.panel.same.text(${p.sameCount}, ${p.samePeople}, ${p.sameSystems})}">7 events by 4 people from 3 systems.</span>
+    </div>
+
+    <div class="px-actions">
+      <form th:if="${p.canReview}" th:action="@{/reviews/new}" method="post">
+        <input type="hidden" name="kind" value="manual">
+        <input type="hidden" name="title" th:value="#{explore.panel.review.title(${p.item.id})}">
+        <input type="hidden" name="patient" th:if="${p.item.patientId != null}" th:value="${p.item.patientId}">
+        <button class="btn btn-primary" type="submit" th:text="#{explore.panel.review}">Open a review</button>
+      </form>
+      <a class="btn" th:if="${p.item.patientId != null}" th:href="@{/patient/{id}(id=${p.item.patientId})}" th:text="#{explore.panel.trail}">See the full trail</a>
+    </div>
+    <div class="px-more">
+      <th:block th:if="${isAdmin}">
+        <button type="button" class="btn btn-sm" th:if="${p.item.reviewStatus != 'reviewed'}" data-review="reviewed" th:attr="data-id=${p.item.id}" th:text="#{explore.panel.done}">Mark reviewed</button>
+        <button type="button" class="btn btn-sm" th:if="${p.item.reviewStatus != 'flagged'}" data-review="flagged" th:attr="data-id=${p.item.id}" th:text="#{explore.panel.flag}">Flag for follow-up</button>
+        <button type="button" class="btn btn-sm" th:if="${p.item.reviewStatus == 'flagged'}" data-review="pending" th:attr="data-id=${p.item.id}" th:text="#{explore.panel.unflag}">Remove the flag</button>
+      </th:block>
+      <button type="button" class="btn btn-sm" data-raw th:attr="data-id=${p.item.id}" th:text="#{explore.panel.raw}">Full record</button>
+    </div>
+  </div>
+</th:block>
+
+</body>
+</html>

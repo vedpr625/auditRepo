@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- Ctrl K command palette. Opened by static/js/find-palette.js; the plain /find page stays as the fallback without scripts. -->
+<th:block th:fragment="palette">
+<div id="findPalette" class="fp-overlay" hidden
+     th:attr="data-hint-short=#{find.palette.hint.type},data-hint-long=#{find.palette.hint.long},data-hint-bad=#{find.palette.hint.bad},data-empty=#{find.palette.empty},data-error=#{find.palette.error},data-loading=#{find.palette.loading}">
+  <div class="fp-box" role="dialog" aria-modal="true" aria-labelledby="fpTitle">
+    <h2 id="fpTitle" class="sr-only" th:text="#{find.palette.label}">Find anything</h2>
+    <div class="fp-head">
+      <span class="fp-scope" id="fpScope" hidden></span>
+      <input id="fpInput" type="text" autocomplete="off" spellcheck="false" maxlength="100" role="combobox" aria-expanded="true" aria-controls="fpList" aria-autocomplete="list"
+             th:placeholder="#{find.palette.placeholder}" th:attr="aria-label=#{find.palette.label}">
+      <kbd class="fp-esc" th:text="#{find.palette.esc}">Esc</kbd>
+    </div>
+    <div class="fp-narrow" role="group" th:attr="aria-label=#{find.palette.narrow}">
+      <span th:text="#{find.palette.narrow}">Narrow to</span>
+      <button type="button" data-scope="patient" th:text="#{find.palette.scope.patient}">/patient</button>
+      <button type="button" data-scope="person" th:text="#{find.palette.scope.person}">/person</button>
+      <button type="button" data-scope="facility" th:text="#{find.palette.scope.facility}">/facility</button>
+      <button type="button" data-scope="case" th:text="#{find.palette.scope.case}">/case</button>
+      <button type="button" data-scope="event" th:text="#{find.palette.scope.event}">/event</button>
+      <button type="button" data-scope="visit" th:text="#{find.palette.scope.visit}">/visit</button>
+    </div>
+    <div class="fp-list" id="fpList" role="listbox" aria-live="polite"></div>
+    <div class="fp-foot">
+      <span><kbd>&#8593;</kbd> <kbd>&#8595;</kbd> <span th:text="#{find.palette.key.move}">move</span></span>
+      <span><kbd>Enter</kbd> <span th:text="#{find.palette.key.open}">open</span></span>
+      <span><kbd>Ctrl Enter</kbd> <span th:text="#{find.palette.key.search}">search events for this</span></span>
+      <span class="fp-note" th:text="#{find.palette.note}">Patients are listed by number.</span>
+    </div>
+  </div>
+</div>
+</th:block>
+
+</body>
+</html>

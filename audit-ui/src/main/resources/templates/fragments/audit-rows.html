@@ -4,204 +4,223 @@
 
 <!--
   Fragment file: audit-rows.html
-  ──────────────────────────────────────────────────────────────────────────────
-  Exports ONE fragment:
-
-    auditSection  ← returned by GET /audit/rows (HTMX endpoint)
-                    Renders the complete innerHTML of <div id="auditSection">:
-                      1. result-count span
-                      2. full table (thead + tbody with data rows)
-                      3. pagination wrap
-
-  HTMX swap mechanism:
-    hx-target="#auditSection" with swap="innerHTML" replaces all children of
-    the wrapper div. Because #auditSection is a plain <div> (not a <tbody>),
-    the browser HTML parser does NOT strip any elements — result count span,
-    table and pagination all arrive intact. No hx-swap-oob needed.
-
-  Thymeleaf 3.1 restrictions:
-    - th:onclick and th:hx-post with string concat are BLOCKED → use th:data-id + JS delegation
-    - parametrised sub-fragment called inside th:each causes first-only render bug → rows INLINED
+  Exports ONE fragment, auditSection, returned by GET /audit/rows (HTMX) and inserted into the Explore page.
+  Its children are laid out by the page grid (#auditSection is display:contents): filter chips, "Try" row, then chart and table.
+  The page script reads the filter back from div.ex-state[data-filter], so the script and the server always agree.
+  Thymeleaf 3.1: no parametrised sub-fragments inside th:each (first-only render bug), so rows are written inline.
 -->
-
-<!-- ══════════════════════════════════════════════════════════════════════════
-     Fragment: auditSection  (HTMX endpoint response)
-     Renders: result-count + full table (with thead) + pagination
-     ══════════════════════════════════════════════════════════════════════════ -->
 <th:block th:fragment="auditSection">
 
-  <!-- ── Chester problem / review-tab note ── -->
-  <div th:if="${error}" class="panel">
-    <th:block th:replace="~{fragments/states :: down(#{explore.error.title}, ${error}, #{common.retry}, null, null)}"></th:block>
-  </div>
-  <div th:if="${note}" class="notice" th:text="${note}"></div>
+  <div class="ex-state" hidden th:attr="data-filter=${filterJson},data-range-label=${view.rangeLabel},data-total=${total}"></div>
 
-  <!-- ── Result count ── -->
-  <div class="result-count" style="padding:4px 0 8px;">
-    <span id="resultCount"
-          th:text="${total} + ' result' + (${total} != 1 ? 's' : '')">0 results</span>
-  </div>
-
-  <!-- ── Table (full, thead included so it survives every swap) ── -->
-  <div class="table-wrap">
-    <table>
-      <thead>
-        <tr>
-          <th class="sortable" data-sort="-date">Recorded ↕</th>
-          <th>Patient</th>
-          <th>Agent</th>
-          <th>Facility</th>
-          <th>Submitted by</th>
-          <th>Purpose</th>
-          <th class="sortable" data-sort="-outcome">Outcome ↕</th>
-          <th>SLA</th>
-          <th>Review</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody id="auditTbody">
-
-        <!-- Empty state -->
-        <tr th:if="${(rows == null or rows.empty) and error == null}">
-          <td colspan="10">
-            <th:block th:replace="~{fragments/states :: empty('0', #{explore.empty.title}, #{explore.empty.text}, #{explore.empty.clear}, '/')}"></th:block>
-          </td>
-        </tr>
-
-        <!-- Data rows — INLINED to avoid Thymeleaf 3.1 parametrised-fragment+th:each name-shadow bug -->
-        <tr th:each="row : ${rows}"
-            th:id="|row-${row.id}|"
-            th:class="${row.etreatOrBtg} ? 'etreat-row' : ''"
-            th:data-id="${row.id}"
-            th:data-review-status="${row.reviewStatus}">
-
-          <td class="td-sm" th:text="${row.recorded}">—</td>
-          <td class="td-sm" th:text="${row.patientRef}">—</td>
-          <td class="td-sm" th:text="${row.agentName}">—</td>
-          <td class="td-sm" th:text="${row.facility}">—</td>
-          <td class="td-sm" th:text="${row.submittedBy != null} ? ${row.submittedBy} : '—'">—</td>
-
-          <td>
-            <span th:class="${row.purposeTagCss}" th:text="${row.purposeLabel}">—</span>
-            <span th:if="${row.breakGlass}" title="Carries the break-glass label"
-                  class="tag tag-sm tag-bad">BTG label</span>
-            <span th:if="${row.incomplete}" title="Stored with the policy-incomplete flag (purpose or provenance missing)"
-                  class="tag tag-sm tag-off">incomplete</span>
-          </td>
-
-          <td>
-            <span th:class="${row.outcomeCss}" th:text="${row.outcomeLabel}">—</span>
-          </td>
-
-          <td>
-            <span th:class="${row.slaCss}" th:text="${row.slaLabel}">—</span>
-          </td>
-
-          <td>
-            <span th:class="|rs rs-${row.reviewStatus}|" th:text="${row.reviewStatus}">pending</span>
-          </td>
-
-          <td>
-            <div class="action-group">
-
-              <!-- View detail — always visible for all roles -->
-              <button class="act-btn act-view row-btn view-btn"
-                      type="button"
-                      data-tip="View detail">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                  <circle cx="12" cy="12" r="3"/>
-                </svg>
-              </button>
-
-              <!-- ── Admin-only action buttons ────────────────────────── -->
-              <th:block th:if="${isAdmin}">
-
-                <!-- Mark reviewed (hidden if already reviewed) -->
-                <button th:if="${row.reviewStatus != 'reviewed'}"
-                        class="act-btn act-review row-btn review-btn"
-                        type="button"
-                        data-tip="Mark reviewed">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="20 6 9 17 4 12"/>
-                  </svg>
-                </button>
-
-                <!-- Already reviewed badge (non-clickable indicator) -->
-                <button th:if="${row.reviewStatus == 'reviewed'}"
-                        class="act-btn act-review"
-                        type="button"
-                        data-tip="Already reviewed"
-                        disabled aria-disabled="true">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="20 6 9 17 4 12"/>
-                  </svg>
-                </button>
-
-                <!-- Flag (shown when not yet flagged) -->
-                <button th:if="${row.reviewStatus != 'flagged'}"
-                        class="act-btn act-flag row-btn flag-btn"
-                        type="button"
-                        data-tip="Flag for follow-up">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/>
-                    <line x1="4" y1="22" x2="4" y2="15"/>
-                  </svg>
-                </button>
-
-                <!-- Unflag (shown when already flagged) -->
-                <button th:if="${row.reviewStatus == 'flagged'}"
-                        class="act-btn act-unflag row-btn flag-btn"
-                        type="button"
-                        data-tip="Remove flag">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="10"/>
-                    <line x1="15" y1="9" x2="9" y2="15"/>
-                    <line x1="9" y1="9" x2="15" y2="15"/>
-                  </svg>
-                </button>
-
-              </th:block>
-              <!-- ── /Admin-only ─────────────────────────────────────── -->
-
-            </div>
-          </td>
-        </tr>
-
-      </tbody>
-    </table>
+  <!-- ── Filter chips and Group by ── -->
+  <div class="ex-chipsrow">
+    <div class="chips">
+      <span class="chip ex-chip" th:each="c : ${view.chips}" th:attr="data-chip=${c.key}">
+        <button type="button" class="chip-text" th:attr="data-act=${c.key == 'result' ? 'cycle' : 'none'},title=${c.key == 'result' ? #messages.msg('explore.chip.cycle') : null}"><span th:text="${c.label} + ': '">Patient: </span><b th:text="${c.value}">P-10407</b></button>
+        <button type="button" class="chip-x" data-act="remove" th:attr="aria-label=#{explore.chip.remove}" th:title="#{explore.chip.remove}">&#215;</button>
+      </span>
+      <span class="menu-wrap">
+        <button type="button" class="chip-add" id="addBtn" aria-haspopup="true" aria-expanded="false" th:text="#{explore.add}">+ Add filter</button>
+        <div class="menu" id="addMenu" hidden>
+          <div id="addPick">
+            <div class="menu-title" th:text="#{explore.add.pick}">Filter by</div>
+            <button type="button" data-field="q" data-kind="text" th:text="#{explore.chip.q}" th:attr="data-ph=#{explore.find.placeholder}">Patient</button>
+            <button type="button" data-field="agent" data-kind="text" th:text="#{explore.chip.agent}">Actor</button>
+            <button type="button" data-field="client" data-kind="text" th:text="#{explore.chip.client}">Submitted by</button>
+            <button type="button" data-field="facility" data-kind="text" th:text="#{explore.chip.facility}">Facility</button>
+            <button type="button" data-field="encounter" data-kind="text" th:text="#{explore.chip.encounter}">Visit</button>
+            <button type="button" data-field="department" data-kind="text" th:text="#{explore.chip.department}">Department</button>
+            <button type="button" data-field="purpose" data-kind="select" data-options="TREAT=Treatment|ETREAT=Emergency|BTG=Break-glass|PUBHLTH=Public health|HRESCH=Research" th:text="#{explore.chip.purpose}">Purpose</button>
+            <button type="button" data-field="action" data-kind="select" th:attr="data-options='R=' + #{explore.what.R} + '|C=' + #{explore.what.C} + '|U=' + #{explore.what.U} + '|D=' + #{explore.what.D} + '|E=' + #{explore.what.E}" th:text="#{explore.chip.action}">Action</button>
+            <button type="button" data-field="result" data-kind="select" th:attr="data-options='ok=' + #{explore.val.ok} + '|failed=' + #{explore.val.failed}" th:text="#{explore.chip.result}">Outcome</button>
+            <button type="button" data-field="tab" data-kind="select" th:attr="data-options='etreat=' + #{explore.tab.etreat} + '|pending=' + #{explore.tab.pending} + '|flagged=' + #{explore.tab.flagged}" th:text="#{explore.add.review}">Review status</button>
+            <button type="button" data-field="breakGlass" data-kind="flag" th:text="#{explore.chip.breakGlass}">Break-glass</button>
+            <button type="button" data-field="incomplete" data-kind="flag" th:text="#{explore.chip.incomplete}">Incomplete</button>
+          </div>
+          <form id="addForm" hidden>
+            <label><span id="addLabel">Value</span>
+              <input class="input" id="addInput" maxlength="200" autocomplete="off">
+              <select class="select" id="addSelect" hidden></select></label>
+            <div class="row"><button type="button" class="btn btn-sm" id="addBack" th:text="#{explore.add.back}">Back</button><button type="submit" class="btn btn-sm btn-primary" th:text="#{explore.add.do}">Add</button></div>
+          </form>
+        </div>
+      </span>
+    </div>
+    <div class="ex-groupby">
+      <span th:text="#{explore.groupby}">Group by</span>
+      <div class="segmented" role="group" th:attr="aria-label=#{explore.groupby}">
+        <button type="button" data-group="none" th:attr="aria-pressed=${filter.groupBy == 'none'}" th:text="#{explore.groupby.none}">None</button>
+        <button type="button" data-group="submitted" th:attr="aria-pressed=${filter.groupBy == 'submitted'}" th:text="#{explore.groupby.submitted}">Submitted by</button>
+        <button type="button" data-group="actor" th:attr="aria-pressed=${filter.groupBy == 'actor'}" th:text="#{explore.groupby.actor}">Actor</button>
+        <button type="button" data-group="patient" th:attr="aria-pressed=${filter.groupBy == 'patient'}" th:text="#{explore.groupby.patient}">Patient</button>
+        <button type="button" data-group="event" th:attr="aria-pressed=${filter.groupBy == 'event'}" th:text="#{explore.groupby.event}">Event</button>
+      </div>
+    </div>
   </div>
 
-  <!-- ── Pagination controls ── -->
-  <div id="paginationWrap" class="pagination-wrap">
-
-    <button class="btn btn-sm page-btn"
-            type="button"
-            th:disabled="${page <= 1}"
-            th:attr="data-page=${page - 1}"
-            th:classappend="${page <= 1} ? ' disabled' : ''">&#8592; Prev</button>
-
-    <th:block th:with="startPage=${T(java.lang.Math).max(1, page - 3)},
-                       endPage=${T(java.lang.Math).min(totalPages, page + 3)}">
-      <button th:each="p : ${#numbers.sequence(startPage, endPage)}"
-              class="btn btn-sm page-btn"
-              type="button"
-              th:attr="data-page=${p}"
-              th:classappend="${p == page} ? ' active' : ''"
-              th:text="${p}">1</button>
+  <!-- ── Try, saved searches, hint ── -->
+  <div class="try-row ex-tryrow">
+    <span th:text="#{explore.try}">Try</span>
+    <button type="button" class="try" data-apply='{"breakGlass":"true"}' th:text="#{explore.try.btg}">break-glass</button>
+    <button type="button" class="try" data-apply='{"result":"failed"}' th:text="#{explore.try.failed}">outcome!=ok</button>
+    <button type="button" class="try" data-apply='{"facility":"Kandy TH"}' th:text="#{explore.try.facility}">facility=Kandy TH</button>
+    <button type="button" class="try" data-apply='{"link":"none"}' th:text="#{explore.try.nolink}">no link to this patient’s care</button>
+    <th:block th:if="${savedSearches != null and !savedSearches.isEmpty()}">
+      <span class="ex-sep" th:text="#{explore.try.saved}">Saved</span>
+      <button type="button" class="try try-saved" th:each="s : ${savedSearches}" th:attr="data-query=${s.query},title=${#strings.listJoin(s.lines(), ' ')}" th:text="${s.name}">Saved search</button>
     </th:block>
-
-    <button class="btn btn-sm page-btn"
-            type="button"
-            th:disabled="${page >= totalPages}"
-            th:attr="data-page=${page + 1}"
-            th:classappend="${page >= totalPages} ? ' disabled' : ''">Next &#8594;</button>
-
-    <span class="page-info" th:text="|Page ${page} of ${totalPages}|">Page 1 of 1</span>
-
+    <span class="ex-hint"><span th:text="#{explore.hint}">Click any value in a row to filter by it</span> · <button type="button" class="linkbtn" id="saveBtn" th:text="#{explore.save}">Save this search</button></span>
+    <form class="ex-saveform" id="saveForm" hidden>
+      <input class="input" id="saveName" maxlength="120" th:placeholder="#{explore.save.name}" th:attr="aria-label=#{explore.save.name}" autocomplete="off">
+      <button class="btn btn-sm btn-primary" type="submit" th:text="#{explore.save.do}">Save</button>
+      <button class="btn btn-sm" type="button" id="saveCancel" th:text="#{explore.save.cancel}">Cancel</button>
+    </form>
   </div>
 
-  <th:block th:if="${total > 0 and page >= totalPages}"><div th:replace="~{fragments/states :: endOfList(#{states.endoflist(${total})})}"></div></th:block>
+  <!-- ── Results: error note, chart, table ── -->
+  <div class="ex-results stack">
+    <div th:if="${error}" class="panel">
+      <th:block th:replace="~{fragments/states :: down(#{explore.error.title}, ${error}, #{common.retry}, null, null)}"></th:block>
+    </div>
+    <div th:if="${note}" class="notice notice-planned" th:text="${note}"></div>
+
+    <section class="panel ex-chart" aria-labelledby="exChartTitle">
+      <div class="ex-chart-head">
+        <b id="exChartTitle" th:text="${total == 1} ? #{explore.chart.one} : #{explore.chart.title(${#numbers.formatInteger(total, 1, 'COMMA')})}">1,284 events</b>
+        <span class="legend"><span><i class="lg-ok"></i><span th:text="#{explore.chart.ok}">OK</span></span><span><i class="lg-bad"></i><span th:text="#{explore.chart.failed}">Failed</span>&nbsp;·&nbsp;<span th:text="#{explore.chart.drag}">drag to zoom</span></span></span>
+      </div>
+      <div th:if="${view.chart.any}">
+        <div class="xbars" role="group" th:attr="aria-label=#{explore.chart.label}">
+          <button type="button" class="xbar" th:each="b : ${view.chart.bars}" th:classappend="${b.ok + b.failed == 0} ? 'empty'"
+                  th:attr="data-from=${b.from},data-to=${b.to},title=${b.tip},aria-label=${b.tip}" th:style="'height:' + ${b.pct} + '%'">
+            <span class="seg f" th:if="${b.failed > 0}" th:style="'flex:' + ${b.failed}"></span><span class="seg o" th:if="${b.ok > 0}" th:style="'flex:' + ${b.ok}"></span>
+          </button>
+        </div>
+        <div class="xaxis" aria-hidden="true">
+          <span th:each="a : ${view.chart.axis}" th:classappend="${a.end} ? 'end'" th:style="${a.end} ? null : 'left:' + ${a.pos} + '%'" th:text="${a.label}">12:00</span>
+        </div>
+      </div>
+      <div th:unless="${view.chart.any}" class="sub ex-chart-none" th:text="#{explore.chart.none}">No chart</div>
+    </section>
+
+    <section class="panel ex-table">
+      <div class="table-wrap">
+        <!-- Grouped -->
+        <table class="table ex-t" th:if="${view.grouped}">
+          <thead><tr>
+            <th th:text="#{explore.col.group}">Group</th><th th:text="#{explore.col.events}">Events</th><th class="ex-bar-col"></th>
+            <th th:text="#{explore.col.failed}">Failed</th><th th:text="#{explore.col.btg}">Break-glass</th><th th:text="#{explore.col.latest}">Latest</th>
+          </tr></thead>
+          <tbody id="auditTbody">
+            <tr th:if="${view.items.isEmpty() and error == null}"><td colspan="6">
+              <th:block th:replace="~{fragments/states :: empty('0', #{explore.empty.title}, #{explore.empty.text}, #{explore.empty.clear}, '/')}"></th:block>
+            </td></tr>
+            <tr th:each="g : ${view.items}" class="ex-grow" th:attr="data-fkey=${g.filterKey},data-fval=${g.filterValue},tabindex=${g.filterValue != null ? '0' : null}">
+              <td><b th:text="${g.label}">HHIMS</b>
+                <span class="sub" th:if="${g.actorRole != null}" th:text="#{'people.role.' + ${g.actorRole}}">Role</span>
+                <span class="sub" th:if="${g.facilityLabel != null}" th:text="${g.facilityLabel}">Facility</span></td>
+              <td class="num" th:text="${#numbers.formatInteger(g.count, 1, 'COMMA')}">12</td>
+              <td class="ex-bar-col"><span class="hbar-track"><b th:style="'width:' + ${g.pct} + '%'"></b></span></td>
+              <td class="num"><span th:if="${g.failed > 0}" class="tag tag-bad" th:text="${g.failed}">2</span><span th:if="${g.failed == 0}" class="muted">0</span></td>
+              <td class="num"><span th:if="${g.btg > 0}" class="tag tag-warn" th:text="${g.btg}">1</span><span th:if="${g.btg == 0}" class="muted">0</span></td>
+              <td><th:block th:replace="~{fragments/layout :: when(${g.last})}"></th:block></td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="ex-groupnote sub" th:if="${view.grouped}">
+          <span th:text="#{explore.group.help}">Click a line to show only those events.</span>
+          <span th:if="${view.groupCapped}" th:text="#{explore.group.capped(${view.groupScanned}, ${total})}">Grouped from the newest 500.</span>
+        </div>
+
+        <!-- Plain list -->
+        <table class="table ex-t" th:unless="${view.grouped}">
+          <thead><tr>
+            <th class="sortable" data-sort="-date" th:text="#{explore.col.when}">When</th>
+            <th th:text="#{explore.col.system}">Submitted by</th>
+            <th th:text="#{explore.col.who}">Who</th>
+            <th th:text="#{explore.col.patient}">Patient</th>
+            <th th:text="#{explore.col.what}">What happened</th>
+            <th th:text="#{explore.col.result}">Result</th>
+          </tr></thead>
+          <tbody id="auditTbody">
+            <tr th:if="${view.items.isEmpty() and error == null}"><td colspan="6">
+              <th:block th:replace="~{fragments/states :: empty('0', #{explore.empty.title}, #{explore.empty.text}, #{explore.empty.clear}, '/')}"></th:block>
+            </td></tr>
+
+            <th:block th:each="it : ${view.items}">
+              <!-- day header -->
+              <tr class="day-divider" th:if="${it.type == 'day'}"><td colspan="6">
+                <b th:text="${it.dayName}">Thursday 22 October</b>, <span th:text="#{explore.day.shown(${it.zoneShort}, ${it.zoneOffset})}">shown in IST</span>,
+                <a th:href="@{/settings}" th:text="#{explore.day.change}">change in Settings</a> · <span th:text="#{explore.day.count(${it.count})}">1,284 events</span>
+              </td></tr>
+
+              <!-- a run of similar views, collapsed -->
+              <tr class="ex-collapsed" th:if="${it.type == 'collapsed'}" th:attr="data-group=${it.groupNo}">
+                <td><span class="mono" th:text="#{explore.similar.span(${it.spanFrom}, ${it.spanTo})}">09:30 to 09:34</span></td>
+                <td><span class="fv" data-k="client" th:attr="data-v=${it.systemId}" th:text="${it.systemLabel}">HHIMS</span><span class="sub" th:text="${it.facilityLabel}">Galle</span></td>
+                <td><span class="fv" data-k="agent" th:attr="data-v=${it.actorRef}" th:text="${it.actorName}">Dr. K. Wickrama</span><span class="sub" th:text="#{'people.role.' + ${it.actorRole}}">Role</span></td>
+                <td><span class="fv mono" data-k="q" th:attr="data-v=${it.patientId}" th:text="${it.patientId}">P-40119</span></td>
+                <td><b th:text="#{explore.similar(${it.count})}">14 similar views of the same patient</b>
+                  <button type="button" class="linkbtn ex-expand" th:attr="data-expand=${it.groupNo},data-label=#{explore.similar.show(${it.count})}" th:text="#{explore.similar.show(${it.count})}">Show the 14</button></td>
+                <td><span class="tag tag-ok" th:text="#{explore.res.ok}">OK</span></td>
+              </tr>
+
+              <!-- one event -->
+              <tr th:if="${it.type == 'row'}" class="ex-row" th:classappend="${(it.child ? 'ex-child ex-g' + it.groupNo : '') + (it.selected ? ' selected' : '')}" th:hidden="${it.child}"
+                  th:id="|row-${it.id}|" th:attr="data-id=${it.id},data-review-status=${it.reviewStatus},aria-selected=${it.selected}" tabindex="0">
+                <td><time th:attr="datetime=${it.at}" th:title="${tf.exact(it.at) + ' · ' + tf.utc(it.at)}">
+                  <span class="mono" th:if="${tf.showExact}" th:text="${it.clock}">09:41:12 IST</span>
+                  <span th:class="${tf.showExact} ? 'sub' : ''" th:if="${tf.showRelative}" th:text="${tf.relative(it.at)}">4 min ago</span>
+                  <span class="sub mono" th:if="${tf.showUtc}" th:text="${tf.utc(it.at)}">UTC</span></time></td>
+                <td><span class="fv" data-k="client" th:attr="data-v=${it.systemId}" th:text="${it.systemLabel}">HHIMS</span><span class="sub" th:text="${it.facilityLabel}">Colombo NH</span></td>
+                <td><span class="fv" data-k="agent" th:attr="data-v=${it.actorRef}" th:text="${it.actorName}">Dr. N. Perera</span><span class="sub" th:text="#{'people.role.' + ${it.actorRole}}">Practitioner</span></td>
+                <td><span class="fv mono" th:if="${it.patientId != null}" data-k="q" th:attr="data-v=${it.patientId}" th:text="${it.patientId}">P-10407</span><span th:if="${it.patientId == null}" class="muted">—</span></td>
+                <td><span class="fv" data-k="action" th:attr="data-v=${it.action}" th:text="#{${it.whatKey}}">Viewed patient record</span>
+                  <span class="sub" th:if="${it.desc != null}" th:text="${it.desc}">Access refused (403)</span>
+                  <span class="sub" th:if="${it.desc == null and it.dept != null}" th:text="${it.dept}">Outpatient · OPD-3</span>
+                  <span class="ex-tags" th:if="${it.noReason or it.careUnknown or it.overdue or it.reviewStatus == 'reviewed' or it.reviewStatus == 'flagged'}">
+                    <span class="tag tag-sm tag-warn" th:if="${it.noReason}" th:text="#{explore.tag.noreason}">Reason not given</span>
+                    <span class="tag tag-sm tag-planned" th:if="${it.careUnknown}" th:text="#{explore.tag.carelink}">Care link unknown</span>
+                    <span class="tag tag-sm tag-bad" th:if="${it.overdue}" th:text="#{explore.tag.overdue}">Review overdue</span>
+                    <span class="tag tag-sm tag-ok" th:if="${it.reviewStatus == 'reviewed'}" th:text="#{explore.tag.reviewed}">Reviewed</span>
+                    <span class="tag tag-sm tag-bad" th:if="${it.reviewStatus == 'flagged'}" th:text="#{explore.tag.flagged}">Flagged</span>
+                  </span></td>
+                <td><span class="tag" th:classappend="${it.result == 'ok'} ? 'tag-ok' : (${it.result == 'failed'} ? 'tag-bad' : 'tag-warn')" th:text="#{'explore.res.' + ${it.result}}">OK</span></td>
+              </tr>
+            </th:block>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="ex-foot" th:unless="${view.grouped}">
+        <div id="paginationWrap" class="pagination-wrap">
+          <button class="btn btn-sm page-btn" type="button" th:disabled="${page <= 1}" th:attr="data-page=${page - 1}" th:classappend="${page <= 1} ? ' disabled' : ''">&#8592; <span th:text="#{explore.page.prev}">Prev</span></button>
+          <th:block th:with="startPage=${T(java.lang.Math).max(1, page - 3)}, endPage=${T(java.lang.Math).min(totalPages, page + 3)}">
+            <button th:each="p : ${#numbers.sequence(startPage, endPage)}" class="btn btn-sm page-btn" type="button" th:attr="data-page=${p}" th:classappend="${p == page} ? ' active' : ''" th:text="${p}">1</button>
+          </th:block>
+          <button class="btn btn-sm page-btn" type="button" th:disabled="${page >= totalPages}" th:attr="data-page=${page + 1}" th:classappend="${page >= totalPages} ? ' disabled' : ''"><span th:text="#{explore.page.next}">Next</span> &#8594;</button>
+          <span class="page-info" th:text="#{explore.page.info(${page}, ${totalPages})}">Page 1 of 1</span>
+        </div>
+        <div class="row-wrap">
+          <label class="ex-size"><span th:text="#{explore.perpage}">Rows per page:</span>
+            <select id="pageSizeSelect" class="sort-select">
+              <option value="10" th:selected="${size == 10}">10</option>
+              <option value="20" th:selected="${size == 20}">20</option>
+              <option value="50" th:selected="${size == 50}">50</option>
+              <option value="100" th:selected="${size == 100}">100</option>
+            </select></label>
+          <button class="btn btn-sm" id="exportBtn" type="button" th:title="#{explore.export.help}" th:text="#{explore.export}">Export CSV</button>
+          <button class="btn btn-sm" id="verifyBtn" type="button" th:if="${canVerify}" th:title="#{explore.verify.help}" th:text="#{explore.verify}">Verify chain</button>
+          <span id="verifyStatus" th:if="${canVerify}" role="status"></span>
+        </div>
+      </div>
+      <div class="ex-foot" th:if="${view.grouped}">
+        <div class="row-wrap"><button class="btn btn-sm" id="exportBtn" type="button" th:title="#{explore.export.help}" th:text="#{explore.export}">Export CSV</button></div>
+      </div>
+      <th:block th:if="${!view.grouped and total > 0 and page >= totalPages}"><div th:replace="~{fragments/states :: endOfList(#{states.endoflist(${total})})}"></div></th:block>
+    </section>
+  </div>
 
 </th:block>
 

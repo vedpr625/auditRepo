@@ -449,8 +449,37 @@ public class AuditEventService {
         } catch (java.time.format.DateTimeParseException e) {
             throw new IllegalArgumentException(INVALID_VALUE);     // refuse, never silently drop a date filter
         }
+        // Explore time window: an exact since/until (chart zoom) or a named range
+        try {
+            java.time.Instant since = f.getSince() != null && !f.getSince().isBlank() ? java.time.Instant.parse(f.getSince().strip()) : rangeStart(f.getRange());
+            if (since != null) dates.add("ge" + since.truncatedTo(java.time.temporal.ChronoUnit.SECONDS));
+            if (f.getUntil() != null && !f.getUntil().isBlank()) dates.add("lt" + java.time.Instant.parse(f.getUntil().strip()).truncatedTo(java.time.temporal.ChronoUnit.SECONDS));
+        } catch (java.time.format.DateTimeParseException e) {
+            throw new IllegalArgumentException(INVALID_VALUE);
+        }
         if (!dates.isEmpty()) p.put("date", dates);
+        // Explore result group (ok / failed); outcome 4, 8, 12 are the failures
+        if ("ok".equals(f.getResult())) p.put("outcome", new ArrayList<>(List.of("0")));
+        else if ("failed".equals(f.getResult())) p.put("outcome", new ArrayList<>(List.of("4,8,12")));
         return p;
+    }
+
+    /** Start of a named time range (1h, 24h, 7d, 30d), or null for no limit. */
+    public static java.time.Instant rangeStart(String range) {
+        if (range == null) return null;
+        java.time.Instant now = java.time.Instant.now();
+        return switch (range) {
+            case "1h" -> now.minus(1, java.time.temporal.ChronoUnit.HOURS);
+            case "24h" -> now.minus(24, java.time.temporal.ChronoUnit.HOURS);
+            case "7d" -> now.minus(7, java.time.temporal.ChronoUnit.DAYS);
+            case "30d" -> now.minus(30, java.time.temporal.ChronoUnit.DAYS);
+            default -> null;
+        };
+    }
+
+    /** The Chester search parameters for a filter (Explore uses them for the chart and day counts). */
+    public java.util.Map<String, List<String>> paramsFor(AuditFilter f) {
+        return serverParams(f, false, false);
     }
 
     private Bundle runQuery(java.util.Map<String, List<String>> params, int count, int offset, String sort) {
@@ -609,6 +638,7 @@ public class AuditEventService {
             .reasonGivenAt(ae.getExtensionByUrl(tagBaseUri + "/StructureDefinition/reason-given-at") != null
                 ? java.time.Instant.parse(ae.getExtensionByUrl(tagBaseUri + "/StructureDefinition/reason-given-at").getValue().primitiveValue().replace("+00:00", "Z")) : null)
             .outcomeDesc(ae.getOutcomeDesc())
+            .department(ae.getSource() != null && ae.getSource().hasSite() ? ae.getSource().getSite() : null)
             .encounterRef(ae.getEntity().stream().filter(e -> e.getWhat() != null && e.getWhat().getReference() != null && e.getWhat().getReference().startsWith("Encounter/"))
                 .map(e -> e.getWhat().getReference()).findFirst().orElse(null))
             .incomplete(tagCode(ae, "/tags") != null && ae.getMeta().getTag().stream().anyMatch(t -> "policy-incomplete".equals(t.getCode())))

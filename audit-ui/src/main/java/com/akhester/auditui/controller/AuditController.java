@@ -32,12 +32,19 @@ import java.util.List;
 public class AuditController {
 
     private final AuditEventService auditService;
+    private final com.akhester.auditui.explore.ExploreService explore;
+    private final com.akhester.auditui.prefs.PrefsContext prefsContext;
+    private final org.springframework.context.MessageSource messageSource;
+    private final com.akhester.auditui.explore.SavedSearchRepository saved;
+    private final com.fasterxml.jackson.databind.ObjectMapper json = new com.fasterxml.jackson.databind.ObjectMapper();
 
     // ── Full page ─────────────────────────────────────────────────────────────
 
     @GetMapping("/")
-    public String page(AuditFilter filter, Model model) {
-        populateModel(filter, model);
+    public String page(AuditFilter filter, Model model, jakarta.servlet.http.HttpServletRequest request, java.util.Locale locale) {
+        // a bare "/" opens on the last 24 hours; a link with its own filters keeps exactly what it asks for
+        if (request.getParameterMap().isEmpty()) filter.setRange("24h");
+        populateModel(filter, model, request, locale);
         model.addAttribute("chesterUp", auditService.isChesterReachable());
         model.addAttribute("isAdmin", isAdmin());
         model.addAttribute("canVerify", canVerifyChain());
@@ -55,8 +62,8 @@ public class AuditController {
     // are all valid HTML div/table children — no OOB needed, no browser stripping.
 
     @GetMapping("/audit/rows")
-    public String rows(AuditFilter filter, Model model) {
-        populateModel(filter, model);
+    public String rows(AuditFilter filter, Model model, jakarta.servlet.http.HttpServletRequest request, java.util.Locale locale) {
+        populateModel(filter, model, request, locale);
         model.addAttribute("isAdmin", isAdmin());
         return "fragments/audit-rows :: auditSection";
     }
@@ -248,18 +255,87 @@ public class AuditController {
      * Populate model attributes needed by both the full page and the HTMX rows fragment.
      * Uses searchWithTotal() to perform a single Chester round-trip for both rows and count.
      */
-    private void populateModel(AuditFilter filter, Model model) {
-        AuditEventService.SearchResult result = auditService.searchWithTotal(filter);
+    private void populateModel(AuditFilter filter, Model model, jakarta.servlet.http.HttpServletRequest request, java.util.Locale locale) {
+        explore.normalize(filter);
+        try { model.addAttribute("savedSearches", saved.forUser(com.akhester.auditui.prefs.PrefsContext.username())); } catch (RuntimeException e) { model.addAttribute("savedSearches", java.util.List.of()); }
+        if (filter.getGroupBy() == null || !java.util.List.of("none", "submitted", "actor", "patient", "event").contains(filter.getGroupBy())) filter.setGroupBy("none");
+        if (filter.getResult() == null || !java.util.List.of("ok", "failed").contains(filter.getResult())) filter.setResult(null);
+        boolean byLink = "none".equals(filter.getLink());
+        AuditEventService.SearchResult result;
+        if (byLink) {
+            try {
+                int size = Math.max(1, Math.min(filter.getSize(), 100)), page = Math.max(1, filter.getPage());
+                var lr = explore.withoutCareLink(filter, page, size);
+                result = new AuditEventService.SearchResult(lr.rows(), lr.total(), null, messageSource.getMessage("explore.link.note", null, locale));
+            } catch (RuntimeException ex) {
+                result = new AuditEventService.SearchResult(java.util.List.of(), 0, "Chester could not answer.", null);
+            }
+        } else {
+            result = auditService.searchWithTotal(filter);
+        }
         int total      = result.total();
         int totalPages = (total == 0) ? 1 : (int) Math.ceil((double) total / filter.getSize());
+        com.akhester.auditui.prefs.UserPrefs prefs = prefsContext.forRequest(request);
+        com.akhester.auditui.page.TimeFormat tf = new com.akhester.auditui.page.TimeFormat(prefs, locale, messageSource, java.time.Instant.now());
+        boolean grouped = !"none".equals(filter.getGroupBy());
+        model.addAttribute("view", grouped && result.error() == null
+            ? explore.grouped(filter, total, prefs, tf, locale)
+            : explore.view(filter, result.rows(), total, prefs, tf, locale));
 
+        model.addAttribute("canVerify", canVerifyChain());
         model.addAttribute("rows",       result.rows());
         model.addAttribute("total",      total);
         model.addAttribute("filter",     filter);
+        model.addAttribute("filterJson", filterJson(filter));
         model.addAttribute("page",       filter.getPage());
         model.addAttribute("size",       filter.getSize());
         model.addAttribute("totalPages", totalPages);
         model.addAttribute("error",      result.error());
         model.addAttribute("note",       result.note());
+    }
+
+    /** The filter as JSON for the page script (only values that are set), so the script and the server always agree. */
+    private String filterJson(AuditFilter f) {
+        java.util.Map<String, Object> m = new java.util.LinkedHashMap<>();
+        put(m, "tab", f.getTab()); put(m, "q", f.getQ()); put(m, "purpose", f.getPurpose()); put(m, "outcome", f.getOutcome()); put(m, "result", f.getResult());
+        put(m, "agent", f.getAgent()); put(m, "facility", f.getFacility()); put(m, "encounter", f.getEncounter()); put(m, "department", f.getDepartment());
+        put(m, "client", f.getClient()); put(m, "action", f.getAction()); put(m, "dateFrom", f.getDateFrom()); put(m, "dateTo", f.getDateTo());
+        put(m, "range", f.getRange()); put(m, "since", f.getSince()); put(m, "until", f.getUntil()); put(m, "sort", f.getSort()); put(m, "groupBy", f.getGroupBy());
+        put(m, "link", f.getLink()); put(m, "open", f.getOpen());
+        if (f.isBreakGlass()) m.put("breakGlass", "true");
+        if (f.isIncomplete()) m.put("incomplete", "true");
+        m.put("page", String.valueOf(f.getPage())); m.put("size", String.valueOf(f.getSize()));
+        try { return json.writeValueAsString(m); } catch (com.fasterxml.jackson.core.JsonProcessingException e) { return "{}"; }
+    }
+
+    private static void put(java.util.Map<String, Object> m, String k, String v) { if (v != null && !v.isBlank()) m.put(k, v); }
+
+    // ── HTMX: event detail panel (right-hand side of Explore) ─────────────────
+
+    @GetMapping("/audit/panel/{id}")
+    public String panel(@PathVariable String id, Model model, jakarta.servlet.http.HttpServletRequest request, java.util.Locale locale) {
+        if (!id.matches("[A-Za-z0-9._-]{1,64}")) return "fragments/explore-panel :: missing";
+        com.akhester.auditui.prefs.UserPrefs prefs = prefsContext.forRequest(request);
+        com.akhester.auditui.page.TimeFormat tf = new com.akhester.auditui.page.TimeFormat(prefs, locale, messageSource, java.time.Instant.now());
+        var p = explore.panel(id, prefs, tf, locale);
+        if (p == null) return "fragments/explore-panel :: missing";
+        model.addAttribute("p", p);
+        model.addAttribute("isAdmin", isAdmin());
+        return "fragments/explore-panel :: panel";
+    }
+
+    // ── Saved searches (kept per person; Settings lists them) ─────────────────
+
+    @PostMapping("/explore/saved")
+    @ResponseBody
+    public ResponseEntity<java.util.Map<String, Object>> saveSearch(@RequestParam String name, @RequestParam String query) {
+        String user = com.akhester.auditui.prefs.PrefsContext.username();
+        if (user == null) return ResponseEntity.status(401).build();
+        try {
+            long id = saved.add(user, name, query);
+            return ResponseEntity.ok(java.util.Map.of("id", id, "name", name.strip()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("error", "invalid"));
+        }
     }
 }
