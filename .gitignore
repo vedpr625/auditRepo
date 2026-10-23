@@ -1,3 +1,5 @@
 audit-ui/data/
 target/
 e2e/*.log
+j_*
+e2e/j_*
