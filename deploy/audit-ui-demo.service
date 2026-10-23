@@ -5,7 +5,7 @@ After=network.target
 [Service]
 User=auditui
 WorkingDirectory=/opt/audit-ui-demo
-ExecStart=/usr/bin/java -Xms128m -Xmx384m -jar /opt/audit-ui-demo/audit-ui.jar --spring.profiles.active=demo --server.port=8081 --server.address=127.0.0.1
+ExecStart=/usr/bin/java -Xms128m -Xmx384m -jar /opt/audit-ui-demo/audit-ui.jar --spring.profiles.active=demo --server.port=APP_PORT --management.server.port=MGMT_PORT --server.address=127.0.0.1
 Environment=AUDIT_UI_SECURE_COOKIE=true
 Restart=on-failure
 RestartSec=5
