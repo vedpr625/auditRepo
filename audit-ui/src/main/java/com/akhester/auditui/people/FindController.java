@@ -223,7 +223,8 @@ public class FindController {
                 String where = v.facility() == null ? "" : facilityDir.names().getOrDefault(v.facility(), FacilityDirectory.tail(v.facility()));
                 String sub = (v.department() == null ? "" : v.department()) + (!where.isEmpty() && v.department() != null ? ", " : "") + where;
                 String url = "/?encounter=" + enc(v.id()) + "&range=all";
-                also.add(item("visit", "V", m("find.palette.visit", loc, v.id()), sub, m("find.palette.events", loc, v.events()), url, url, Map.of("encounter", v.id(), "range", "all")));
+                String page = "/encounter/" + enc(v.id()) + (v.patientId() == null ? "" : "?patient=" + enc(v.patientId()));   // Enter opens the encounter page, Ctrl+Enter searches the events
+                also.add(item("visit", "V", m("find.palette.visit", loc, v.id()), sub, m("find.palette.events", loc, v.events()), page, url, Map.of("encounter", v.id(), "range", "all")));
             }
         }
         if ((all || sc.equals("patient") || sc.equals("case")) && com.akhester.auditui.reviews.ReviewAccess.canViewAll()) {

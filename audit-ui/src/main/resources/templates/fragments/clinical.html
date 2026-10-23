@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<!--
+  Patient page tabs, consent card, Clinical 360, encounter list, access log, and the pieces the encounter page shares.
+  Everything reads the model of PatientController / EncounterController (decision, can, c360, view, lines, tf ...). Text comes from messages-clinical.properties.
+-->
+
+<!-- Tabs of the patient page -->
+<nav class="cl-tabs" th:fragment="tabs" th:attr="aria-label=#{clinical.tabs.label}">
+  <a th:href="@{/patient/{id}(id=${patientId},tab='overview')}" th:attr="aria-current=${tab == 'overview'} ? 'page' : null" th:text="#{clinical.tab.overview}">Overview</a>
+  <a th:href="@{/patient/{id}(id=${patientId},tab='clinical')}" th:attr="aria-current=${tab == 'clinical'} ? 'page' : null"><span th:text="#{clinical.tab.clinical}">Clinical 360</span><span class="cl-tab-lock" th:if="${!decision.covered()}" aria-hidden="true">&#128274;</span></a>
+  <a th:href="@{/patient/{id}(id=${patientId},tab='encounters')}" th:attr="aria-current=${tab == 'encounters'} ? 'page' : null"><span th:text="#{clinical.tab.encounters}">Encounters</span><span class="cl-tab-lock" th:if="${!decision.allows('encounters')}" aria-hidden="true">&#128274;</span></a>
+  <a th:href="@{/patient/{id}(id=${patientId},tab='access')}" th:attr="aria-current=${tab == 'access'} ? 'page' : null" th:text="#{clinical.tab.access}">Access log</a>
+  <a th:href="@{/patient/{id}(id=${patientId},tab='consent')}" th:attr="aria-current=${tab == 'consent'} ? 'page' : null" th:text="#{clinical.tab.consent}">Consent</a>
+</nav>
+
+<!-- Flag of a result: H, L, N or A, always a letter and a word, never colour alone -->
+<span th:fragment="flag(f)" th:if="${f != null}" class="cl-flag" th:classappend="'f-' + ${f}" th:title="#{'clinical.flag.' + ${f}}"><span aria-hidden="true" th:text="${f}">H</span><span class="sr-only" th:text="#{'clinical.flag.' + ${f}}">High</span></span>
+
+<!-- Tiny trend line of a result (two or more numbers); the grey band is the reference range -->
+<svg th:fragment="spark(r)" th:if="${r.spark != null}" class="cl-spark" viewBox="0 0 84 24" width="84" height="24" role="img"
+     th:attr="aria-label=#{clinical.spark.label(${r.count}, #{'clinical.trend.' + ${r.trend}})}">
+  <rect class="band" th:if="${r.spark.bandTop != null}" x="0" width="84" th:attr="y=${r.spark.bandTop},height=${r.spark.bandHeight}"></rect>
+  <polyline th:attr="points=${r.spark.points}" fill="none"></polyline>
+  <circle r="2.8" th:attr="cx=${r.spark.lastX},cy=${r.spark.lastY}" th:classappend="${r.flag != null and r.flag != 'N'} ? 'abn'"></circle>
+</svg>
+
+<!-- One test or vital sign with latest value and trend -->
+<li class="cl-res" th:fragment="resultRow(r)">
+  <div class="cl-res-name"><b th:text="${r.text}">Hemoglobin</b>
+    <span class="sub"><th:block th:if="${r.range != null}"><span th:text="#{clinical.res.range(${r.range})}">Range</span> · </th:block><span th:if="${r.at != null}" th:text="${tf.stamp(r.at)}">22 Oct</span></span></div>
+  <div class="cl-res-val"><b class="num" th:text="${r.latest}">12.1</b> <span class="cl-unit" th:text="${r.unit}">g/dL</span>
+    <th:block th:replace="~{fragments/clinical :: flag(${r.flag})}"></th:block>
+    <span class="sub" th:if="${r.previous != null}" th:text="#{clinical.res.before(${r.previous})}">before: 11.9</span></div>
+  <div class="cl-res-trend"><th:block th:replace="~{fragments/clinical :: spark(${r})}"></th:block>
+    <span class="sub" th:if="${r.trend != null}" th:text="#{'clinical.trend.' + ${r.trend}}">rising</span></div>
+</li>
+
+<!-- A section the consent does not cover -->
+<div class="cl-locked" th:fragment="locked(scope)">
+  <span class="cl-lockicon" aria-hidden="true">&#128274;</span>
+  <div><b th:text="#{clinical.locked.title}">Locked</b>
+    <span class="sub" th:text="#{clinical.locked.text(#{'clinical.scope.' + ${scope}})}">The consent does not cover this.</span>
+    <span class="sub" th:text="#{clinical.locked.why(#{'consent.reason.' + ${decision.reason ?: 'unknown'}})}">Reason</span></div>
+</div>
+
+<!-- A section the registry did not give: status is OK | NOT_PROVIDED | UNAVAILABLE -->
+<div class="cl-state" th:fragment="state(status)" th:if="${status != 'OK'}">
+  <span th:text="${status == 'NOT_PROVIDED'} ? #{clinical.notprovided} : #{clinical.unavailable}">Not provided by the registry</span>
+</div>
+
+<!-- Decision, reason, id, scopes, valid until -->
+<th:block th:fragment="consentFacts">
+  <div class="row-wrap cl-consent-now">
+    <span class="tag" th:classappend="${decision.result.name() == 'PERMIT'} ? 'tag-ok' : (${decision.result.name() == 'UNAVAILABLE'} ? 'tag-warn' : 'tag-bad')" th:text="#{'consent.result.' + ${decision.result.name()}}">Permitted</span>
+    <span class="tag tag-info tag-sm" th:if="${decision.limited()}" th:text="#{clinical.consent.limited}">Some sections only</span>
+    <span class="tag tag-warn tag-sm" th:if="${demo}" th:text="#{demo.tag}">Demo data</span>
+  </div>
+  <dl class="dl cl-dl">
+    <dt th:text="#{clinical.consent.reason}">Reason</dt><dd th:text="#{'consent.reason.' + ${decision.reason ?: 'unknown'}}">reason</dd>
+    <dt th:text="#{clinical.consent.id}">Consent id</dt><dd><span class="mono" th:if="${decision.consentId != null}" th:text="${decision.consentId}">id</span><span class="sub" th:if="${decision.consentId == null}" th:text="#{clinical.consent.noid}">None on file</span></dd>
+    <dt th:text="#{clinical.consent.until}">Valid until</dt>
+    <dd><span th:if="${decision.validUntil != null}" th:text="${tf.dayLong(decision.validUntil)}">Fri 22 Oct 2027</span>
+      <span class="tag tag-bad tag-sm" th:if="${decision.validUntil != null and decision.validUntil.isBefore(now)}" th:text="#{clinical.consent.expired}">Expired</span>
+      <span class="sub" th:if="${decision.validUntil == null}" th:text="#{clinical.consent.until.none}">No end date given</span></dd>
+    <dt th:text="#{clinical.consent.scopes}">Covers</dt>
+    <dd><ul class="cl-scopes">
+      <li th:each="sc : ${can.keySet()}" th:classappend="${can[sc]} ? 'on' : 'off'">
+        <span aria-hidden="true" th:text="${can[sc]} ? '&#10003;' : '&#128274;'">&#10003;</span>
+        <span th:text="#{'clinical.scope.' + ${sc}}">Conditions</span>
+        <span class="sr-only" th:text="${can[sc]} ? #{clinical.scope.on} : #{clinical.scope.off}">covered</span>
+      </li></ul></dd>
+  </dl>
+</th:block>
+
+<!-- Why clinical details are not shown (not permitted, no consent on file, service unavailable, or a permit that covers nothing), what is still visible, and the request -->
+<section class="panel cl-explain" th:fragment="explain" aria-labelledby="cl-explain-h" th:with="ek=${decision.permitted()} ? 'EMPTY' : ${decision.result.name()}">
+  <div class="panel-head"><h3 id="cl-explain-h" th:text="#{'clinical.explain.' + ${ek} + '.title'}">Clinical details are not shown</h3>
+    <span class="tag" th:classappend="${decision.result.name() == 'UNAVAILABLE'} ? 'tag-warn' : 'tag-bad'" th:text="#{'consent.result.' + ${decision.result.name()}}">Not permitted</span></div>
+  <div class="panel-pad cl-explain-grid">
+    <div>
+      <h4 th:text="#{clinical.explain.what}">What happened</h4>
+      <p th:text="#{'clinical.explain.' + ${ek} + '.what'}">The consent check did not permit this.</p>
+      <p class="sub" th:text="#{'consent.reason.' + ${decision.reason ?: 'unknown'}}">reason</p>
+      <p class="sub mono" th:if="${decision.consentId != null}" th:text="${decision.consentId}">id</p>
+    </div>
+    <div class="cl-vis">
+      <h4 th:text="#{clinical.explain.visible}">Still visible</h4>
+      <ul><li><span aria-hidden="true">&#10003;</span> <span th:text="#{clinical.explain.visible.audit}">Who looked at the record</span></li>
+          <li><span aria-hidden="true">&#10003;</span> <span th:text="#{clinical.explain.visible.flags}">Break-glass events, refused attempts and their review state</span></li></ul>
+    </div>
+    <div class="cl-hid">
+      <h4 th:text="#{clinical.explain.hidden}">Hidden</h4>
+      <ul><li><span aria-hidden="true">&#128274;</span> <span th:text="#{clinical.explain.hidden.clinical}">Conditions, medicines, results, allergies, procedures and visits recorded in the registry</span></li></ul>
+    </div>
+  </div>
+  <div class="panel-foot cl-ask">
+    <div class="notice notice-info" role="status" th:if="${requested == true}" th:text="#{clinical.request.sent}">Request sent.</div>
+    <span class="tag tag-warn" th:if="${pendingRequest == true and requested != true}" th:text="#{clinical.request.pending}">Waiting</span>
+    <form th:if="${pendingRequest != true and requested != true}" th:action="@{/patient/{id}/request-consent-access(id=${patientId})}" method="post" class="cl-ask-form">
+      <label class="field"><span class="sub" th:text="#{access.restricted.note.label}">Why do you need it?</span><input class="input" name="note" maxlength="300" autocomplete="off"></label>
+      <button class="btn btn-primary" type="submit" th:text="#{access.restricted.ask}">Ask the privacy officer for access</button>
+    </form>
+  </div>
+</section>
+
+<!-- Restricted patient: nothing is read -->
+<section class="panel acc-restricted" th:fragment="restricted" aria-labelledby="p-restricted">
+  <div class="panel-head"><h3 id="p-restricted" th:text="#{access.restricted.title}">Restricted record</h3><span class="tag tag-warn" th:text="#{access.restricted.badge}">Restricted record</span></div>
+  <div class="state">
+    <div class="state-icon warn" aria-hidden="true">&#128274;</div>
+    <h2 class="mono" th:text="${patientId}">P-1</h2>
+    <p th:text="#{access.restricted.text}">Marked sensitive.</p>
+    <p th:if="${pending == true}"><span class="tag tag-warn acc-pending" th:text="#{access.restricted.pending}">Waiting</span></p>
+    <form th:if="${pending != true}" th:action="@{/patient/{id}/request-access(id=${patientId})}" method="post" class="stack" style="max-width:380px;margin:0 auto;text-align:start">
+      <label class="field"><span class="sub" th:text="#{access.restricted.note.label}">Why?</span><input class="input" name="note" maxlength="300" autocomplete="off"></label>
+      <button class="btn btn-primary" type="submit" th:text="#{access.restricted.ask}">Ask the privacy officer for access</button>
+    </form>
+  </div>
+</section>
+
+<!-- ============ Clinical 360 ============ -->
+<th:block th:fragment="clinical360">
+  <th:block th:if="${!decision.covered()}"><th:block th:replace="~{fragments/clinical :: explain}"></th:block></th:block>
+  <th:block th:if="${decision.covered()}">
+    <div class="notice notice-bad" role="alert" th:if="${registryDown == true}" th:text="#{patient.registry.down}">Registry not answering</div>
+    <nav class="cl-jump" th:attr="aria-label=#{clinical.jump}">
+      <a href="#cl-allergies" th:text="#{clinical.c360.allergies}">Allergies</a><a href="#cl-conditions" th:text="#{clinical.c360.conditions}">Conditions</a><a href="#cl-meds" th:text="#{clinical.c360.meds}">Medicines</a>
+      <a href="#cl-vitals" th:text="#{clinical.c360.vitals}">Vitals</a><a href="#cl-labs" th:text="#{clinical.c360.labs}">Results</a><a href="#cl-timeline" th:text="#{clinical.c360.timeline}">Timeline</a>
+    </nav>
+
+    <!-- demographics strip -->
+    <section class="panel cl-strip" aria-labelledby="cl-strip-h">
+      <h3 id="cl-strip-h" class="sr-only" th:text="#{clinical.c360.demographics}">Who the patient is</h3>
+      <th:block th:if="${can['demographics'] and info != null and info.name != null}">
+        <div><span class="sub" th:text="#{clinical.strip.name}">Name</span><b th:text="${#strings.replace(info.name, ' (demo)', '')}">Kamal Mendis</b></div>
+        <div th:if="${ageYears != null}"><span class="sub" th:text="#{clinical.strip.age}">Age</span><b th:text="#{patient.age.years(${ageYears})}">41 years</b></div>
+        <div th:if="${sexLabel != null}"><span class="sub" th:text="#{clinical.strip.sex}">Sex</span><b th:text="${sexLabel}">Male</b></div>
+        <div th:if="${nic != null}"><span class="sub" th:text="#{patient.nic}">NIC</span><b th:text="${nic}">ending 4821</b></div>
+      </th:block>
+      <div th:if="${!can['demographics']}" class="cl-strip-lock"><span aria-hidden="true">&#128274;</span> <span class="sub" th:text="#{clinical.locked.text(#{'clinical.scope.demographics'})}">Locked</span></div>
+      <div th:if="${can['demographics'] and (info == null or info.name == null)}"><span class="sub" th:text="#{clinical.strip.name}">Name</span><b class="sub" th:text="#{clinical.notprovided}">Not provided</b></div>
+      <div><span class="sub" th:text="#{clinical.strip.id}">Patient id</span><b class="mono" th:text="${patientId}">P-10407</b></div>
+      <div th:if="${c360 != null and c360.current != null}"><span class="sub" th:text="#{clinical.strip.now}">Now</span><b th:text="#{clinical.strip.inward(${c360.current.ward ?: c360.current.facilityName ?: '—'})}">In Ward 7</b></div>
+      <div th:if="${c360 != null and c360.current == null and c360.encounterRows != null and !#lists.isEmpty(c360.encounterRows)}"><span class="sub" th:text="#{clinical.strip.last}">Last seen</span><b th:text="${tf.dayLong(c360.encounterRows[0].e.start)}">Thu 22 Oct 2026</b></div>
+      <div><span class="sub" th:text="#{clinical.strip.consent}">Consent</span><b th:text="#{clinical.strip.consent.n(${#lists.size(decision.scopes)}, ${#lists.size(can.keySet())})}">7 of 7 sections</b></div>
+      <div th:if="${c360 != null and c360.abnormalLabs > 0}"><span class="sub" th:text="#{clinical.strip.abn}">Results outside range</span><b class="cl-abn" th:text="${c360.abnormalLabs}">3</b></div>
+    </section>
+
+    <!-- allergies -->
+    <section class="panel cl-card" id="cl-allergies" aria-labelledby="cl-allergies-h">
+      <div class="panel-head"><h3 id="cl-allergies-h" th:text="#{clinical.c360.allergies}">Allergies</h3><span class="cl-src sub" th:text="#{clinical.src.alg}">AllergyIntolerance</span></div>
+      <div class="panel-pad">
+        <th:block th:if="${!can['allergies']}"><th:block th:replace="~{fragments/clinical :: locked('allergies')}"></th:block></th:block>
+        <th:block th:if="${can['allergies'] and c360 != null and c360.allergies != null}">
+          <th:block th:replace="~{fragments/clinical :: state(${c360.allergies.status.name()})}"></th:block>
+          <th:block th:if="${c360.allergies.status.name() == 'OK'}">
+            <ul class="cl-chips" th:if="${!#lists.isEmpty(c360.allergyList)}">
+              <li th:each="a : ${c360.allergyList}" class="cl-chip" th:classappend="${a.high} ? 'high'">
+                <b th:text="${a.text}">Penicillin</b>
+                <span th:if="${a.reaction != null}" th:text="${a.reaction}">Anaphylaxis</span>
+                <span class="cl-chip-tag" th:if="${a.criticality != null}" th:text="#{'clinical.crit.' + ${a.criticality}}">High risk</span>
+              </li></ul>
+            <div class="cl-none ok" th:if="${c360.noKnownAllergy}"><span aria-hidden="true">&#10003;</span> <span th:text="#{clinical.allergy.none}">No known allergies</span></div>
+            <div class="cl-none" th:if="${#lists.isEmpty(c360.allergyList) and !c360.noKnownAllergy}" th:text="#{clinical.allergy.empty}">Nothing recorded</div>
+          </th:block>
+        </th:block>
+      </div>
+    </section>
+
+    <div class="cl-two">
+      <!-- conditions -->
+      <section class="panel cl-card" id="cl-conditions" aria-labelledby="cl-conditions-h">
+        <div class="panel-head"><h3 id="cl-conditions-h" th:text="#{clinical.c360.conditions}">Active conditions</h3><span class="cl-src sub" th:text="#{clinical.src.cond}">Condition</span></div>
+        <div class="panel-pad">
+          <th:block th:if="${!can['conditions']}"><th:block th:replace="~{fragments/clinical :: locked('conditions')}"></th:block></th:block>
+          <th:block th:if="${can['conditions'] and c360 != null and c360.conditions != null}">
+            <th:block th:replace="~{fragments/clinical :: state(${c360.conditions.status.name()})}"></th:block>
+            <th:block th:if="${c360.conditions.status.name() == 'OK'}">
+              <ul class="cl-list">
+                <li th:each="c : ${c360.activeConditions}"><div><b th:text="${c.text}">Type 2 diabetes mellitus</b><span class="sub"><span class="mono" th:if="${c.code != null}" th:text="${c.code}">E11.9</span><th:block th:if="${c.onset != null}"> · <span th:text="#{clinical.since(${tf.dayLong(c.onset)})}">since 2019</span></th:block></span></div></li>
+              </ul>
+              <div class="cl-none" th:if="${#lists.isEmpty(c360.activeConditions)}" th:text="#{clinical.cond.none}">No active conditions recorded</div>
+              <details class="cl-past" th:if="${!#lists.isEmpty(c360.pastConditions)}">
+                <summary th:text="#{clinical.cond.past(${#lists.size(c360.pastConditions)})}">Resolved (2)</summary>
+                <ul class="cl-list"><li th:each="c : ${c360.pastConditions}"><div><b th:text="${c.text}">Pneumonia</b><span class="sub"><span th:text="#{clinical.cond.resolved}">Resolved</span><th:block th:if="${c.abated != null}"> · <span th:text="${tf.dayLong(c.abated)}">22 Oct 2026</span></th:block></span></div></li></ul>
+              </details>
+            </th:block>
+          </th:block>
+        </div>
+      </section>
+
+      <!-- medicines -->
+      <section class="panel cl-card" id="cl-meds" aria-labelledby="cl-meds-h">
+        <div class="panel-head"><h3 id="cl-meds-h" th:text="#{clinical.c360.meds}">Current medicines</h3><span class="cl-src sub" th:text="#{clinical.src.med}">MedicationRequest</span></div>
+        <div class="panel-pad">
+          <th:block th:if="${!can['medications']}"><th:block th:replace="~{fragments/clinical :: locked('medications')}"></th:block></th:block>
+          <th:block th:if="${can['medications'] and c360 != null and c360.medications != null}">
+            <th:block th:replace="~{fragments/clinical :: state(${c360.medications.status.name()})}"></th:block>
+            <th:block th:if="${c360.medications.status.name() == 'OK'}">
+              <ul class="cl-list">
+                <li th:each="m : ${c360.currentMeds}"><div><b th:text="${m.text}">Metformin</b><span class="sub"><span th:text="${m.dose}">850 mg twice daily</span><th:block th:if="${m.authoredOn != null}"> · <span th:text="${tf.dayLong(m.authoredOn)}">22 Oct</span></th:block><th:block th:if="${m.requester != null}"> · <span th:text="${m.requester}">Dr. N. Perera</span></th:block></span></div></li>
+              </ul>
+              <div class="cl-none" th:if="${#lists.isEmpty(c360.currentMeds)}" th:text="#{clinical.med.none}">No current medicines recorded</div>
+              <details class="cl-past" th:if="${!#lists.isEmpty(c360.pastMeds)}">
+                <summary th:text="#{clinical.med.past(${#lists.size(c360.pastMeds)})}">Past medicines (3)</summary>
+                <ul class="cl-list"><li th:each="m : ${c360.pastMeds}"><div><b th:text="${m.text}">Azithromycin</b><span class="sub"><span th:text="${m.dose}">500 mg</span> · <span th:text="#{'clinical.medstatus.' + ${m.status ?: 'unknown'}}">Completed</span><th:block th:if="${m.authoredOn != null}"> · <span th:text="${tf.dayLong(m.authoredOn)}">17 Oct</span></th:block></span></div></li></ul>
+              </details>
+            </th:block>
+          </th:block>
+        </div>
+      </section>
+    </div>
+
+    <div class="cl-two">
+      <!-- vitals -->
+      <section class="panel cl-card" id="cl-vitals" aria-labelledby="cl-vitals-h">
+        <div class="panel-head"><h3 id="cl-vitals-h" th:text="#{clinical.c360.vitals}">Latest vital signs</h3><span class="cl-src sub" th:text="#{clinical.src.obs}">Observation</span></div>
+        <div class="panel-pad">
+          <th:block th:if="${!can['labs']}"><th:block th:replace="~{fragments/clinical :: locked('labs')}"></th:block></th:block>
+          <th:block th:if="${can['labs'] and c360 != null and c360.observations != null}">
+            <th:block th:replace="~{fragments/clinical :: state(${c360.observations.status.name()})}"></th:block>
+            <th:block th:if="${c360.observations.status.name() == 'OK'}">
+              <ul class="cl-reslist"><th:block th:each="r : ${c360.vitals}"><th:block th:replace="~{fragments/clinical :: resultRow(${r})}"></th:block></th:block></ul>
+              <div class="cl-none" th:if="${#lists.isEmpty(c360.vitals)}" th:text="#{clinical.vitals.none}">No vital signs recorded</div>
+            </th:block>
+          </th:block>
+        </div>
+      </section>
+
+      <!-- lab results -->
+      <section class="panel cl-card" id="cl-labs" aria-labelledby="cl-labs-h">
+        <div class="panel-head"><h3 id="cl-labs-h" th:text="#{clinical.c360.labs}">Laboratory results</h3><span class="cl-src sub" th:text="#{clinical.src.obs}">Observation</span></div>
+        <div class="panel-pad">
+          <th:block th:if="${!can['labs']}"><th:block th:replace="~{fragments/clinical :: locked('labs')}"></th:block></th:block>
+          <th:block th:if="${can['labs'] and c360 != null and c360.observations != null}">
+            <th:block th:replace="~{fragments/clinical :: state(${c360.observations.status.name()})}"></th:block>
+            <th:block th:if="${c360.observations.status.name() == 'OK'}">
+              <ul class="cl-reslist"><th:block th:each="r : ${c360.labs}"><th:block th:replace="~{fragments/clinical :: resultRow(${r})}"></th:block></th:block></ul>
+              <div class="cl-none" th:if="${#lists.isEmpty(c360.labs)}" th:text="#{clinical.labs.none}">No laboratory results recorded</div>
+            </th:block>
+          </th:block>
+        </div>
+      </section>
+    </div>
+
+    <!-- timeline -->
+    <section class="panel cl-card" id="cl-timeline" aria-labelledby="cl-timeline-h">
+      <div class="panel-head"><h3 id="cl-timeline-h" th:text="#{clinical.c360.timeline}">Timeline</h3><span class="sub" th:text="#{clinical.tl.help}">Visits, procedures and results, with who looked.</span></div>
+      <div class="panel-pad">
+        <th:block th:if="${c360 != null}"><th:block th:replace="~{fragments/clinical :: timeline(${c360.timeline})}"></th:block></th:block>
+        <div class="cl-none" th:if="${c360 != null and #lists.isEmpty(c360.timeline)}" th:text="#{clinical.tl.none}">Nothing to show</div>
+        <div class="cl-state" th:if="${c360 != null and c360.procedures == null and can['procedures'] == false}"><span aria-hidden="true">&#128274;</span> <span th:text="#{clinical.tl.proc.locked}">Procedures are not shown: the consent does not cover them.</span></div>
+        <div class="cl-state" th:if="${c360 != null and c360.procedures != null and c360.procedures.status.name() != 'OK'}"><span th:text="#{clinical.tl.proc.state}">Procedures: not provided by the registry.</span></div>
+        <div class="cl-state" th:if="${c360 != null and c360.encounters != null and c360.encounters.status.name() != 'OK'}"><span th:text="#{clinical.tl.enc.state}">Visits: not provided by the registry.</span></div>
+      </div>
+      <div class="panel-foot sub" th:text="#{clinical.tl.note}">Access counts come from the audit records of the same encounter or day.</div>
+    </section>
+  </th:block>
+</th:block>
+
+<!-- Timeline items. Usage: ~{fragments/clinical :: timeline(${items})} -->
+<ol class="cl-tl" th:fragment="timeline(items)" th:if="${!#lists.isEmpty(items)}">
+  <li th:each="it : ${items}" th:class="'cl-tl-item k-' + ${it.kind}">
+    <span class="cl-tl-dot" aria-hidden="true" th:classappend="${it.kind == 'btg'} ? 'btg' : (${it.encounterKind == 'emergency'} ? 'emergency' : '')"></span>
+    <div class="cl-tl-when">
+      <th:block th:if="${it.at != null}"><span class="mono" th:if="${tf.showExact}" th:text="${tf.brief(it.at)}">23 Oct, 10:29</span>
+        <span class="sub" th:if="${tf.showRelative}" th:text="${tf.relative(it.at)}">4 min ago</span></th:block>
+      <span class="sub" th:if="${it.at == null}" th:text="#{clinical.tl.undated}">No date</span>
+    </div>
+    <div class="cl-tl-body">
+      <div class="cl-tl-title">
+        <span class="tag tag-sm" th:classappend="${it.kind == 'btg'} ? 'tag-btg' : (${it.kind == 'encounter'} ? 'tag-info' : 'tag-off')" th:text="#{'clinical.tl.kind.' + ${it.kind}}">Visit</span>
+        <b th:if="${it.kind == 'encounter' or it.kind == 'procedure'}" th:text="${it.title}">Outpatient consultation</b>
+        <b th:if="${it.kind == 'result'}"><th:block th:if="${it.labs > 0}" th:text="#{clinical.tl.labs(${it.labs})}">3 lab results</th:block><th:block th:if="${it.labs > 0 and it.vitals > 0}">, </th:block><th:block th:if="${it.vitals > 0}" th:text="#{clinical.tl.vitals(${it.vitals})}">2 vital signs</th:block></b>
+        <b th:if="${it.kind == 'btg'}" th:text="#{clinical.tl.btg(${it.title})}">Break-glass access by Nurse</b>
+        <span class="cl-flag f-A" th:if="${it.kind == 'result' and it.outside > 0}" th:text="#{clinical.tl.outside(${it.outside})}">2 outside range</span>
+      </div>
+      <div class="sub" th:if="${it.sub != null and it.kind != 'result'}" th:text="${it.kind == 'btg'} ? '“' + ${it.sub} + '”' : ${it.sub}">Ward 7 · Colombo NH</div>
+      <div class="sub" th:if="${it.sub != null and it.kind == 'result'}" th:text="${it.sub}">Hemoglobin, CRP</div>
+      <div class="sub" th:if="${it.kind == 'btg'}" th:text="#{'patient.visit.btg.review.' + ${it.reviewState ?: 'pending'}}">Not yet reviewed.</div>
+      <div class="cl-tl-access" th:if="${it.kind != 'btg' and it.link != null}">
+        <a th:href="@{${it.link}}" th:text="${it.access == 0} ? #{clinical.tl.access.none} : (${it.linkKind == 'encounter'} ? #{clinical.tl.access.enc(${it.access})} : #{clinical.tl.access.day(${it.access})})">12 access records</a>
+        <span class="tag tag-btg tag-sm" th:if="${it.btg > 0}" th:text="#{clinical.tl.btgn(${it.btg})}">1 break-glass</span>
+      </div>
+      <div class="cl-tl-access" th:if="${it.kind == 'btg' and it.link != null}"><a th:href="@{${it.link}}" th:text="${it.linkKind == 'encounter'} ? #{clinical.tl.open.enc} : #{clinical.tl.open.day}">Open</a></div>
+    </div>
+  </li>
+</ol>
+
+<!-- ============ Encounters tab ============ -->
+<th:block th:fragment="encounters">
+  <th:block th:if="${!decision.covered()}"><th:block th:replace="~{fragments/clinical :: explain}"></th:block></th:block>
+  <th:block th:if="${decision.covered()}">
+    <section class="panel" aria-labelledby="cl-enc-h">
+      <div class="panel-head"><h3 id="cl-enc-h" th:text="#{clinical.enc.head}">Encounters in the registry</h3><span class="cl-src sub" th:text="#{clinical.src.enc}">Encounter</span></div>
+      <div class="panel-pad" th:if="${!can['encounters']}"><th:block th:replace="~{fragments/clinical :: locked('encounters')}"></th:block></div>
+      <th:block th:if="${can['encounters'] and c360 != null and c360.encounters != null}">
+        <div class="panel-pad" th:if="${c360.encounters.status.name() != 'OK'}"><th:block th:replace="~{fragments/clinical :: state(${c360.encounters.status.name()})}"></th:block></div>
+        <div class="panel-pad cl-none" th:if="${c360.encounters.status.name() == 'OK' and #lists.isEmpty(c360.encounterRows)}" th:text="#{clinical.enc.none}">No encounters recorded</div>
+        <article class="cl-enc" th:each="r : ${c360.encounterRows}">
+          <span class="pt-dot" th:classappend="${r.e.kind == 'emergency'} ? 'emergency' : (${r.e.kind == 'other'} ? 'other' : '')" aria-hidden="true"></span>
+          <div class="grow">
+            <div class="cl-enc-title"><b th:text="${r.e.type ?: r.e.classDisplay ?: #messages.msg('clinical.enc.untyped')}">Outpatient consultation</b>
+              <span class="tag tag-sm tag-info" th:text="#{'clinical.class.' + ${r.e.kind}}">Outpatient</span>
+              <span class="tag tag-sm tag-ok" th:if="${r.e.current}" th:text="#{patient.stay.now}">Admitted</span></div>
+            <span class="sub"><span th:text="${r.e.facilityName != null ? #strings.replace(r.e.facilityName, ' (demo)', '') : '—'}">Colombo NH</span><th:block th:if="${r.e.ward != null}"> · <span th:text="${r.e.ward}">Ward 7</span></th:block>
+              <th:block th:if="${r.e.attending != null}"> · <span th:text="${r.e.attending}">Dr. A. Silva</span></th:block></span>
+            <span class="sub" th:if="${r.e.reason != null}" th:text="#{clinical.enc.reason(${r.e.reason})}">Reason</span>
+            <span class="sub" th:if="${!#lists.isEmpty(r.e.diagnoses)}"><span th:text="#{clinical.enc.dx}">Diagnoses</span>: <th:block th:each="d, st : ${r.e.diagnoses}"><span th:text="${d.text}">Pneumonia</span><th:block th:if="${!st.last}">, </th:block></th:block></span>
+          </div>
+          <div class="cl-enc-side">
+            <span class="mono" th:text="${tf.dayRange(r.e.start, r.e.end)}">18 to 20 Oct 2026</span>
+            <span class="sub" th:text="${tf.agoRange(r.e.start, r.e.end)}">3 days ago</span>
+            <a th:href="@{${r.link}}" th:text="${r.access == 0} ? #{clinical.tl.access.none} : #{clinical.enc.looked(${r.access}, ${r.people})}">29 records, 9 people</a>
+            <span class="tag tag-btg tag-sm" th:if="${r.btg > 0}" th:text="#{clinical.tl.btgn(${r.btg})}">1 break-glass</span>
+          </div>
+        </article>
+      </th:block>
+    </section>
+  </th:block>
+</th:block>
+
+<!-- ============ Access log tab ============ -->
+<th:block th:fragment="accesslog">
+  <section class="panel" aria-labelledby="cl-acc-h">
+    <div class="panel-head"><h3 id="cl-acc-h" th:text="#{clinical.acc.head}">Every access record for this patient</h3>
+      <span class="sub"><th:block th:if="${accessDay != null}"><span th:text="#{clinical.acc.day(${tf.dayLong(accessDayInstant)})}">Day</span> · <a th:href="@{/patient/{id}(id=${patientId},tab='access')}" th:text="#{clinical.acc.alldays}">Show all days</a></th:block></span></div>
+    <div class="table-wrap">
+      <table class="table table-plain table-cards">
+        <thead><tr><th th:text="#{clinical.col.when}">When</th><th th:text="#{clinical.col.who}">Person</th><th th:text="#{clinical.col.role}">Role</th><th th:text="#{clinical.col.system}">System</th>
+          <th th:text="#{clinical.col.what}">What</th><th th:text="#{clinical.col.purpose}">Purpose</th><th th:text="#{clinical.col.result}">Result</th><th th:text="#{clinical.col.visit}">Visit</th></tr></thead>
+        <tbody>
+          <tr th:each="l : ${accessLines}">
+            <th:block th:replace="~{fragments/clinical :: accessCells(${l}, true)}"></th:block>
+          </tr>
+          <tr th:if="${#lists.isEmpty(accessLines)}"><td colspan="8" class="sub" th:text="#{clinical.acc.none}">No access records</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="panel-foot sub" th:if="${accessTotalShown > #lists.size(accessLines)}" th:text="#{clinical.acc.cap(${#lists.size(accessLines)}, ${accessTotalShown})}">Cap</div>
+    <div class="panel-foot sub" th:text="#{clinical.acc.help}">Newest first.</div>
+  </section>
+</th:block>
+
+<!-- The cells of one access record. withVisit adds the link to the encounter. -->
+<th:block th:fragment="accessCells(l, withVisit)">
+  <td th:attr="data-label=#{clinical.col.when}"><div><span class="mono" th:if="${tf.showExact}" th:text="${tf.stamp(l.row.recordedInstant)}">22 Oct 09:41 IST</span> <span class="sub" th:if="${tf.showRelative}" th:text="${tf.relative(l.row.recordedInstant)}">1 day ago</span></div></td>
+  <td th:attr="data-label=#{clinical.col.who}"><div th:text="${l.row.agentName}">Dr. N. Perera</div></td>
+  <td th:attr="data-label=#{clinical.col.role}"><div th:text="#{'people.role.' + ${l.role}}">Practitioner</div></td>
+  <td th:attr="data-label=#{clinical.col.system}"><div><span th:text="${l.row.submittedBy == null} ? '—' : ${systemNames.getOrDefault(l.row.submittedBy, l.row.submittedBy)}">HHIMS</span>
+    <span class="tag tag-bad tag-sm" th:if="${l.link == 'none'}" th:text="#{patient.link.none}">No link</span>
+    <span class="tag tag-off tag-sm" th:if="${l.link == 'unknown'}" th:text="#{patient.link.unknown}">Unknown</span></div></td>
+  <td th:attr="data-label=#{clinical.col.what}"><div><span th:text="${#messages.msgOrNull('patient.what.' + (l.row.action ?: 'R') + '.' + l.row.submittedBy) ?: #messages.msg('patient.what.' + (l.row.action ?: 'R'))}">Viewed patient record</span>
+    <span class="tag tag-btg tag-sm" th:if="${l.row.breakGlass}" th:text="#{patient.visit.btg}">Break-glass</span></div></td>
+  <td th:attr="data-label=#{clinical.col.purpose}"><div th:text="${l.row.purposeLabel}">Treatment</div></td>
+  <td th:attr="data-label=#{clinical.col.result}"><div><span class="tag" th:classappend="${l.row.outcomeCode == null or l.row.outcomeCode == '0'} ? 'tag-ok' : 'tag-bad'" th:text="${l.row.outcomeCode == null or l.row.outcomeCode == '0'} ? #{patient.outcome.ok} : #{patient.outcome.refused}">OK</span></div></td>
+  <td th:if="${withVisit}" th:attr="data-label=#{clinical.col.visit}"><div><a class="mono" th:if="${l.row.encounterRef != null}" th:href="@{/encounter/{eid}(eid=${#strings.replace(l.row.encounterRef, 'Encounter/', '')})}" th:text="${#strings.replace(l.row.encounterRef, 'Encounter/', '')}">E-88213</a><span class="sub" th:if="${l.row.encounterRef == null}">—</span></div></td>
+</th:block>
+
+<!-- ============ Consent tab ============ -->
+<th:block th:fragment="consenttab">
+  <div class="split">
+    <div class="grow stack-lg">
+      <section class="panel" aria-labelledby="cl-cons-h">
+        <div class="panel-head"><h3 id="cl-cons-h" th:text="#{clinical.consent.head}">Consent</h3></div>
+        <div class="panel-pad stack-sm">
+          <th:block th:replace="~{fragments/clinical :: consentFacts}"></th:block>
+          <span class="sub" th:text="#{patient.consent.logged}">This check was recorded.</span>
+        </div>
+      </section>
+      <th:block th:if="${!decision.covered()}"><th:block th:replace="~{fragments/clinical :: explain}"></th:block></th:block>
+    </div>
+    <div class="side cl-side-wide">
+      <section class="panel" aria-labelledby="cl-checks-h">
+        <div class="panel-head"><h3 id="cl-checks-h" th:text="#{clinical.consent.checks}">Consent checks for this patient</h3></div>
+        <div class="table-wrap">
+          <table class="table table-plain">
+            <thead><tr><th th:text="#{clinical.consent.col.who}">Checked by</th><th th:text="#{clinical.consent.col.when}">When</th><th th:text="#{clinical.consent.col.decision}">Decision</th></tr></thead>
+            <tbody>
+              <tr th:each="c : ${consentChecks}">
+                <td><div><b th:text="${c.username}">priya.admin</b><span class="sub" th:if="${c.role != null}" th:text="#{'role.' + ${c.role}}">Audit admin</span></div></td>
+                <td><div><span class="mono" th:if="${tf.showExact}" th:text="${tf.stamp(c.at)}">22 Oct 09:41</span> <span class="sub" th:if="${tf.showRelative}" th:text="${tf.relative(c.at)}">1 h ago</span></div></td>
+                <td><div><span class="tag" th:classappend="${c.decision == 'permit'} ? 'tag-ok' : (${c.decision == 'unavailable'} ? 'tag-warn' : 'tag-bad')" th:text="#{'consent.result.' + ${#strings.toUpperCase(c.decision)}}">Permitted</span>
+                  <span class="sub" th:if="${c.reason != null}" th:text="#{'consent.reason.' + ${c.reason}}">reason</span></div></td>
+              </tr>
+              <tr th:if="${#lists.isEmpty(consentChecks)}"><td colspan="3" class="sub" th:text="#{clinical.consent.checks.none}">No checks recorded yet.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="panel-foot sub" th:text="#{clinical.consent.checks.help}">Every time someone opens this patient, the consent service is asked and the answer is written here.</div>
+      </section>
+    </div>
+  </div>
+</th:block>
+
+<!-- Overview side card: short consent summary -->
+<section class="panel" th:fragment="consentSummary" aria-labelledby="p-consent">
+  <div class="panel-head"><h3 id="p-consent" th:text="#{clinical.consent.head}">Consent</h3><a class="sub" th:href="@{/patient/{id}(id=${patientId},tab='consent')}" th:text="#{clinical.consent.details}">Details</a></div>
+  <div class="panel-pad stack-sm">
+    <div class="row-wrap cl-consent-now">
+      <span class="tag" th:classappend="${decision.result.name() == 'PERMIT'} ? 'tag-ok' : (${decision.result.name() == 'UNAVAILABLE'} ? 'tag-warn' : 'tag-bad')" th:text="#{'consent.result.' + ${decision.result.name()}}">Permitted</span>
+      <span class="tag tag-info tag-sm" th:if="${decision.limited()}" th:text="#{clinical.consent.limited}">Some sections only</span>
+      <span class="tag tag-warn tag-sm" th:if="${demo}" th:text="#{demo.tag}">Demo data</span></div>
+    <span class="sub" th:text="#{'consent.reason.' + ${decision.reason ?: 'unknown'}}">reason</span>
+    <span class="sub" th:if="${decision.permitted()}" th:text="#{clinical.strip.consent.n(${#lists.size(decision.scopes)}, ${#lists.size(can.keySet())})}">7 of 7 sections</span>
+    <span class="sub" th:if="${decision.validUntil != null}" th:text="#{clinical.consent.until.short(${tf.dayLong(decision.validUntil)})}">Valid until</span>
+    <span class="sub mono" th:if="${decision.consentId != null}" th:text="${decision.consentId}">id</span>
+    <span class="sub" th:text="#{patient.consent.logged}">This check was recorded.</span>
+  </div>
+</section>
+
+</body>
+</html>

@@ -27,4 +27,11 @@ public class ConsentLogRepository {
             (rs, i) -> new Entry(rs.getObject(1, OffsetDateTime.class).toInstant(), rs.getString(2), rs.getString(3), rs.getString(4),
                 rs.getString(5), rs.getString(6), rs.getString(7)), limit);
     }
+
+    /** The newest checks made for one patient (who asked, as which role, when, and the answer). */
+    public List<Entry> forPatient(String patientRef, int limit) {
+        return jdbc.query("SELECT checked_at, username, patient_ref, actor_role, purpose, decision, reason FROM consent_check_log WHERE patient_ref = ? ORDER BY id DESC LIMIT ?",
+            (rs, i) -> new Entry(rs.getObject(1, OffsetDateTime.class).toInstant(), rs.getString(2), rs.getString(3), rs.getString(4),
+                rs.getString(5), rs.getString(6), rs.getString(7)), patientRef, limit);
+    }
 }

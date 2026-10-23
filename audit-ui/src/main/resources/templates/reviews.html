@@ -96,7 +96,8 @@
                   <td th:attr="data-label=#{reviews.col.who}"><div th:text="${r.agentName}">Dr</div></td>
                   <td th:attr="data-label=#{reviews.col.purpose}"><div><th:block th:text="${r.purposeLabel}">Treatment</th:block><span class="sub" th:if="${r.breakGlass && r.breakGlassReason != null}" th:text="'“' + ${r.breakGlassReason} + '”'">reason</span></div></td>
                   <td th:attr="data-label=#{reviews.col.where}"><div th:text="${T(com.akhester.auditui.reviews.Labels).facility(r.facility)}">Galle TH</div></td>
-                  <td th:attr="data-label=#{reviews.col.patient}"><div class="mono" th:text="${#strings.substringAfter(r.patientRef, 'Patient/')}">P-1</div></td>
+                  <td th:attr="data-label=#{reviews.col.patient}"><div class="mono" th:text="${#strings.substringAfter(r.patientRef, 'Patient/')}">P-1</div>
+                    <a class="mono sub" th:if="${r.encounterRef != null}" th:href="@{/encounter/{eid}(eid=${#strings.substringAfter(r.encounterRef, 'Encounter/')})}" th:text="${#strings.substringAfter(r.encounterRef, 'Encounter/')}">E-1</a></td>
                 </tr></tbody>
               </table>
             </div>

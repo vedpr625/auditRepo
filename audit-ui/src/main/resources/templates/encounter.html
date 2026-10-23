@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}"
+      th:attr="data-theme=${prefs.themeAttr()},data-density=${prefs.densityAttr()}">
+<head th:replace="~{fragments/layout :: headx(#{encounter.title}, 'page-clinical.css')}"></head>
+<body>
+<th:block th:replace="~{fragments/layout :: header('people')}"></th:block>
+<main id="main" class="page">
+  <div class="breadcrumb"><a th:href="@{/people}" th:text="#{patient.back}">People and patients</a> / <a th:href="@{/people(tab='patients')}" th:text="#{patient.crumb.patients}">Patients</a>
+    <th:block th:if="${patientId != null}"> / <a class="mono" th:href="@{/patient/{id}(id=${patientId})}" th:text="${patientId}">P-1</a></th:block>
+    / <b class="mono" th:text="${encounterId}">E-1</b></div>
+
+  <!-- Nothing visible to this person (or no such encounter: same words on purpose) -->
+  <div th:if="${state == 'notfound'}" class="panel"><div class="state"><h2 th:text="#{encounter.notfound.title}">Nothing found</h2><p th:text="#{encounter.notfound.text}">No records you can see.</p>
+    <a class="btn" th:href="@{/people}" th:text="#{nav.people}">People and patients</a></div></div>
+  <div th:if="${state == 'chester'}" class="panel"><div class="state"><div class="state-icon bad" aria-hidden="true">!</div><h2 th:text="#{state.chester.down.title}">Down</h2><p th:text="#{state.chester.down.text}">Try again.</p></div></div>
+
+  <th:block th:if="${state == 'restricted'}">
+    <div class="notice notice-warn" role="status"><b th:text="#{encounter.restricted}">The patient of this encounter is a restricted record.</b></div>
+    <th:block th:replace="~{fragments/clinical :: restricted}"></th:block>
+  </th:block>
+
+  <th:block th:if="${state == 'shown' or state == 'withheld'}"
+            th:with="e=${view != null ? view.enc : null}, kind=${e != null ? e.kind : null}">
+
+    <!-- header -->
+    <section class="panel en-head" aria-labelledby="en-title">
+      <div class="en-head-top">
+        <span class="pt-dot" th:classappend="${kind == 'emergency'} ? 'emergency' : (${kind == null or kind == 'other'} ? 'other' : '')" aria-hidden="true"></span>
+        <div class="grow">
+          <h1 id="en-title"><span th:if="${e != null}" th:text="${e.type ?: e.classDisplay ?: #messages.msg('clinical.enc.untyped')}">Outpatient consultation</span>
+            <span th:if="${e == null}" th:text="#{encounter.word}">Encounter</span>
+            <span class="mono en-id" th:text="${encounterId}">E-81728</span></h1>
+          <span class="sub"><span th:text="#{patient.word}">Patient</span> <a class="mono" th:href="@{/patient/{id}(id=${patientId})}" th:text="${patientId}">P-10407</a>
+            <th:block th:if="${patientName != null}"> · <b th:text="${patientName}">Kamal Mendis</b></th:block></span>
+        </div>
+        <div class="pt-kpis">
+          <div><b th:text="${#lists.size(lines)}">0</b><span th:text="#{encounter.k.events}">events</span></div>
+          <div><b th:text="${people}">0</b><span th:text="#{patient.k.people}">people</span></div>
+          <div><b th:text="${systemCount}">0</b><span th:text="#{patient.k.systems}">systems</span></div>
+          <div th:class="${#lists.size(btgLines) > 0} ? 'warn'"><b th:text="${#lists.size(btgLines)}">0</b><span th:text="#{patient.k.btg}">break-glass</span></div>
+        </div>
+      </div>
+
+      <!-- what the registry says about the encounter itself (needs the encounters part of the consent) -->
+      <div class="panel-pad" th:if="${state == 'shown' and can['encounters'] == false}"><th:block th:replace="~{fragments/clinical :: locked('encounters')}"></th:block></div>
+      <div class="panel-pad" th:if="${state == 'shown' and can['encounters'] and view != null and view.header != null and view.header.status.name() != 'OK'}"><th:block th:replace="~{fragments/clinical :: state(${view.header.status.name()})}"></th:block></div>
+      <dl class="en-facts" th:if="${e != null}">
+        <div><dt th:text="#{encounter.f.class}">Class</dt><dd><span class="tag tag-info" th:text="#{'clinical.class.' + ${kind}}">Outpatient</span>
+          <span class="tag tag-ok tag-sm" th:if="${e.current}" th:text="#{patient.stay.now}">Admitted</span></dd></div>
+        <div><dt th:text="#{encounter.f.period}">Period</dt><dd><span th:text="${tf.stamp(e.start)}">22 Oct 09:00 IST</span><th:block th:if="${e.end != null}"> &ndash; <span th:text="${tf.stamp(e.end)}">22 Oct 10:30 IST</span></th:block>
+          <span class="sub" th:if="${e.end == null}" th:text="#{encounter.f.ongoing}">Still in progress</span></dd></div>
+        <div><dt th:text="#{encounter.f.facility}">Facility</dt><dd th:text="${e.facilityName != null ? #strings.replace(e.facilityName, ' (demo)', '') : (e.facilityRef != null ? fnames.getOrDefault(e.facilityRef, e.facilityRef) : '—')}">Colombo NH</dd></div>
+        <div><dt th:text="#{encounter.f.ward}">Ward or unit</dt><dd th:text="${e.ward ?: '—'}">OPD-3</dd></div>
+        <div><dt th:text="#{encounter.f.reason}">Reason</dt><dd th:text="${e.reason ?: '—'}">Diabetes review</dd></div>
+        <div><dt th:text="#{encounter.f.attending}">Attending</dt><dd><span th:text="${e.attending ?: '—'}">Dr. N. Perera</span>
+          <span class="sub" th:if="${!#lists.isEmpty(e.others)}" th:text="#{encounter.f.also(${#strings.listJoin(e.others, ', ')})}">Also: ...</span></dd></div>
+        <div><dt th:text="#{encounter.f.provider}">Provider</dt><dd th:text="${e.providerName != null ? #strings.replace(e.providerName, ' (demo)', '') : '—'}">National Hospital Colombo</dd></div>
+        <div th:if="${e.id != null and e.id != encounterId}"><dt th:text="#{encounter.f.regid}">Registry number</dt><dd class="mono" th:text="${e.id}">E-88213</dd></div>
+        <div th:if="${e.disposition != null}"><dt th:text="#{encounter.f.disposition}">Outcome</dt><dd th:text="${e.disposition}">Home</dd></div>
+      </dl>
+      <!-- audit-only fallback: where the records say it happened -->
+      <dl class="en-facts" th:if="${e == null and (auditFacility != null or auditDept != null)}">
+        <div th:if="${auditFacility != null}"><dt th:text="#{encounter.f.facility}">Facility</dt><dd th:text="${auditFacility}">Colombo NH</dd></div>
+        <div th:if="${auditDept != null}"><dt th:text="#{encounter.f.ward}">Ward or unit</dt><dd th:text="${auditDept}">OPD-3</dd></div>
+        <div><dt th:text="#{encounter.f.source}">Source</dt><dd class="sub" th:text="#{encounter.f.audit}">From the audit records</dd></div>
+      </dl>
+      <div class="panel-pad" th:if="${state == 'shown' and can['encounters'] and e == null and view != null and view.header != null and view.header.status.name() == 'OK'}">
+        <span class="cl-state" th:text="#{encounter.f.notinregistry}">The registry has no encounter with this number.</span></div>
+    </section>
+
+    <div class="notice notice-bad" role="alert" th:if="${registryDown == true}" th:text="#{patient.registry.down}">Registry not answering</div>
+
+    <!-- consent: not permitted -->
+    <th:block th:if="${!decision.covered()}"><th:block th:replace="~{fragments/clinical :: explain}"></th:block></th:block>
+
+    <!-- break-glass callout -->
+    <section class="en-btg" th:if="${!#lists.isEmpty(btgLines)}" aria-labelledby="en-btg-h">
+      <h3 id="en-btg-h" class="sr-only" th:text="#{encounter.btg}">Break-glass access</h3>
+      <div class="pt-btg" th:each="b : ${btgLines}">
+        <span class="tag tag-btg tag-sm" th:text="#{patient.visit.btg}">Break-glass</span>
+        <th:block th:text="#{patient.visit.btg.text(${b.row.agentName}, ${tf.clock(b.row.recordedInstant)})}">Name opened</th:block>
+        <th:block th:if="${b.row.breakGlassReason != null}" th:text="#{patient.visit.btg.reason(${tf.clock(b.row.reasonGivenAt)}, ${b.reasonMinutes}, ${b.row.breakGlassReason})}">Reason</th:block>
+        <th:block th:if="${b.row.breakGlassReason == null}" th:text="#{patient.visit.btg.noreason}">No reason</th:block>
+        <b th:text="#{'patient.visit.btg.review.' + ${b.row.reviewStatus ?: 'pending'}}">Reviewed: appropriate.</b>
+      </div>
+    </section>
+
+    <!-- what was recorded (consent-gated, section by section) -->
+    <section class="panel" aria-labelledby="en-rec-h" th:if="${decision.covered()}">
+      <div class="panel-head"><h3 id="en-rec-h" th:text="#{encounter.rec.head}">What was recorded</h3><span class="sub" th:text="#{encounter.rec.src}">From the registry</span></div>
+      <div class="en-rec">
+        <div class="en-block" id="en-dx">
+          <h4 th:text="#{encounter.rec.dx}">Diagnoses</h4>
+          <th:block th:if="${can['encounters'] == false}"><th:block th:replace="~{fragments/clinical :: locked('encounters')}"></th:block></th:block>
+          <th:block th:if="${can['encounters'] and view != null}">
+            <ul class="cl-list" th:if="${!#lists.isEmpty(view.diagnoses)}">
+              <li th:each="d : ${view.diagnoses}"><div><b th:text="${d.text}">Pneumonia</b><span class="sub" th:if="${d.use != null}" th:text="${d.use}">admission</span></div></li></ul>
+            <div class="cl-none" th:if="${#lists.isEmpty(view.diagnoses)}" th:text="#{encounter.rec.dx.none}">No diagnosis recorded</div>
+          </th:block>
+          <th:block th:if="${can['conditions'] == false}"><div class="cl-state"><span aria-hidden="true">&#128274;</span> <span th:text="#{encounter.rec.cond.locked}">Conditions are not shown.</span></div></th:block>
+          <th:block th:if="${can['conditions'] and view != null and view.conditions != null}">
+            <th:block th:replace="~{fragments/clinical :: state(${view.conditions.status.name()})}"></th:block>
+            <ul class="cl-list" th:if="${view.conditions.status.name() == 'OK' and !#lists.isEmpty(view.conditions.items)}">
+              <li th:each="c : ${view.conditions.items}"><div><b th:text="${c.text}">Condition</b><span class="sub"><span class="mono" th:if="${c.code != null}" th:text="${c.code}">J18.9</span> <span th:text="${c.active} ? #{clinical.cond.active} : #{clinical.cond.resolved}">Active</span></span></div></li></ul>
+          </th:block>
+        </div>
+
+        <div class="en-block" id="en-proc">
+          <h4 th:text="#{encounter.rec.proc}">Procedures</h4>
+          <th:block th:if="${can['procedures'] == false}"><th:block th:replace="~{fragments/clinical :: locked('procedures')}"></th:block></th:block>
+          <th:block th:if="${can['procedures'] and view != null and view.procedures != null}">
+            <th:block th:replace="~{fragments/clinical :: state(${view.procedures.status.name()})}"></th:block>
+            <ul class="cl-list" th:if="${view.procedures.status.name() == 'OK'}">
+              <li th:each="p : ${view.procedures.items}"><div><b th:text="${p.text}">Chest X-ray</b><span class="sub"><span th:if="${p.at != null}" th:text="${tf.stamp(p.at)}">22 Oct</span><th:block th:if="${p.performer != null}"> · <span th:text="${p.performer}">Dr</span></th:block></span></div></li></ul>
+            <div class="cl-none" th:if="${view.procedures.status.name() == 'OK' and #lists.isEmpty(view.procedures.items)}" th:text="#{encounter.rec.proc.none}">No procedure recorded</div>
+          </th:block>
+        </div>
+
+        <div class="en-block" id="en-med">
+          <h4 th:text="#{encounter.rec.med}">Medicines</h4>
+          <th:block th:if="${can['medications'] == false}"><th:block th:replace="~{fragments/clinical :: locked('medications')}"></th:block></th:block>
+          <th:block th:if="${can['medications'] and view != null and view.medications != null}">
+            <th:block th:replace="~{fragments/clinical :: state(${view.medications.status.name()})}"></th:block>
+            <ul class="cl-list" th:if="${view.medications.status.name() == 'OK'}">
+              <li th:each="m : ${view.medications.items}"><div><b th:text="${m.text}">Azithromycin</b><span class="sub"><span th:text="${m.dose}">500 mg</span> · <span th:text="#{'clinical.medstatus.' + ${m.status ?: 'unknown'}}">Completed</span><th:block th:if="${m.requester != null}"> · <span th:text="${m.requester}">Dr</span></th:block></span></div></li></ul>
+            <div class="cl-none" th:if="${view.medications.status.name() == 'OK' and #lists.isEmpty(view.medications.items)}" th:text="#{encounter.rec.med.none}">No medicine recorded</div>
+          </th:block>
+        </div>
+
+        <div class="en-block en-wide" id="en-res">
+          <h4 th:text="#{encounter.rec.res}">Results and vital signs</h4>
+          <th:block th:if="${can['labs'] == false}"><th:block th:replace="~{fragments/clinical :: locked('labs')}"></th:block></th:block>
+          <th:block th:if="${can['labs'] and view != null and view.observations != null}">
+            <th:block th:replace="~{fragments/clinical :: state(${view.observations.status.name()})}"></th:block>
+            <th:block th:if="${view.observations.status.name() == 'OK'}">
+              <div class="table-wrap" th:if="${!#lists.isEmpty(view.labs) or !#lists.isEmpty(view.vitals)}">
+                <table class="table table-plain">
+                  <thead><tr><th th:text="#{encounter.res.test}">Test</th><th th:text="#{encounter.res.value}">Value</th><th th:text="#{encounter.res.range}">Reference</th><th th:text="#{encounter.res.flag}">Flag</th><th th:text="#{encounter.res.when}">When</th></tr></thead>
+                  <tbody>
+                    <th:block>
+                      <tr th:each="o : ${view.all}">
+                        <td><div><b th:text="${o.text}">Hemoglobin</b><span class="sub" th:text="${o.lab} ? #{encounter.res.lab} : #{encounter.res.vital}">Laboratory</span></div></td>
+                        <td><div><b class="num" th:text="${o.display}">12.1</b> <span class="cl-unit" th:text="${o.unitLabel}">g/dL</span></div></td>
+                        <td><div class="sub" th:text="${o.range ?: '—'}">13–17</div></td>
+                        <td><div><th:block th:replace="~{fragments/clinical :: flag(${o.flag})}"></th:block></div></td>
+                        <td><div class="sub" th:text="${o.at != null ? tf.stamp(o.at) : '—'}">22 Oct</div></td>
+                      </tr>
+                    </th:block>
+                  </tbody>
+                </table>
+              </div>
+              <div class="cl-none" th:if="${#lists.isEmpty(view.labs) and #lists.isEmpty(view.vitals)}" th:text="#{encounter.rec.res.none}">No results recorded</div>
+            </th:block>
+          </th:block>
+        </div>
+      </div>
+    </section>
+
+    <!-- who accessed during this encounter (from the audit records, never hidden by consent) -->
+    <section class="panel" aria-labelledby="en-who-h">
+      <div class="panel-head"><h3 id="en-who-h" th:text="#{encounter.who.head}">Who accessed this encounter</h3>
+        <span class="sub" th:text="#{encounter.who.sum(${#lists.size(lines)}, ${people}, ${systemCount}, ${refusedCount})}">7 events</span></div>
+      <div class="table-wrap" th:if="${!#lists.isEmpty(lines)}">
+        <table class="table table-plain table-cards">
+          <thead><tr><th th:text="#{clinical.col.when}">When</th><th th:text="#{clinical.col.who}">Person</th><th th:text="#{clinical.col.role}">Role</th><th th:text="#{clinical.col.system}">System</th>
+            <th th:text="#{clinical.col.what}">What</th><th th:text="#{clinical.col.purpose}">Purpose</th><th th:text="#{clinical.col.result}">Result</th></tr></thead>
+          <tbody><tr th:each="l : ${lines}"><th:block th:replace="~{fragments/clinical :: accessCells(${l}, false)}"></th:block></tr></tbody>
+        </table>
+      </div>
+      <div class="panel-pad cl-none" th:if="${#lists.isEmpty(lines)}" th:text="#{encounter.who.none}">No access recorded for this encounter.</div>
+      <!-- care link status line -->
+      <div class="panel-foot en-care">
+        <span class="tag tag-off tag-sm" th:if="${!careChecked}" th:text="#{encounter.care.unchecked.tag}">Not checked</span>
+        <span class="tag tag-sm" th:if="${careChecked}" th:classappend="${care[1] > 0} ? 'tag-bad' : (${care[0] > 0} ? 'tag-ok' : 'tag-off')" th:text="${care[1] > 0} ? #{encounter.care.tag.bad} : (${care[0] > 0} ? #{encounter.care.tag.ok} : #{encounter.care.tag.na})">Linked</span>
+        <span th:if="${!careChecked}" th:text="#{encounter.care.unchecked}">Care link was not checked: the registry stays were not read.</span>
+        <span th:if="${careChecked}" th:text="#{encounter.care.line(${care[0]}, ${care[1]}, ${care[2]})}">Care link: 5 linked, 0 without a link, 0 unknown.</span>
+        <span class="sub" th:text="#{patient.link.help}">How the care link is judged.</span>
+      </div>
+    </section>
+
+    <!-- links -->
+    <div class="en-links">
+      <a class="btn" th:href="@{/patient/{id}(id=${patientId})}" th:text="#{encounter.link.patient}">Back to the patient</a>
+      <a class="btn" th:href="@{/patient/{id}(id=${patientId},tab='clinical')}" th:text="#{encounter.link.c360}">Clinical 360</a>
+      <a class="btn" th:href="@{/patient/{id}(id=${patientId},tab='encounters')}" th:text="#{encounter.link.list}">All encounters</a>
+      <a class="btn" th:href="@{/(encounter=${encounterId},range='all')}" th:text="#{encounter.link.explore}">Open the events in Explore</a>
+      <a class="btn btn-primary" th:if="${canReview}" th:href="@{/reviews(patient=${patientId})}" th:text="#{patient.review.open}">Open a review</a>
+    </div>
+  </th:block>
+</main>
+
+</body>
+</html>

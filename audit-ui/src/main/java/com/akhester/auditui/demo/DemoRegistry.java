@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 /**
  * DEMONSTRATION ONLY (audit.ui.demo=true). A tiny stand-in for the Bundle 2a registry: plain FHIR R4 Patient and Encounter,
@@ -82,6 +83,8 @@ public class DemoRegistry {
 
     private static P find(String id) { return PATIENTS.stream().filter(p -> p.id.equals(id)).findFirst().orElse(null); }
 
+    private final DemoClinicalData clinical = new DemoClinicalData();
+
     @GetMapping(value = "/metadata", produces = "application/fhir+json")
     public Map<String, Object> metadata() {
         return Map.of("resourceType", "CapabilityStatement", "status", "active", "kind", "instance", "fhirVersion", "4.0.1", "format", List.of("json"),
@@ -103,26 +106,93 @@ public class DemoRegistry {
         return ResponseEntity.ok().contentType(MediaType.valueOf("application/fhir+json")).body(r);
     }
 
-    @GetMapping(value = "/Encounter", produces = "application/fhir+json")
-    public Map<String, Object> encounters(@RequestParam String patient) {
-        P p = find(patient.replace("Patient/", ""));
+    private static final MediaType FHIR = MediaType.valueOf("application/fhir+json");
+
+    private static ResponseEntity<Map<String, Object>> outcome(int status, String code) {
+        return ResponseEntity.status(status).contentType(FHIR).body(Map.of("resourceType", "OperationOutcome", "issue", List.of(Map.of("severity", "error", "code", code))));
+    }
+
+    /** A searchset Bundle of one page: _count entries from the offset given by _offset, with a "next" link when more follow. */
+    private static ResponseEntity<Map<String, Object>> bundle(List<? extends Map<String, Object>> all, int count, int offset) {
+        int c = Math.max(1, Math.min(count, 200)), from = Math.min(Math.max(0, offset), all.size()), to = Math.min(all.size(), from + c);
         List<Object> entries = new ArrayList<>();
-        if (p != null) {
-            int n = 0;
-            for (Object[] st : p.stays) {
-                String fac = (String) st[0]; int from = (Integer) st[2], to = (Integer) st[3];
-                Map<String, Object> period = new LinkedHashMap<>();
-                period.put("start", Instant.now().minus(from, ChronoUnit.DAYS).truncatedTo(ChronoUnit.SECONDS).toString());
-                if (to >= 0) period.put("end", Instant.now().minus(to, ChronoUnit.DAYS).truncatedTo(ChronoUnit.SECONDS).toString());
-                Map<String, Object> e = new LinkedHashMap<>();
-                e.put("resourceType", "Encounter"); e.put("id", p.id + "-e" + (++n)); e.put("status", to >= 0 ? "finished" : "in-progress");
-                e.put("subject", Map.of("reference", "Patient/" + p.id));
-                e.put("serviceType", Map.of("text", st[1]));
-                e.put("period", period);
-                e.put("location", List.of(Map.of("location", Map.of("reference", fac, "display", FACILITY.get(fac)))));
-                entries.add(Map.of("resource", e));
-            }
+        for (Map<String, Object> r : all.subList(from, to)) entries.add(Map.of("resource", r, "search", Map.of("mode", "match")));
+        Map<String, Object> b = new LinkedHashMap<>();
+        b.put("resourceType", "Bundle"); b.put("type", "searchset"); b.put("total", all.size());
+        List<Object> links = new ArrayList<>();
+        links.add(Map.of("relation", "self", "url", ServletUriComponentsBuilder.fromCurrentRequest().build().toUriString()));
+        if (to < all.size()) links.add(Map.of("relation", "next", "url", ServletUriComponentsBuilder.fromCurrentRequest().replaceQueryParam("_offset", to).replaceQueryParam("_count", c).build().toUriString()));
+        b.put("link", links);
+        b.put("entry", entries);
+        return ResponseEntity.ok().contentType(FHIR).body(b);
+    }
+
+    /** A stable made-up encounter number for the n-th stay of a patient. */
+    private static String plainId(String pid, int n) { return "E-6" + String.format("%04d", Math.abs((pid + "/" + n).hashCode()) % 10000); }
+
+    private List<Map<String, Object>> plainEncounters(P p) {
+        List<Map<String, Object>> out = new ArrayList<>();
+        int n = 0;
+        for (Object[] st : p.stays) {
+            String fac = (String) st[0]; int from = (Integer) st[2], to = (Integer) st[3];
+            Map<String, Object> period = new LinkedHashMap<>();
+            period.put("start", Instant.now().minus(from, ChronoUnit.DAYS).truncatedTo(ChronoUnit.SECONDS).toString());
+            if (to >= 0) period.put("end", Instant.now().minus(to, ChronoUnit.DAYS).truncatedTo(ChronoUnit.SECONDS).toString());
+            Map<String, Object> e = new LinkedHashMap<>();
+            e.put("resourceType", "Encounter"); e.put("id", plainId(p.id, ++n)); e.put("status", to >= 0 ? "finished" : "in-progress");
+            e.put("subject", Map.of("reference", "Patient/" + p.id));
+            e.put("serviceType", Map.of("text", st[1]));
+            e.put("period", period);
+            e.put("location", List.of(Map.of("location", Map.of("reference", fac, "display", FACILITY.get(fac)))));
+            out.add(e);
         }
-        return Map.of("resourceType", "Bundle", "type", "searchset", "total", entries.size(), "entry", entries);
+        return out;
+    }
+
+    /** Encounter search: ?patient=Patient/P-1 (all of a patient's) , paged with _count and _offset. */
+    @GetMapping(value = "/Encounter", produces = "application/fhir+json")
+    public ResponseEntity<Map<String, Object>> encounters(@RequestParam(required = false) String patient, @RequestParam(required = false, name = "_id") String id,
+                                                          @RequestParam(required = false, name = "_count", defaultValue = "100") int count, @RequestParam(required = false, name = "_offset", defaultValue = "0") int offset) {
+        if (id != null) { Map<String, Object> e = clinical.encounter(id); return bundle(e == null ? List.of() : List.of(e), count, offset); }
+        P p = patient == null ? null : find(patient.replace("Patient/", ""));
+        if (p == null) return bundle(List.of(), count, offset);
+        List<Map<String, Object>> rich = clinical.encounters(p.id);
+        return bundle(rich != null ? rich : plainEncounters(p), count, offset);
+    }
+
+    @GetMapping(value = "/Encounter/{id}", produces = "application/fhir+json")
+    public ResponseEntity<Map<String, Object>> encounter(@PathVariable String id) {
+        Map<String, Object> e = clinical.encounter(id);
+        if (e != null) return ResponseEntity.ok().contentType(FHIR).body(e);
+        // plain stays (patients without a richer record) have made-up numbers E-6nnnn
+        for (P p : PATIENTS) if (clinical.encounters(p.id) == null) for (Map<String, Object> x : plainEncounters(p)) if (id.equals(x.get("id"))) return ResponseEntity.ok().contentType(FHIR).body(x);
+        return outcome(404, "not-found");
+    }
+
+    /**
+     * Clinical searches: ?patient=Patient/P-1 or ?encounter=Encounter/E-1 (with or without patient), _count, _offset. A patient with no data gets an empty Bundle.
+     * P-00107 shows a registry that does not serve everything (403 for allergies, 404 for procedures).
+     */
+    @GetMapping(value = "/{type:Condition|MedicationRequest|Observation|AllergyIntolerance|Procedure}", produces = "application/fhir+json")
+    public ResponseEntity<Map<String, Object>> clinicalSearch(@PathVariable String type, @RequestParam(required = false) String patient, @RequestParam(required = false) String encounter,
+                                                              @RequestParam(required = false, name = "_count", defaultValue = "100") int count, @RequestParam(required = false, name = "_offset", defaultValue = "0") int offset) {
+        String pid = patient == null ? null : patient.replace("Patient/", "");
+        String eid = encounter == null ? null : encounter.replace("Encounter/", "");
+        if (pid == null && eid != null) {
+            Map<String, Object> e = clinical.encounter(eid);
+            if (e != null) pid = String.valueOf(((Map<?, ?>) e.get("subject")).get("reference")).replace("Patient/", "");
+        }
+        if (pid == null) return outcome(400, "required");
+        int refused = clinical.refusal(type, pid);
+        if (refused != 0) return outcome(refused, refused == 403 ? "forbidden" : "not-supported");
+        List<Map<String, Object>> all = new ArrayList<>(clinical.list(type, pid));
+        if (eid != null) {
+            final String want = eid;
+            all.removeIf(r -> {
+                Object e = r.get("encounter");
+                return !(e instanceof Map<?, ?> m && ("Encounter/" + want).equals(m.get("reference")));
+            });
+        }
+        return bundle(all, count, offset);
     }
 }
