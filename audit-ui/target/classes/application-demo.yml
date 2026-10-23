@@ -1,0 +1,20 @@
+# DEMONSTRATION BUILD: java -jar audit-ui.jar --spring.profiles.active=demo
+# Fixed made-up users, a stand-in Chester, registry and consent manager inside this program. No Keycloak, no real Chester. Never for real data.
+server:
+  # Behind nginx: trust X-Forwarded-For / -Proto from the proxy on this machine only. "native" (not "framework") on purpose:
+  # it makes the client's real address the request address, which the /demo/** loopback rule relies on.
+  forward-headers-strategy: native
+spring:
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.security.oauth2.client.servlet.OAuth2ClientAutoConfiguration
+  thymeleaf:
+    cache: true
+audit:
+  ui:
+    demo: true
+    registry-base-url: ${AUDIT_UI_DEMO_SELF:http://127.0.0.1:${server.port}}/demo/registry
+    consent-base-url: ${AUDIT_UI_DEMO_SELF:http://127.0.0.1:${server.port}}/demo/consent
+chester:
+  fhir:
+    base-url: ${AUDIT_UI_DEMO_SELF:http://127.0.0.1:${server.port}}/demo/chester/fhir

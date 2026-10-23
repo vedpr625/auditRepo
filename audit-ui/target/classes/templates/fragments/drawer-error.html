@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!--
+  Fragment: drawer-error :: drawerError
+  Shown when AuditEvent detail cannot be fetched from Chester.
+-->
+<div th:fragment="drawerError">
+
+  <div class="drawer-head">
+    <div class="drawer-title">Event Not Found</div>
+    <button class="drawer-close" onclick="closeDrawer()" aria-label="Close">✕</button>
+  </div>
+
+  <div class="drawer-body" style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; text-align:center; color:var(--text-muted);">
+    <div style="font-size:32px;">⚠</div>
+    <div style="font-size:14px; font-weight:600; color:var(--red-700);">Could not load event</div>
+    <div style="font-size:12px;" th:text="${errorMsg}">AuditEvent not found.</div>
+    <div style="font-size:11.5px;">Chester may be offline or the event ID may be invalid.</div>
+    <button class="btn btn-ghost" onclick="closeDrawer()">Close</button>
+  </div>
+
+</div>
+
+</body>
+</html>

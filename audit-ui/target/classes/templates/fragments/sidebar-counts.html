@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!--
+  Fragment: sidebarCounts
+  Returned by GET /audit/counts — updates the count badges in the sidebar
+  for Purpose and Outcome filters. Swapped into #sidebarCountsWrap via HTMX OOB
+  (this is a plain <div> target, not a <tbody>, so OOB works fine).
+
+  outcomeCounts: Map<String,Long>  keys "0","4","8","12"
+  purposeCounts: Map<String,Long>  keys "TREAT","ETREAT","BTG","PUBHLTH","HRESCH"
+-->
+<th:block th:fragment="sidebarCounts">
+
+  <!-- Outcome counts -->
+  <span id="cnt-outcome-0"   class="filter-cnt"
+        th:text="${outcomeCounts['0']}   != null ? '(' + ${outcomeCounts['0']}   + ')' : ''"></span>
+  <span id="cnt-outcome-4"   class="filter-cnt"
+        th:text="${outcomeCounts['4']}   != null ? '(' + ${outcomeCounts['4']}   + ')' : ''"></span>
+  <span id="cnt-outcome-8"   class="filter-cnt"
+        th:text="${outcomeCounts['8']}   != null ? '(' + ${outcomeCounts['8']}   + ')' : ''"></span>
+  <span id="cnt-outcome-12"  class="filter-cnt"
+        th:text="${outcomeCounts['12']}  != null ? '(' + ${outcomeCounts['12']}  + ')' : ''"></span>
+
+  <!-- Purpose counts -->
+  <span id="cnt-purpose-TREAT"   class="filter-cnt"
+        th:text="${purposeCounts['TREAT']}   != null ? '(' + ${purposeCounts['TREAT']}   + ')' : ''"></span>
+  <span id="cnt-purpose-ETREAT"  class="filter-cnt"
+        th:text="${purposeCounts['ETREAT']}  != null ? '(' + ${purposeCounts['ETREAT']}  + ')' : ''"></span>
+  <span id="cnt-purpose-BTG"     class="filter-cnt"
+        th:text="${purposeCounts['BTG']}     != null ? '(' + ${purposeCounts['BTG']}     + ')' : ''"></span>
+  <span id="cnt-purpose-PUBHLTH" class="filter-cnt"
+        th:text="${purposeCounts['PUBHLTH']} != null ? '(' + ${purposeCounts['PUBHLTH']} + ')' : ''"></span>
+  <span id="cnt-purpose-HRESCH"  class="filter-cnt"
+        th:text="${purposeCounts['HRESCH']}  != null ? '(' + ${purposeCounts['HRESCH']}  + ')' : ''"></span>
+
+</th:block>
+</body>
+</html>

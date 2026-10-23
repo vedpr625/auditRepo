@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!--
+  Fragment: chester-status :: chesterStatus
+  Polled every 30 s — swapped into #chesterStatus in the topbar.
+-->
+<span th:fragment="chesterStatus"
+      style="display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:600;">
+  <span class="status-dot" th:classappend="${chesterUp} ? 'up' : 'down'"></span>
+  <span th:text="${chesterUp} ? 'Chester Live' : 'Chester Offline'"
+        th:style="${chesterUp} ? 'color:var(--green-700)' : 'color:var(--red-700)'">Chester</span>
+</span>
+
+</body>
+</html>

@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!--
+  Fragment: drawer-detail.html
+  ────────────────────────────────────────────────────────────────────────────
+  Rendered by GET /audit/detail/{id}  → hx-target="#drawerBody"
+  Four tabs: Overview · Agent · Raw FHIR · Hash Chain
+-->
+
+<div th:fragment="drawerDetail" class="drawer-detail">
+
+  <!-- ══ Drawer header (close + title) ════════════════════════════════════ -->
+  <div class="drawer-head">
+    <div class="drawer-title">
+      AuditEvent /
+      <span class="mono" style="font-size:12px; color:var(--accent);" th:text="${d.id}">—</span>
+    </div>
+    <button class="drawer-close" onclick="closeDrawer()" title="Close (Esc)">&#10005;</button>
+  </div>
+
+  <!-- ══ Scrollable body ════════════════════════════════════════════════════ -->
+  <div class="drawer-body">
+
+  <!-- ══ Tab nav ══════════════════════════════════════════════════════════ -->
+  <div class="dtab-nav" role="tablist">
+    <button class="dtab-btn active" data-tab="overview"   role="tab">Overview</button>
+    <button class="dtab-btn"        data-tab="agent"      role="tab">Agents</button>
+    <button class="dtab-btn"        data-tab="rawfhir"    role="tab">Raw FHIR</button>
+    <button class="dtab-btn"        data-tab="hashchain"  role="tab">Hash Chain</button>
+  </div>
+
+  <!-- ══ TAB 1 — OVERVIEW ════════════════════════════════════════════════ -->
+  <div class="dtab-panel active" data-panel="overview">
+
+    <!-- BALP profile chip -->
+    <div th:if="${d.balpProfileShort != null}" class="balp-chip" style="margin-bottom:14px;">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      <a th:href="${d.balpProfile != null and #strings.startsWith(d.balpProfile, 'https://')} ? ${d.balpProfile} : '#'" target="_blank" rel="noopener"
+         th:text="${d.balpProfileShort}" class="balp-link">IHE.BasicAudit.PatientRead</a>
+    </div>
+
+    <!-- ── Event identity ─────────────────────────────────────────────── -->
+    <div class="dd-section">
+      <div class="dd-section-title">Event Identity</div>
+      <div class="dd-grid">
+        <div class="dd-label">ID</div>
+        <div class="dd-value mono" th:text="${d.id}">—</div>
+
+        <div class="dd-label">Recorded</div>
+        <div class="dd-value" th:text="${d.recorded}">—</div>
+
+        <div class="dd-label">Event Type</div>
+        <div class="dd-value">
+          <span class="code-chip" th:text="${d.eventType}">—</span>
+          <span th:if="${d.eventTypeDisplay != null}" class="chip-label"
+                th:text="${d.eventTypeDisplay}"></span>
+        </div>
+
+        <div class="dd-label">Subtype</div>
+        <div class="dd-value" th:text="${d.eventSubtype} ?: '—'">—</div>
+
+        <div class="dd-label">Action</div>
+        <div class="dd-value">
+          <span class="code-chip" th:text="${d.action} ?: '—'">—</span>
+          <span th:if="${d.actionDisplay != null}" class="chip-label"
+                th:text="${d.actionDisplay}"></span>
+        </div>
+
+        <div class="dd-label">Outcome</div>
+        <div class="dd-value">
+          <span th:class="${d.outcomeCss}" th:text="${d.outcomeLabel}">—</span>
+        </div>
+
+        <div class="dd-label">Purpose</div>
+        <div class="dd-value">
+          <span th:class="${d.purposeTagCss}" th:text="${d.purposeLabel} ?: '—'">—</span>
+        </div>
+
+        <div class="dd-label">SLA</div>
+        <div class="dd-value">
+          <span th:class="${d.slaCss}" th:text="${d.slaLabel}">—</span>
+          <span class="chip-label" th:text="${d.ageHours} + 'h old'"></span>
+        </div>
+
+        <div class="dd-label">Review</div>
+        <div class="dd-value">
+          <span th:class="|rs rs-${d.reviewStatus}|" th:text="${d.reviewStatus}">pending</span>
+          <span th:if="${d.reviewNote != null}"
+                class="chip-label" th:text="${d.reviewNote}"></span>
+        </div>
+        <div class="dd-label" th:if="${d.reviewer != null}">Reviewed by</div>
+        <div class="dd-value" th:if="${d.reviewer != null}" th:text="${d.reviewer} + ' · ' + ${d.reviewedAt}">—</div>
+        <div class="dd-label" th:if="${d.reviewHistory != null and d.reviewHistory.size() > 1}">History</div>
+        <div class="dd-value" th:if="${d.reviewHistory != null and d.reviewHistory.size() > 1}">
+          <div th:each="h : ${d.reviewHistory}" th:text="${h}" style="font-size:12px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Source / observer ──────────────────────────────────────────── -->
+    <div class="dd-section">
+      <div class="dd-section-title">Source / Observer</div>
+      <div class="dd-grid">
+        <div class="dd-label">Observer</div>
+        <div class="dd-value mono" th:text="${d.sourceObserver} ?: '—'">—</div>
+
+        <div class="dd-label">Site</div>
+        <div class="dd-value" th:text="${d.sourceSite} ?: '—'">—</div>
+
+        <div class="dd-label">Type</div>
+        <div class="dd-value" th:text="${d.sourceType} ?: '—'">—</div>
+      </div>
+    </div>
+
+    <!-- ── Entities ───────────────────────────────────────────────────── -->
+    <div class="dd-section" th:if="${d.entities != null and !d.entities.empty}">
+      <div class="dd-section-title">Entities</div>
+      <div th:each="ent,i : ${d.entities}" class="entity-card">
+        <div class="entity-card-head">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          <span class="entity-card-type"
+                th:text="${ent.typeDisplay} ?: (${ent.typeCode} ?: 'Entity')">Entity</span>
+          <span th:if="${ent.roleDisplay != null}" class="entity-card-role"
+                th:text="${ent.roleDisplay}"></span>
+          <span th:if="${ent.roleCode != null and ent.roleDisplay == null}"
+                class="entity-card-role" th:text="${ent.roleCode}"></span>
+        </div>
+        <div class="dd-grid">
+          <div class="dd-label">Reference</div>
+          <div class="dd-value mono" th:text="${ent.whatReference} ?: '—'">—</div>
+
+          <div class="dd-label" th:if="${ent.whatDisplay != null}">Display</div>
+          <div class="dd-value" th:if="${ent.whatDisplay != null}"
+               th:text="${ent.whatDisplay}">—</div>
+
+          <div class="dd-label" th:if="${ent.name != null}">Name</div>
+          <div class="dd-value" th:if="${ent.name != null}" th:text="${ent.name}">—</div>
+
+          <div class="dd-label" th:if="${ent.description != null}">Description</div>
+          <div class="dd-value" th:if="${ent.description != null}"
+               th:text="${ent.description}">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Security labels ───────────────────────────────────────────── -->
+    <div class="dd-section"
+         th:if="${d.securityLabels != null and !d.securityLabels.empty}">
+      <div class="dd-section-title">Security Labels</div>
+      <div style="display:flex; flex-wrap:wrap; gap:6px; padding:6px 0;">
+        <span th:each="lbl : ${d.securityLabels}" class="sec-chip"
+              th:text="${lbl}">label</span>
+      </div>
+    </div>
+
+  </div><!-- /overview -->
+
+
+  <!-- ══ TAB 2 — AGENTS ══════════════════════════════════════════════════ -->
+  <div class="dtab-panel" data-panel="agent">
+
+    <div th:if="${d.agents == null or d.agents.empty}"
+         class="empty-state">No agent data available.</div>
+
+    <div th:each="ag,i : ${d.agents}" class="agent-card"
+         th:classappend="${ag.requestorFlag} ? ' agent-card--requestor' : ''">
+
+      <!-- Card header -->
+      <div class="agent-card-head">
+        <!-- person vs system icon -->
+        <svg th:if="${ag.typeCode == null or ag.typeCode == '1'}"
+             width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+        <svg th:if="${ag.typeCode != null and ag.typeCode != '1'}"
+             width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="2" width="20" height="8" rx="2"/>
+          <rect x="2" y="14" width="20" height="8" rx="2"/>
+          <line x1="6" y1="6" x2="6.01" y2="6"/>
+          <line x1="6" y1="18" x2="6.01" y2="18"/>
+        </svg>
+        <span class="agent-name" th:text="${ag.name}">Agent</span>
+        <span th:if="${ag.requestorFlag}" class="requestor-badge">Requestor</span>
+      </div>
+
+      <!-- Agent details grid -->
+      <div class="dd-grid">
+        <div class="dd-label" th:if="${ag.reference != null}">Reference</div>
+        <div class="dd-value mono" th:if="${ag.reference != null}"
+             th:text="${ag.reference}">—</div>
+
+        <div class="dd-label" th:if="${ag.identifier != null}">Identifier</div>
+        <div class="dd-value mono" th:if="${ag.identifier != null}"
+             th:text="${ag.identifier}">—</div>
+
+        <div class="dd-label" th:if="${ag.roleCode != null or ag.roleDisplay != null}">Role</div>
+        <div class="dd-value"
+             th:if="${ag.roleCode != null or ag.roleDisplay != null}">
+          <span class="code-chip" th:if="${ag.roleCode != null}"
+                th:text="${ag.roleCode}"></span>
+          <span th:if="${ag.roleDisplay != null}" th:text="${ag.roleDisplay}"></span>
+        </div>
+
+        <div class="dd-label" th:if="${ag.networkAddress != null}">Network</div>
+        <div class="dd-value mono" th:if="${ag.networkAddress != null}">
+          <span th:text="${ag.networkAddress}">—</span>
+          <span th:if="${ag.networkType != null}" class="chip-label"
+                th:text="'type ' + ${ag.networkType}"></span>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /agent -->
+
+
+  <!-- ══ TAB 3 — RAW FHIR ════════════════════════════════════════════════ -->
+  <div class="dtab-panel" data-panel="rawfhir">
+
+    <div class="raw-fhir-toolbar">
+      <span class="raw-fhir-label">FHIR R4 · AuditEvent</span>
+      <button class="btn btn-sm" type="button" id="copyJsonBtn"
+              onclick="copyDrawerJson()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="9" y="9" width="13" height="13" rx="2"/>
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+        </svg>
+        Copy JSON
+      </button>
+    </div>
+
+    <!-- Syntax-highlighted JSON — rendered server-side into spans -->
+    <pre class="json-block" id="drawerJsonPre"><code
+      th:utext="${jsonHighlight}">{ }</code></pre>
+
+  </div><!-- /rawfhir -->
+
+
+  <!-- ══ TAB 4 — HASH CHAIN ══════════════════════════════════════════════ -->
+  <div class="dtab-panel" data-panel="hashchain">
+
+    <!-- no chain data state -->
+    <div th:if="${d.chainHash == null and d.previousHash == null and d.chainPosition == null}" class="empty-state">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+      </svg>
+      <div style="margin-top:8px; font-size:13px; color:var(--text-muted);">
+        No hash-chain data found for this event.<br>
+        <span style="font-size:11px;">Chester must be running with the hash-chain extension enabled.</span>
+      </div>
+    </div>
+
+    <!-- chain data present -->
+    <div th:if="${d.chainHash != null or d.previousHash != null or d.chainPosition != null}">
+
+      <!-- Visual chain node -->
+      <div class="chain-vis">
+        <!-- Genesis block indicator if this IS the genesis -->
+        <div th:if="${d.genesisHash != null and d.genesisHash == d.chainHash}"
+             class="chain-node chain-node--genesis">
+          <div class="chain-node-icon">⛓</div>
+          <div class="chain-node-label">Genesis Block</div>
+        </div>
+
+        <!-- Previous block link -->
+        <div th:if="${d.previousHash != null}" class="chain-link">
+          <div class="chain-link-line"></div>
+          <div class="chain-link-label">← previous</div>
+        </div>
+
+        <!-- Current block -->
+        <div class="chain-node chain-node--current">
+          <div class="chain-node-icon">🔒</div>
+          <div class="chain-node-label">This Event</div>
+          <div class="chain-node-id" th:text="${d.id}">id</div>
+        </div>
+      </div>
+
+      <!-- Details grid -->
+      <div class="dd-section">
+        <div class="dd-section-title">Chain Details</div>
+        <div class="dd-grid">
+
+          <div class="dd-label" th:if="${d.chainHash != null}">Event Hash</div>
+          <div class="dd-value hash-value" th:if="${d.chainHash != null}"
+               th:text="${d.chainHash}">—</div>
+
+          <div class="dd-label" th:if="${d.previousHash != null}">Previous Hash</div>
+          <div class="dd-value hash-value" th:if="${d.previousHash != null}"
+               th:text="${d.previousHash}">—</div>
+
+          <div class="dd-label" th:if="${d.genesisHash != null}">Genesis Hash</div>
+          <div class="dd-value hash-value" th:if="${d.genesisHash != null}"
+               th:text="${d.genesisHash}">—</div>
+
+          <div class="dd-label" th:if="${d.chainPartitionKey != null}">Partition Key</div>
+          <div class="dd-value mono" th:if="${d.chainPartitionKey != null}"
+               th:text="${d.chainPartitionKey}">—</div>
+
+          <div class="dd-label" th:if="${d.chainPosition != null}">Position</div>
+          <div class="dd-value" th:if="${d.chainPosition != null}">
+            <span class="code-chip" th:text="'#' + ${d.chainPosition}"></span>
+          </div>
+
+          <div class="dd-label" th:if="${d.chainWrittenAt != null}">Written At</div>
+          <div class="dd-value" th:if="${d.chainWrittenAt != null}"
+               th:text="${d.chainWrittenAt}">—</div>
+
+        </div>
+      </div>
+      <!-- no integrity claim here: this view only displays the values Chester recorded. Verification is $verify-chain. -->
+
+    </div>
+
+  </div><!-- /hashchain -->
+
+  </div><!-- /drawer-body -->
+
+  <!-- ══ Tab switching JS ═════════════════════════════════════════════════ -->
+  <style>
+    /* ── Detail drawer layout ─────────────────────────────────────── */
+    .drawer-detail {
+      display: flex; flex-direction: column; height: 100%;
+      overflow: hidden;
+    }
+
+    /* The drawer-head and drawer-body styles come from audit-review.html,
+       but we re-declare here so the fragment works standalone too. */
+    .drawer-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 20px; border-bottom: 1px solid var(--border);
+      flex-shrink: 0; gap: 10px;
+    }
+    .drawer-title { font-size: 13px; font-weight: 600; flex: 1; min-width: 0; }
+    .drawer-close {
+      background: none; border: none; color: var(--text-muted); cursor: pointer;
+      font-size: 18px; padding: 4px 8px; border-radius: 4px; line-height: 1;
+      flex-shrink: 0;
+    }
+    .drawer-close:hover { color: var(--text); background: var(--bg3); }
+    .drawer-body { flex: 1; overflow-y: auto; padding: 20px; }
+
+    /* Tab nav — sits inside drawer-body, sticky at top */
+    .dtab-nav {
+      display: flex; gap: 2px;
+      border-bottom: 1px solid var(--border); margin-bottom: 18px;
+      flex-shrink: 0; margin-left: -20px; margin-right: -20px;
+      padding: 0 20px;
+    }
+    .dtab-btn {
+      background: none; border: none; padding: 8px 16px; font-size: 12px;
+      font-weight: 500; color: var(--text-muted); cursor: pointer;
+      border-bottom: 2px solid transparent; margin-bottom: -1px;
+      transition: color .15s, border-color .15s; border-radius: 0;
+      white-space: nowrap;
+    }
+    .dtab-btn:hover { color: var(--text); }
+    .dtab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+    /* Tab panels */
+    .dtab-panel { display: none; padding-bottom: 24px; }
+    .dtab-panel.active { display: block; }
+
+    /* ── Section / grid ───────────────────────────────────────────── */
+    .dd-section { margin-bottom: 22px; }
+    .dd-section-title {
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .08em; color: var(--text-muted);
+      margin-bottom: 10px; padding-bottom: 6px;
+      border-bottom: 1px solid var(--border);
+    }
+    .dd-grid {
+      display: grid; grid-template-columns: 120px 1fr;
+      gap: 8px 12px; align-items: start;
+    }
+    .dd-label {
+      font-size: 11px; color: var(--text-muted); padding-top: 3px;
+      font-weight: 500; white-space: nowrap;
+    }
+    .dd-value {
+      font-size: 12px; color: var(--text); word-break: break-word;
+      display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+      padding: 2px 0;
+    }
+    .dd-value.mono, .mono { font-family: monospace; font-size: 11px; }
+
+    /* ── Chips ────────────────────────────────────────────────────── */
+    .code-chip {
+      background:var(--bg3); border:1px solid var(--border);
+      border-radius:3px; padding:1px 5px; font-family:monospace;
+      font-size:11px; color:var(--text);
+    }
+    .chip-label {
+      font-size:11px; color:var(--text-muted);
+    }
+    .balp-chip {
+      display:inline-flex; align-items:center; gap:6px;
+      background:rgba(99,102,241,.1); border:1px solid rgba(99,102,241,.3);
+      border-radius:20px; padding:4px 10px; font-size:11px;
+    }
+    .balp-link {
+      color:var(--accent); text-decoration:none; font-weight:600;
+    }
+    .balp-link:hover { text-decoration:underline; }
+
+    /* ── Security labels ─────────────────────────────────────────── */
+    .sec-chip {
+      background:var(--bg3); border:1px solid var(--border);
+      border-radius:4px; padding:3px 8px; font-size:10px;
+      font-family:monospace; color:var(--text-muted);
+    }
+
+    /* ── Entity cards ─────────────────────────────────────────────── */
+    .entity-card {
+      border: 1px solid var(--border); border-radius: 8px;
+      padding: 14px 16px; margin-bottom: 10px;
+      background: var(--bg2);
+    }
+    .entity-card-head {
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 10px;
+    }
+    .entity-card-type {
+      font-size: 12px; font-weight: 600; color: var(--text);
+    }
+    .entity-card-role {
+      font-size: 10px; color: var(--text-muted); background: var(--bg3);
+      border: 1px solid var(--border); border-radius: 10px;
+      padding: 2px 8px; margin-left: auto;
+    }
+
+    /* ── Agent cards ─────────────────────────────────────────────── */
+    .agent-card {
+      border: 1px solid var(--border); border-radius: 8px;
+      padding: 14px 16px; margin-bottom: 10px;
+      background: var(--bg2);
+    }
+    .agent-card--requestor {
+      border-color: rgba(99,102,241,.4);
+      background: rgba(99,102,241,.05);
+    }
+    .agent-card-head {
+      display: flex; align-items: center; gap: 8px; margin-bottom: 10px;
+    }
+    .agent-name {
+      font-size: 12px; font-weight: 600; color: var(--text);
+    }
+    .requestor-badge {
+      margin-left: auto; font-size: 10px; font-weight: 700;
+      background: var(--accent); color: #fff;
+      border-radius: 10px; padding: 2px 8px;
+    }
+
+    /* ── Raw FHIR tab ────────────────────────────────────────────── */
+    .raw-fhir-toolbar {
+      display:flex; align-items:center; justify-content:space-between;
+      margin-bottom:8px;
+    }
+    .raw-fhir-label {
+      font-size:10px; font-weight:700; text-transform:uppercase;
+      letter-spacing:.08em; color:var(--text-muted);
+    }
+    .json-block {
+      margin:0; padding:12px; border-radius:6px;
+      background:var(--bg3); border:1px solid var(--border);
+      font-family:monospace; font-size:11.5px;
+      line-height:1.7; overflow-x:auto; white-space:pre;
+      color:var(--text);
+    }
+    /* JSON syntax colours */
+    .jk { color:#7dd3fc; }          /* key        – sky-300   */
+    .js { color:#86efac; }          /* string val – green-300 */
+    .jn { color:#fca5a5; }          /* number     – red-300   */
+    .jb { color:#c4b5fd; }          /* boolean    – violet-300*/
+    .jnull { color:var(--text-muted); }
+
+    /* ── Hash chain tab ──────────────────────────────────────────── */
+    .empty-state {
+      display:flex; flex-direction:column; align-items:center;
+      justify-content:center; padding:40px 20px; text-align:center;
+      color:var(--text-muted);
+    }
+    .chain-vis {
+      display:flex; flex-direction:column; align-items:center;
+      padding:16px 0; gap:0;
+    }
+    .chain-node {
+      display:flex; flex-direction:column; align-items:center;
+      gap:4px; padding:12px 24px;
+      border:2px solid var(--border); border-radius:8px;
+      background:var(--bg2); text-align:center; min-width:160px;
+    }
+    .chain-node--genesis { border-color:rgba(251,191,36,.5); background:rgba(251,191,36,.07); }
+    .chain-node--current { border-color:rgba(99,102,241,.5); background:rgba(99,102,241,.07); }
+    .chain-node-icon { font-size:20px; }
+    .chain-node-label { font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:.06em; }
+    .chain-node-id { font-family:monospace; font-size:10px; color:var(--text-muted); word-break:break-all; }
+    .chain-link {
+      display:flex; flex-direction:column; align-items:center; gap:2px;
+      padding:4px 0;
+    }
+    .chain-link-line { width:2px; height:24px; background:var(--border); }
+    .chain-link-label { font-size:10px; color:var(--text-muted); }
+    .hash-value {
+      font-family:monospace; font-size:10px; word-break:break-all;
+      background:var(--bg3); padding:3px 6px; border-radius:3px;
+      border:1px solid var(--border);
+    }
+    .chain-integrity {
+      display:inline-flex; align-items:center; gap:6px;
+      color:#4ade80; font-size:11px; font-weight:500;
+      background:rgba(74,222,128,.1); border:1px solid rgba(74,222,128,.25);
+      border-radius:20px; padding:5px 12px; margin-top:6px;
+    }
+  </style>
+
+  <script>
+  (function(){
+    // Tab switching
+    var nav = document.querySelector('.dtab-nav');
+    if(nav){
+      nav.addEventListener('click', function(e){
+        var btn = e.target.closest('.dtab-btn');
+        if(!btn) return;
+        var tab = btn.dataset.tab;
+        document.querySelectorAll('.dtab-btn').forEach(b=>b.classList.remove('active'));
+        document.querySelectorAll('.dtab-panel').forEach(p=>p.classList.remove('active'));
+        btn.classList.add('active');
+        var panel = document.querySelector('.dtab-panel[data-panel="'+tab+'"]');
+        if(panel) panel.classList.add('active');
+      });
+    }
+  })();
+
+  function copyDrawerJson(){
+    var pre = document.getElementById('drawerJsonPre');
+    if(!pre) return;
+    var text = pre.innerText || pre.textContent;
+    navigator.clipboard.writeText(text).then(function(){
+      var btn = document.getElementById('copyJsonBtn');
+      if(btn){ btn.textContent='Copied!'; setTimeout(function(){ btn.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy JSON'; },1600); }
+    });
+  }
+  </script>
+
+</div>
+
+</body>
+</html>
