@@ -28,7 +28,7 @@
         </div>
       </div>
     </div>
-    <button class="btn btn-primary ex-go" type="submit" th:text="#{explore.find.go}">Search</button>
+    <button class="btn btn-primary ex-go" type="submit"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-search"/></svg><span th:text="#{explore.find.go}">Search</span></button>
   </form>
 
   <div id="exMain" class="ex-main">
@@ -45,5 +45,6 @@
 <div class="drawer-panel"   id="drawerPanel"></div>
 <div id="toastContainer"></div>
 <script th:src="@{/js/page-explore.js}" defer></script>
+<th:block th:replace="~{fragments/layout :: footer}"></th:block>
 </body>
 </html>

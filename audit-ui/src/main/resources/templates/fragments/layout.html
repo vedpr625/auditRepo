@@ -25,6 +25,8 @@
 <head th:fragment="headbare(title)">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- read the token first: it starts the session before the first bytes of a long page are sent -->
+  <meta name="_csrf" th:content="${_csrf != null} ? ${_csrf.token} : ''">
   <title th:text="${title} + ' · ' + #{app.name}">Audit Console</title>
   <link rel="icon" type="image/svg+xml" th:href="@{/img/favicon.svg}">
   <link rel="apple-touch-icon" th:href="@{/img/apple-touch-icon.png}">
@@ -58,6 +60,7 @@
 <!-- Top bar and main navigation. active = overview | explore | people | reviews | breakglass | alerts | reports | health | settings | admin | access -->
 <th:block th:fragment="header(active)">
 <a class="skip-link" href="#main" th:text="#{nav.skip}">Skip to content</a>
+<th:block th:replace="~{fragments/icons :: sprite}"></th:block>
 <div class="demo-strip" role="note" th:if="${demoBanner}"><b th:text="#{demo.banner}">DEMONSTRATION</b></div>
 <div class="busy-bar" aria-hidden="true"></div>
 <header class="app-header" id="app-header">
@@ -68,36 +71,36 @@
   <nav class="main-nav" id="site-nav" th:attr="aria-label=#{nav.label}">
     <form class="nav-find" th:action="@{/find}" method="get" role="search">
       <label class="sr-only" for="find-q-nav" th:text="#{nav.find}">Find anything</label>
-      <input id="find-q-nav" name="q" class="input" maxlength="100" autocomplete="off" th:placeholder="#{nav.find}">
+      <svg class="ico find-ico" aria-hidden="true" focusable="false"><use href="#i-search"/></svg><input id="find-q-nav" name="q" class="input" maxlength="100" autocomplete="off" th:placeholder="#{nav.find}">
     </form>
-    <a th:href="@{/overview}" th:text="#{nav.overview}" th:attr="aria-current=${active == 'overview'} ? 'page' : null">Overview</a>
-    <a th:href="@{/}" th:text="#{nav.explore}" th:attr="aria-current=${active == 'explore'} ? 'page' : null">Explore</a>
-    <a th:href="@{/people}" th:text="#{nav.people}" th:attr="aria-current=${active == 'people'} ? 'page' : null">People and patients</a>
-    <a th:href="@{/reviews}" th:attr="aria-current=${active == 'reviews'} ? 'page' : null"><span th:text="#{nav.reviews}">Reviews</span> <span class="count-badge" th:if="${navReviewsOpen > 0}" th:text="${navReviewsOpen}">3</span></a>
-    <a th:href="@{/break-glass}" th:text="#{nav.breakglass}" th:attr="aria-current=${active == 'breakglass'} ? 'page' : null">Break-glass</a>
-    <a th:href="@{/alerts}" th:text="#{nav.alerts}" th:attr="aria-current=${active == 'alerts'} ? 'page' : null">Alerts</a>
-    <a th:href="@{/reports}" th:text="#{nav.reports}" th:attr="aria-current=${active == 'reports'} ? 'page' : null">Reports</a>
+    <a th:href="@{/overview}" th:attr="aria-current=${active == 'overview'} ? 'page' : null"><svg class="ico nav-ico" aria-hidden="true" focusable="false"><use href="#i-overview"/></svg><span th:text="#{nav.overview}">Overview</span></a>
+    <a th:href="@{/}" th:attr="aria-current=${active == 'explore'} ? 'page' : null"><svg class="ico nav-ico" aria-hidden="true" focusable="false"><use href="#i-explore"/></svg><span th:text="#{nav.explore}">Explore</span></a>
+    <a th:href="@{/people}" th:attr="aria-current=${active == 'people'} ? 'page' : null"><svg class="ico nav-ico" aria-hidden="true" focusable="false"><use href="#i-people"/></svg><span th:text="#{nav.people}">People and patients</span></a>
+    <a th:href="@{/reviews}" th:attr="aria-current=${active == 'reviews'} ? 'page' : null"><svg class="ico nav-ico" aria-hidden="true" focusable="false"><use href="#i-review"/></svg><span th:text="#{nav.reviews}">Reviews</span><span class="count-badge" th:if="${navReviewsOpen > 0}" th:text="${navReviewsOpen}">3</span></a>
+    <a th:href="@{/break-glass}" th:attr="aria-current=${active == 'breakglass'} ? 'page' : null"><svg class="ico nav-ico" aria-hidden="true" focusable="false"><use href="#i-breakglass"/></svg><span th:text="#{nav.breakglass}">Break-glass</span></a>
+    <a th:href="@{/alerts}" th:attr="aria-current=${active == 'alerts'} ? 'page' : null"><svg class="ico nav-ico" aria-hidden="true" focusable="false"><use href="#i-alerts"/></svg><span th:text="#{nav.alerts}">Alerts</span></a>
+    <a th:href="@{/reports}" th:attr="aria-current=${active == 'reports'} ? 'page' : null"><svg class="ico nav-ico" aria-hidden="true" focusable="false"><use href="#i-reports"/></svg><span th:text="#{nav.reports}">Reports</span></a>
     <!-- rarely used: a "More" menu on wide screens, plain links in the opened menu on narrow ones -->
     <details class="dd nav-more" th:classappend="${active == 'health' or active == 'admin' or active == 'access'} ? 'has-current'">
       <summary class="nav-more-btn"><span th:text="#{nav.more}">More</span><svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
       <div class="dd-pop dd-pop-start">
-        <a th:href="@{/health}" th:text="#{nav.health}" th:attr="aria-current=${active == 'health'} ? 'page' : null">Health</a>
-        <a th:if="${canAdmin}" th:href="@{/admin}" th:text="#{nav.admin}" th:attr="aria-current=${active == 'admin'} ? 'page' : null">Admin</a>
-        <a th:href="@{/access}" th:text="#{nav.access}" th:attr="aria-current=${active == 'access'} ? 'page' : null">Who can do what</a>
-        <a th:if="${accCanActivity == true}" th:href="@{/activity}" th:text="#{nav.activity}">Console activity log</a>
+        <a th:href="@{/health}" th:attr="aria-current=${active == 'health'} ? 'page' : null"><svg class="ico nav-ico" aria-hidden="true" focusable="false"><use href="#i-health"/></svg><span th:text="#{nav.health}">Health</span></a>
+        <a th:if="${canAdmin}" th:href="@{/admin}" th:attr="aria-current=${active == 'admin'} ? 'page' : null"><svg class="ico nav-ico" aria-hidden="true" focusable="false"><use href="#i-admin"/></svg><span th:text="#{nav.admin}">Admin</span></a>
+        <a th:href="@{/access}" th:attr="aria-current=${active == 'access'} ? 'page' : null"><svg class="ico nav-ico" aria-hidden="true" focusable="false"><use href="#i-access"/></svg><span th:text="#{nav.access}">Who can do what</span></a>
+        <a th:if="${accCanActivity == true}" th:href="@{/activity}"><svg class="ico nav-ico" aria-hidden="true" focusable="false"><use href="#i-list"/></svg><span th:text="#{nav.activity}">Console activity log</span></a>
       </div>
     </details>
     <div class="nav-extra">
-      <a th:href="@{/health}" th:text="#{nav.health}" th:attr="aria-current=${active == 'health'} ? 'page' : null">Health</a>
-      <a th:if="${canAdmin}" th:href="@{/admin}" th:text="#{nav.admin}" th:attr="aria-current=${active == 'admin'} ? 'page' : null">Admin</a>
-      <a th:href="@{/access}" th:text="#{nav.access}" th:attr="aria-current=${active == 'access'} ? 'page' : null">Who can do what</a>
-      <a th:if="${accCanActivity == true}" th:href="@{/activity}" th:text="#{nav.activity}">Console activity log</a>
-      <a th:href="@{/settings}" th:text="#{nav.settings}" th:attr="aria-current=${active == 'settings'} ? 'page' : null">Settings</a>
+      <a th:href="@{/health}" th:attr="aria-current=${active == 'health'} ? 'page' : null"><svg class="ico nav-ico" aria-hidden="true" focusable="false"><use href="#i-health"/></svg><span th:text="#{nav.health}">Health</span></a>
+      <a th:if="${canAdmin}" th:href="@{/admin}" th:attr="aria-current=${active == 'admin'} ? 'page' : null"><svg class="ico nav-ico" aria-hidden="true" focusable="false"><use href="#i-admin"/></svg><span th:text="#{nav.admin}">Admin</span></a>
+      <a th:href="@{/access}" th:attr="aria-current=${active == 'access'} ? 'page' : null"><svg class="ico nav-ico" aria-hidden="true" focusable="false"><use href="#i-access"/></svg><span th:text="#{nav.access}">Who can do what</span></a>
+      <a th:if="${accCanActivity == true}" th:href="@{/activity}"><svg class="ico nav-ico" aria-hidden="true" focusable="false"><use href="#i-list"/></svg><span th:text="#{nav.activity}">Console activity log</span></a>
+      <a th:href="@{/settings}" th:attr="aria-current=${active == 'settings'} ? 'page' : null"><svg class="ico nav-ico" aria-hidden="true" focusable="false"><use href="#i-settings"/></svg><span th:text="#{nav.settings}">Settings</span></a>
     </div>
   </nav>
   <form class="find-box" th:action="@{/find}" method="get" role="search">
     <label class="sr-only" for="find-q" th:text="#{nav.find}">Find anything</label>
-    <input id="find-q" name="q" class="input" maxlength="100" autocomplete="off" th:placeholder="#{nav.find}">
+    <svg class="ico find-ico" aria-hidden="true" focusable="false"><use href="#i-search"/></svg><input id="find-q" name="q" class="input" maxlength="100" autocomplete="off" th:placeholder="#{nav.find}">
     <kbd aria-hidden="true">Ctrl K</kbd>
   </form>
   <div class="header-tools">
@@ -123,7 +126,7 @@
               <span><b th:text="#{'theme.accent.' + ${a}}">Clinic</b><span class="sub" th:text="#{'theme.accent.' + ${a} + '.help'}">Teal</span></span>
             </button>
           </div>
-          <a class="dd-link" th:href="@{/settings#appearance}" th:text="#{theme.more}">All appearance settings</a>
+          <a class="dd-link" th:href="@{/settings#appearance}"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-palette"/></svg><span th:text="#{theme.more}">All appearance settings</span></a>
         </form>
       </div>
     </details>
@@ -150,8 +153,8 @@
           <a th:href="@{${shellPath}(lang='si')}" lang="si" th:attr="aria-current=${#locale.language == 'si'} ? 'true' : null">සිං</a>
           <a th:href="@{${shellPath}(lang='ta')}" lang="ta" th:attr="aria-current=${#locale.language == 'ta'} ? 'true' : null">த</a>
         </div>
-        <a class="dd-link" th:href="@{/settings}" th:text="#{nav.settings}" th:attr="aria-current=${active == 'settings'} ? 'page' : null">Settings</a>
-        <form th:action="@{/logout}" method="post"><button class="dd-link dd-out" type="submit" th:text="#{nav.signout}">Sign out</button></form>
+        <a class="dd-link" th:href="@{/settings}" th:attr="aria-current=${active == 'settings'} ? 'page' : null"><svg class="ico nav-ico" aria-hidden="true" focusable="false"><use href="#i-settings"/></svg><span th:text="#{nav.settings}">Settings</span></a>
+        <form th:action="@{/logout}" method="post"><button class="dd-link dd-out" type="submit"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-logout"/></svg><span th:text="#{nav.signout}">Sign out</span></button></form>
       </div>
     </details>
   </div>
@@ -177,6 +180,19 @@
   <span class="muted" th:if="${tf.showRelative}" th:text="' · ' + ${tf.relative(at)}">· 4 min ago</span>
   <span class="muted mono" th:if="${tf.showUtc}" th:text="' · ' + ${tf.utc(at)}">UTC</span>
 </time>
+
+<!-- Quiet footer for every page: product, version, the time zone in use, and the two trust links. Place just before </body>. -->
+<footer th:fragment="footer" class="app-footer">
+  <div class="foot-inner">
+    <span class="foot-brand"><th:block th:replace="~{fragments/brand-mark :: mark}"></th:block><b th:text="#{app.name}">Audit Repository</b><span class="mono" th:text="#{footer.version(${@environment.getProperty('audit.ui.version', '1.0.0')})}">v1.0.0</span></span>
+    <span class="foot-zone" th:if="${prefs != null}"><svg class="ico ico-sm" aria-hidden="true" focusable="false"><use href="#i-globe"/></svg><span th:text="#{footer.zone(${prefs.timeZone})}">Times in Asia/Colombo</span></span>
+    <nav class="foot-links" th:if="${shellUser != null and shellUser != ''}" th:attr="aria-label=#{footer.links}">
+      <a th:href="@{/access}" th:text="#{nav.access}">Who can do what</a>
+      <a th:href="@{/checklist}" th:text="#{footer.checklist}">Checklist</a>
+    </nav>
+    <span class="foot-note" th:text="#{footer.note}">Every view of a record is itself recorded.</span>
+  </div>
+</footer>
 
 </body>
 </html>

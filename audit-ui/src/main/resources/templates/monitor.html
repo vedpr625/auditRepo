@@ -7,15 +7,15 @@
 <main id="main" class="page mon">
   <div class="page-head">
     <h1 th:text="#{monitor.title}">Live monitor</h1><span class="lede" th:text="#{monitor.lede}">Records as they arrive, with the standard's conformance warnings</span>
-    <div class="actions"><a class="btn" th:href="@{/}" th:text="#{nav.explore}">Explore</a><button class="btn" type="button" onclick="clearAll()" th:text="#{monitor.clear}">Clear the list</button></div>
+    <div class="actions"><a class="btn" th:href="@{/}" th:text="#{nav.explore}">Explore</a><button class="btn" type="button" onclick="clearAll()"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-trash"/></svg><span th:text="#{monitor.clear}">Clear the list</span></button></div>
   </div>
 
   <div class="mon-stats">
     <div class="panel kpi"><span class="sub" th:text="#{monitor.conn}">Connection</span>
       <span class="conn-status-row"><span class="conn-dot" id="connDot"></span><span id="connLabel" th:text="#{monitor.connecting}">connecting…</span></span></div>
-    <div class="panel kpi"><span class="sub" th:text="#{monitor.events}">Events this session</span><span class="value" id="s-total">0</span></div>
-    <div class="panel kpi warn"><span class="sub" th:text="#{monitor.warnings}">Warnings</span><span class="value" id="s-warns">0</span></div>
-    <div class="panel kpi bad"><span class="sub" th:text="#{monitor.rejected}">Rejected</span><span class="value" id="s-rejects">0</span></div>
+    <div class="panel kpi"><span class="sub kpi-label"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-pulse"/></svg><span th:text="#{monitor.events}">Events this session</span></span><span class="value" id="s-total">0</span></div>
+    <div class="panel kpi warn"><span class="sub kpi-label"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-warning"/></svg><span th:text="#{monitor.warnings}">Warnings</span></span><span class="value" id="s-warns">0</span></div>
+    <div class="panel kpi bad"><span class="sub kpi-label"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-x-circle"/></svg><span th:text="#{monitor.rejected}">Rejected</span></span><span class="value" id="s-rejects">0</span></div>
   </div>
 
   <div class="panel monitor-panel">
@@ -29,7 +29,7 @@
         <label class="sr-only" for="filter" th:text="#{monitor.filter}">Filter</label>
         <input class="filter-input" type="search" id="filter" th:placeholder="#{monitor.filter.placeholder}" oninput="applyFilter()">
       </div>
-      <div class="event-list" id="event-list"></div>
+      <div class="event-list" id="event-list" tabindex="0" role="region" th:attr="aria-label=#{monitor.events}"></div>
     </div>
     <!-- Detail panel -->
     <div class="detail-panel">
@@ -424,5 +424,6 @@ window.addEventListener('DOMContentLoaded', function() {
   connect();
 });
 </script>
+<th:block th:replace="~{fragments/layout :: footer}"></th:block>
 </body>
 </html>

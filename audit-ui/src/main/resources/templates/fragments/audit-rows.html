@@ -73,7 +73,7 @@
     <span class="ex-hint"><span th:text="#{explore.hint}">Click any value in a row to filter by it</span> · <button type="button" class="linkbtn" id="saveBtn" th:text="#{explore.save}">Save this search</button></span>
     <form class="ex-saveform" id="saveForm" hidden>
       <input class="input" id="saveName" maxlength="120" th:placeholder="#{explore.save.name}" th:attr="aria-label=#{explore.save.name}" autocomplete="off">
-      <button class="btn btn-sm btn-primary" type="submit" th:text="#{explore.save.do}">Save</button>
+      <button class="btn btn-sm btn-primary" type="submit"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-check"/></svg><span th:text="#{explore.save.do}">Save</span></button>
       <button class="btn btn-sm" type="button" id="saveCancel" th:text="#{explore.save.cancel}">Cancel</button>
     </form>
   </div>
@@ -210,13 +210,13 @@
               <option value="50" th:selected="${size == 50}">50</option>
               <option value="100" th:selected="${size == 100}">100</option>
             </select></label>
-          <button class="btn btn-sm" id="exportBtn" type="button" th:title="#{explore.export.help}" th:text="#{explore.export}">Export CSV</button>
-          <button class="btn btn-sm" id="verifyBtn" type="button" th:if="${canVerify}" th:title="#{explore.verify.help}" th:text="#{explore.verify}">Verify chain</button>
+          <button class="btn btn-sm" id="exportBtn" type="button" th:title="#{explore.export.help}"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-download"/></svg><span th:text="#{explore.export}">Export CSV</span></button>
+          <button class="btn btn-sm" id="verifyBtn" type="button" th:if="${canVerify}" th:title="#{explore.verify.help}"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-shield-check"/></svg><span th:text="#{explore.verify}">Verify chain</span></button>
           <span id="verifyStatus" th:if="${canVerify}" role="status"></span>
         </div>
       </div>
       <div class="ex-foot" th:if="${view.grouped}">
-        <div class="row-wrap"><button class="btn btn-sm" id="exportBtn" type="button" th:title="#{explore.export.help}" th:text="#{explore.export}">Export CSV</button></div>
+        <div class="row-wrap"><button class="btn btn-sm" id="exportBtn" type="button" th:title="#{explore.export.help}"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-download"/></svg><span th:text="#{explore.export}">Export CSV</span></button></div>
       </div>
       <th:block th:if="${!view.grouped and total > 0 and page >= totalPages}"><div th:replace="~{fragments/states :: endOfList(#{states.endoflist(${total})})}"></div></th:block>
     </section>

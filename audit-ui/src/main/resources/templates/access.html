@@ -65,7 +65,7 @@
     <section class="panel" aria-labelledby="acc-sess">
       <div class="panel-head"><h3 id="acc-sess" th:text="#{access.session.head}">Session ends</h3><span class="acc-first" th:text="#{access.first}">First release</span></div>
       <div class="state">
-        <div class="state-icon warn" aria-hidden="true">&#9201;</div>
+        <div class="state-art warn" aria-hidden="true"><th:block th:replace="~{fragments/brand-mark :: mark}"></th:block><span class="state-badge"><svg class="ico ico-sm" focusable="false"><use href="#i-clock"/></svg></span></div>
         <h2 th:text="#{access.session.title(#{access.session.minutes(2)})}">You will be signed out in 2 minutes</h2>
         <p th:text="#{access.session.idle(${timeoutMinutes - 2 > 0 ? timeoutMinutes - 2 : 0})}">No activity.</p>
         <div class="row" style="justify-content:center"><span class="btn btn-primary" aria-hidden="true" th:text="#{access.session.stay}">Stay signed in</span><span class="btn" aria-hidden="true" th:text="#{access.session.out}">Sign out now</span></div>
@@ -75,14 +75,15 @@
     <section class="panel" aria-labelledby="acc-out">
       <div class="panel-head"><h3 id="acc-out" th:text="#{access.out.head}">Signed out</h3><span class="acc-first" th:text="#{access.first}">First release</span></div>
       <div class="state">
-        <div class="state-icon bad" aria-hidden="true">!</div>
+        <div class="state-art bad" aria-hidden="true"><th:block th:replace="~{fragments/brand-mark :: mark}"></th:block><span class="state-badge"><svg class="ico ico-sm" focusable="false"><use href="#i-warning"/></svg></span></div>
         <h2 th:text="#{access.out.title}">Your sign-in has expired</h2>
         <p th:text="#{access.out.text}">Sign in again to carry on.</p>
-        <a class="btn btn-primary" th:href="@{/signed-out}" th:text="#{access.out.open}">Open this page</a>
+        <a class="btn btn-primary" th:href="@{/signed-out}"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-arrow-right"/></svg><span th:text="#{access.out.open}">Open this page</span></a>
       </div>
       <div class="acc-foot" th:text="#{access.out.note}">Shown when a session ends.</div>
     </section>
   </div>
 </main>
+<th:block th:replace="~{fragments/layout :: footer}"></th:block>
 </body>
 </html>

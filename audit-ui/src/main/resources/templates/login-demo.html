@@ -2,37 +2,48 @@
 <html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}">
 <head th:replace="~{fragments/layout :: headbare(#{login.title})}"></head>
 <body class="auth-body">
+<th:block th:replace="~{fragments/icons :: sprite}"></th:block>
 <div class="demo-strip" role="note" th:if="${demoBanner}"><b th:text="#{demo.banner}">Sample data</b></div>
-<main id="main" class="auth">
-  <div class="auth-brand"><th:block th:replace="~{fragments/brand-mark :: mark}"></th:block><span th:text="#{app.name}">Audit Repository</span></div>
-  <h1 th:text="#{login.title}">Sign in</h1>
-  <p class="auth-tag" th:text="#{login.tagline}">Audit event review</p>
-  <div class="notice notice-bad" role="alert" th:if="${param.error != null}" th:text="#{login.error}">Wrong name or password.</div>
-  <div class="notice notice-info" role="status" th:if="${param.logout != null}" th:text="#{login.loggedout}">Signed out.</div>
+<div class="auth-shell">
+  <th:block th:replace="~{fragments/auth :: brand}"></th:block>
+  <main id="main" class="auth">
+    <header class="auth-head">
+      <h1 th:text="#{login.title}">Sign in</h1>
+      <p class="auth-tag" th:text="#{login.tagline}">Audit event review</p>
+    </header>
+    <div class="notice notice-bad" role="alert" th:if="${param.error != null}"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-warning"/></svg><span th:text="#{login.error}">Wrong name or password.</span></div>
+    <div class="notice notice-info" role="status" th:if="${param.logout != null}"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-check-circle"/></svg><span th:text="#{login.loggedout}">Signed out.</span></div>
 
-  <section class="panel" aria-labelledby="l-pick">
-    <div class="panel-head"><h2 id="l-pick" class="h-small" th:text="#{login.pick}">Sample users for evaluation</h2></div>
-    <div class="auth-pick">
-      <form th:each="u : ${demoUsers}" th:action="@{/login}" method="post">
-        <input type="hidden" name="username" th:value="${u.username}">
-        <input type="hidden" name="password" th:value="${u.password}">
-        <button class="pick" type="submit">
-          <b th:text="${u.title}">Role</b>
-          <span class="mono sub" th:text="${u.username} + ' / ' + ${u.password}">name / password</span>
-          <span class="sub" th:text="${u.can}">what they can do</span>
-        </button>
+    <section class="auth-section" aria-labelledby="l-pick">
+      <h2 id="l-pick" class="auth-h" th:text="#{login.pick}">Sample users for evaluation</h2>
+      <p class="sub" th:text="#{login.pick.help}">One click signs in as that person.</p>
+      <div class="auth-pick">
+        <form th:each="u : ${demoUsers}" th:action="@{/login}" method="post">
+          <input type="hidden" name="username" th:value="${u.username}">
+          <input type="hidden" name="password" th:value="${u.password}">
+          <button class="pick" type="submit">
+            <span class="avatar" aria-hidden="true" th:text="${#strings.toUpperCase(#strings.substring(u.username, 0, 1))}">P</span>
+            <span class="pick-body">
+              <b th:text="${u.title}">Role</b>
+              <span class="pick-can" th:text="${u.can}">what they can do</span>
+              <span class="mono pick-cred" th:text="${u.username} + ' / ' + ${u.password}">name / password</span>
+            </span>
+            <svg class="ico pick-go" aria-hidden="true" focusable="false"><use href="#i-arrow-right"/></svg>
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <section class="panel auth-card" aria-labelledby="l-form">
+      <form class="panel-pad stack" th:action="@{/login}" method="post">
+        <h2 id="l-form" class="auth-h" th:text="#{login.manual}">Sign in with a name and password</h2>
+        <label class="field"><span th:text="#{login.username}">Name</span><input class="input" name="username" autocomplete="username" required></label>
+        <label class="field"><span th:text="#{login.password}">Password</span><input class="input" type="password" name="password" autocomplete="current-password" required></label>
+        <button class="btn btn-primary" type="submit"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-lock"/></svg><span th:text="#{login.submit}">Sign in</span></button>
       </form>
-    </div>
-  </section>
-
-  <section class="panel" aria-labelledby="l-form">
-    <div class="panel-head"><h2 id="l-form" class="h-small" th:text="#{login.manual}">Sign in with a name and password</h2></div>
-    <form class="panel-pad stack" th:action="@{/login}" method="post">
-      <label class="field"><span th:text="#{login.username}">Name</span><input class="input" name="username" autocomplete="username" required></label>
-      <label class="field"><span th:text="#{login.password}">Password</span><input class="input" type="password" name="password" autocomplete="current-password" required></label>
-      <button class="btn btn-primary" type="submit" th:text="#{login.submit}">Sign in</button>
-    </form>
-  </section>
-</main>
+    </section>
+  </main>
+</div>
+<th:block th:replace="~{fragments/layout :: footer}"></th:block>
 </body>
 </html>

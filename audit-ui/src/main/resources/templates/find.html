@@ -10,7 +10,7 @@
   <form class="searchbar" th:action="@{/find}" method="get" role="search">
     <label class="sr-only" for="find-page-q" th:text="#{find.label}">Search text</label>
     <input id="find-page-q" name="q" maxlength="100" autocomplete="off" th:value="${q}" th:placeholder="#{nav.find}">
-    <button class="btn btn-primary" type="submit" th:text="#{find.go}">Search</button>
+    <button class="btn btn-primary" type="submit"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-search"/></svg><span th:text="#{find.go}">Search</span></button>
   </form>
   <p class="sub" th:text="#{find.hint}">Hint</p>
 
@@ -27,8 +27,8 @@
           <div class="grow"><b th:text="${x.name}">Name</b> <span class="sub mono" th:text="${x.ref}">ref</span></div>
           <span class="tag tag-info" th:text="#{'people.role.' + ${x.role}}">Role</span>
           <span class="sub" th:text="#{find.people.records(${x.events})}">n records</span>
-          <a class="btn btn-sm" th:if="${x.ref != null}" th:href="@{/(agent=${x.ref})}" th:text="#{people.row.records}">Explore</a>
-          <a class="btn btn-sm" th:if="${x.ref != null and x.kind == 'person'}" th:href="@{/reports(r='person',person=${x.ref})}" th:text="#{people.row.report}">Report</a>
+          <a class="btn btn-sm" th:if="${x.ref != null}" th:href="@{/(agent=${x.ref})}"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-list"/></svg><span th:text="#{people.row.records}">Explore</span></a>
+          <a class="btn btn-sm" th:if="${x.ref != null and x.kind == 'person'}" th:href="@{/reports(r='person',person=${x.ref})}"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-reports"/></svg><span th:text="#{people.row.report}">Report</span></a>
         </li>
         <li th:if="${#lists.isEmpty(people)}"><th:block th:replace="~{fragments/states :: emptyInline(#{find.none})}"></th:block></li>
       </ul>
@@ -40,7 +40,7 @@
         <li th:each="x : ${patients}">
           <div class="grow"><a class="mono" th:href="@{/patient/{id}(id=${x.id})}" th:text="${x.id}">P-1</a></div>
           <span class="sub" th:text="${x.people < 0} ? #{find.patient.exact(${x.events})} : #{find.patient.records(${x.events})}">n records</span>
-          <a class="btn btn-sm" th:href="@{/patient/{id}(id=${x.id})}" th:text="#{people.row.open}">Open</a>
+          <a class="btn btn-sm" th:href="@{/patient/{id}(id=${x.id})}"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-user"/></svg><span th:text="#{people.row.open}">Open</span></a>
         </li>
         <li th:if="${#lists.isEmpty(patients)}"><span class="sub" th:text="#{find.none}">Nothing</span></li>
       </ul>
@@ -52,7 +52,7 @@
         <li th:each="x : ${systemHits}">
           <div class="grow"><b th:text="${x.label}">Name</b> <span class="sub mono" th:text="${x.clientId}">id</span><span class="sub" th:if="${x.note != null}" th:text="${x.note}">note</span></div>
           <span class="sub"><span th:text="#{find.system.last}">Last seen</span> <th:block th:replace="~{fragments/layout :: when(${x.lastSeen})}"></th:block></span>
-          <a class="btn btn-sm" th:if="${canAdmin}" th:href="@{/admin/systems/{id}(id=${x.clientId})}" th:text="#{find.system.admin}">Open</a>
+          <a class="btn btn-sm" th:if="${canAdmin}" th:href="@{/admin/systems/{id}(id=${x.clientId})}"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-building"/></svg><span th:text="#{find.system.admin}">Open</span></a>
         </li>
         <li th:if="${#lists.isEmpty(systemHits)}"><th:block th:replace="~{fragments/states :: emptyInline(#{find.none})}"></th:block></li>
         <li th:if="${!canAdmin and !#lists.isEmpty(systemHits)}"><span class="sub" th:text="#{find.system.noadmin}">Admins only</span></li>
@@ -67,7 +67,7 @@
           <span class="tag" th:classappend="${x.status == 'reviewed'} ? 'tag-ok' : 'tag-warn'" th:text="#{'reports.review.' + ${x.status}}">Reviewed</span>
           <span class="sub" th:text="#{find.case.by(${x.reviewer})}">by someone</span>
           <span class="sub"><th:block th:replace="~{fragments/layout :: when(${x.at})}"></th:block></span>
-          <a class="btn btn-sm" th:if="${x.patientId != null}" th:href="@{/patient/{id}(id=${x.patientId})}" th:text="#{people.row.open}">Open patient</a>
+          <a class="btn btn-sm" th:if="${x.patientId != null}" th:href="@{/patient/{id}(id=${x.patientId})}"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-user"/></svg><span th:text="#{people.row.open}">Open patient</span></a>
         </li>
         <li th:if="${#lists.isEmpty(cases)}"><th:block th:replace="~{fragments/states :: emptyInline(#{find.none})}"></th:block></li>
       </ul>
@@ -76,5 +76,6 @@
     <p class="sub" th:text="#{find.scope(${scanned})}">Scope</p>
   </th:block>
 </main>
+<th:block th:replace="~{fragments/layout :: footer}"></th:block>
 </body>
 </html>

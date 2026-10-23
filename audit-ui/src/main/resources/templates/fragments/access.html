@@ -8,9 +8,9 @@
 -->
 <th:block th:fragment="shell">
   <div class="notice notice-info acc-notice" role="status" th:if="${accNoticeDue == true}">
-    <div><b th:text="#{access.notice.title}">This console is recorded.</b>
+    <div><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-eye"/></svg> <b th:text="#{access.notice.title}">This console is recorded.</b>
       <span th:text="#{access.notice.text}">Every search, patient page opened, report download and decision is written to a log.</span></div>
-    <form th:action="@{/activity/notice-ack}" method="post"><input type="hidden" name="next" th:value="${shellPath}"><button class="btn btn-sm btn-primary" type="submit" th:text="#{access.notice.ok}">Got it</button></form>
+    <form th:action="@{/activity/notice-ack}" method="post"><input type="hidden" name="next" th:value="${shellPath}"><button class="btn btn-sm btn-primary" type="submit"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-check"/></svg><span th:text="#{access.notice.ok}">Got it</span></button></form>
   </div>
   <div id="acc-session" hidden th:if="${accSignedIn == true}"
        th:attr="data-timeout=${accSessionSeconds},data-warn=${accWarnSeconds},data-keepalive=@{/session/keepalive},data-out=@{/signed-out},data-t-min=#{access.session.minutes},data-t-min1=#{access.session.minute},data-t-sec=#{access.session.seconds},data-t-title=#{access.session.title},data-t-idle=#{access.session.idle}">
@@ -18,7 +18,7 @@
     <div class="acc-dialog panel" role="alertdialog" aria-modal="true" aria-labelledby="acc-s-title" aria-describedby="acc-s-text">
       <div class="panel-head"><h3 th:text="#{access.session.head}">Session ends</h3></div>
       <div class="acc-dialog-body">
-        <div class="state-icon warn" aria-hidden="true">&#9201;</div>
+        <div class="state-art warn" aria-hidden="true"><th:block th:replace="~{fragments/brand-mark :: mark}"></th:block><span class="state-badge"><svg class="ico ico-sm" focusable="false"><use href="#i-clock"/></svg></span></div>
         <h2 id="acc-s-title"></h2>
         <p id="acc-s-text"></p>
         <div class="row acc-dialog-actions">

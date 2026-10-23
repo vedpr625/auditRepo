@@ -77,7 +77,7 @@
     <span class="tag tag-warn" th:if="${pendingRequest == true and requested != true}" th:text="#{clinical.request.pending}">Waiting</span>
     <form th:if="${pendingRequest != true and requested != true}" th:action="@{/patient/{id}/request-consent-access(id=${patientId})}" method="post" class="cl-ask-form">
       <label class="field"><span class="sub" th:text="#{access.restricted.note.label}">Why do you need it?</span><input class="input" name="note" maxlength="300" autocomplete="off"></label>
-      <button class="btn btn-primary" type="submit" th:text="#{access.restricted.ask}">Ask the privacy officer for access</button>
+      <button class="btn btn-primary" type="submit"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-lock"/></svg><span th:text="#{access.restricted.ask}">Ask the privacy officer for access</span></button>
     </form>
   </div>
 </section>
@@ -86,13 +86,13 @@
 <section class="panel acc-restricted" th:fragment="restricted" aria-labelledby="p-restricted">
   <div class="panel-head"><h3 id="p-restricted" th:text="#{access.restricted.title}">Restricted record</h3><span class="tag tag-warn" th:text="#{access.restricted.badge}">Restricted record</span></div>
   <div class="state">
-    <div class="state-icon warn" aria-hidden="true">&#128274;</div>
+    <div class="state-art warn" aria-hidden="true"><th:block th:replace="~{fragments/brand-mark :: mark}"></th:block><span class="state-badge"><svg class="ico ico-sm" focusable="false"><use href="#i-lock"/></svg></span></div>
     <h2 class="mono" th:text="${patientId}">P-1</h2>
     <p th:text="#{access.restricted.text}">Marked sensitive.</p>
     <p th:if="${pending == true}"><span class="tag tag-warn acc-pending" th:text="#{access.restricted.pending}">Waiting</span></p>
     <form th:if="${pending != true}" th:action="@{/patient/{id}/request-access(id=${patientId})}" method="post" class="stack" style="max-width:380px;margin:0 auto;text-align:start">
       <label class="field"><span class="sub" th:text="#{access.restricted.note.label}">Why?</span><input class="input" name="note" maxlength="300" autocomplete="off"></label>
-      <button class="btn btn-primary" type="submit" th:text="#{access.restricted.ask}">Ask the privacy officer for access</button>
+      <button class="btn btn-primary" type="submit"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-lock"/></svg><span th:text="#{access.restricted.ask}">Ask the privacy officer for access</span></button>
     </form>
   </div>
 </section>

@@ -13,6 +13,32 @@
     if (t && h) e.detail.headers[h] = t;
   });
 
+  // ── Icons: the sprite is in the page (fragments/icons.html); this builds a reference to one symbol ──
+  var NS = "http://www.w3.org/2000/svg";
+  function icon(name, cls) {
+    var svg = doc.createElementNS(NS, "svg"); svg.setAttribute("class", "ico" + (cls ? " " + cls : ""));
+    svg.setAttribute("aria-hidden", "true"); svg.setAttribute("focusable", "false");
+    var use = doc.createElementNS(NS, "use"); use.setAttribute("href", "#i-" + name); svg.appendChild(use);
+    return svg;
+  }
+
+  // ── Status chips get a small icon so meaning never rests on colour alone (text stays the primary signal) ──
+  var TAG_ICON = { "tag-ok": "check-circle", "tag-bad": "x-circle", "tag-warn": "warning", "tag-info": "info" };
+  function decorateTags(scope) {
+    if (!doc.getElementById("i-check-circle")) return;
+    (scope || doc).querySelectorAll(".tag-ok,.tag-bad,.tag-warn,.tag-info").forEach(function (t) {
+      if (t.querySelector(":scope > svg") || t.hasAttribute("data-no-ico") || !t.textContent.trim()) return;
+      for (var k in TAG_ICON) if (t.classList.contains(k)) { t.insertBefore(icon(TAG_ICON[k]), t.firstChild); break; }
+    });
+  }
+  var tagQueued = false;
+  function queueTags() { if (tagQueued) return; tagQueued = true; requestAnimationFrame(function () { tagQueued = false; decorateTags(); }); }
+  if (window.MutationObserver) {
+    doc.addEventListener("DOMContentLoaded", function () {
+      new MutationObserver(queueTags).observe(doc.body, { childList: true, subtree: true });
+    });
+  }
+
   // ── Toasts ──
   var box;
   function toast(message, kind, ms) {
@@ -21,6 +47,7 @@
     var el = doc.createElement("div");
     el.className = "toast toast-" + (kind || "ok");
     el.setAttribute("role", kind === "bad" ? "alert" : "status");
+    el.appendChild(icon(kind === "bad" ? "warning" : "check-circle"));
     var span = doc.createElement("span"); span.textContent = message;
     var b = doc.createElement("button"); b.type = "button"; b.className = "toast-x"; b.textContent = "×";
     b.setAttribute("aria-label", "Close");
@@ -130,7 +157,35 @@
   }
   window.addEventListener("resize", headerHeight);
 
-  doc.addEventListener("DOMContentLoaded", function () { headerHeight(); flashToToasts(); });
+  // ── Shadows that show a header is stuck: the app header once the page is scrolled, a table header once it sits under it ──
+  var scrollQueued = false;
+  function onScroll() {
+    if (scrollQueued) return; scrollQueued = true;
+    requestAnimationFrame(function () {
+      scrollQueued = false;
+      var h = doc.getElementById("app-header");
+      if (h) h.classList.toggle("is-scrolled", window.scrollY > 2);
+      var top = h ? h.getBoundingClientRect().bottom : 0;
+      doc.querySelectorAll("table.table").forEach(function (t) {
+        var head = t.tHead; if (!head) return;
+        var r = head.getBoundingClientRect(), tr = t.getBoundingClientRect();
+        t.classList.toggle("is-stuck", r.top <= top + 1 && tr.bottom > top + r.height && window.scrollY > 2);
+      });
+    });
+  }
+  window.addEventListener("scroll", onScroll, { passive: true });
+
+  // A region that scrolls sideways must be reachable with the keyboard
+  function focusableScrollers() {
+    doc.querySelectorAll(".table-wrap,.ov-scroll,.event-list").forEach(function (el) {
+      var scrolls = el.scrollWidth > el.clientWidth + 1 || el.scrollHeight > el.clientHeight + 1;
+      if (scrolls && !el.hasAttribute("tabindex")) el.setAttribute("tabindex", "0");
+    });
+  }
+  window.addEventListener("resize", focusableScrollers);
+  doc.addEventListener("htmx:afterSettle", focusableScrollers);
+
+  doc.addEventListener("DOMContentLoaded", function () { headerHeight(); flashToToasts(); decorateTags(); onScroll(); focusableScrollers(); });
 })();
 
 // Ctrl K (or Cmd K) jumps to "Find anything"

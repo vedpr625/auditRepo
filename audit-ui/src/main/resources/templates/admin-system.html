@@ -9,7 +9,7 @@
     <th:block th:if="${s != null}"> / <b th:text="${s.label}">HHIMS</b></th:block></div>
 
   <div class="panel" th:if="${notfound == true}"><div class="state"><h2 th:text="#{admin.sys.notfound}">No such system</h2><p th:text="#{admin.sys.notfound.text}">Go back.</p>
-    <a class="btn" th:href="@{/admin}" th:text="#{admin.sys.back}">Back</a></div></div>
+    <a class="btn" th:href="@{/admin}"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-arrow-left"/></svg><span th:text="#{admin.sys.back}">Back</span></a></div></div>
 
   <th:block th:if="${s != null}">
     <div data-flash class="notice notice-info" role="status" th:if="${flash == 'saved'}" th:text="#{admin.saved}">Saved.</div>
@@ -71,12 +71,13 @@
             <input type="hidden" name="clientId" th:value="${s.clientId}">
             <div class="field"><label for="s-name" th:text="#{admin.sys.name}">Name</label><input class="input" id="s-name" name="displayName" maxlength="120" th:value="${s.displayName}" th:placeholder="#{admin.name.placeholder}"></div>
             <div class="field"><label for="s-note" th:text="#{admin.sys.note}">Note</label><input class="input" id="s-note" name="note" maxlength="255" th:value="${s.note}" th:placeholder="#{admin.sys.contact.ph}"></div>
-            <button class="btn btn-primary" type="submit" th:text="#{common.save}">Save</button>
+            <button class="btn btn-primary" type="submit"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-check"/></svg><span th:text="#{common.save}">Save</span></button>
           </form>
         </section>
       </div>
     </div>
   </th:block>
 </main>
+<th:block th:replace="~{fragments/layout :: footer}"></th:block>
 </body>
 </html>

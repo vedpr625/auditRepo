@@ -27,7 +27,7 @@
             <option value="" th:text="#{overview.allfacilities}">All facilities</option>
             <option th:each="f : ${d.facilities}" th:value="${f}" th:text="${#strings.substringAfter(f, '/')}" th:selected="${f == p.facility}">Colombo</option>
           </select>
-          <noscript><button class="btn btn-sm" type="submit" th:text="#{overview.apply}">Apply</button></noscript>
+          <noscript><button class="btn btn-sm" type="submit"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-filter"/></svg><span th:text="#{overview.apply}">Apply</span></button></noscript>
         </form>
         <div class="segmented" role="group" th:attr="aria-label=#{overview.period}">
           <a th:href="@{/overview(range='24h',facility=${p.facility},compare=${p.compare ? '1' : null})}" th:attr="aria-current=${p.range == '24h'} ? 'true' : null" th:text="#{overview.range.24h}">24 hours</a>
@@ -44,7 +44,7 @@
       <input type="hidden" name="compare" value="1" th:if="${p.compare}">
       <label class="field"><span th:text="#{overview.custom.from}">From</span><input class="input" type="date" name="from" th:value="${p.from}" required></label>
       <label class="field"><span th:text="#{overview.custom.to}">To</span><input class="input" type="date" name="to" th:value="${p.to}"></label>
-      <button class="btn btn-primary btn-sm" type="submit" th:text="#{overview.apply}">Apply</button>
+      <button class="btn btn-primary btn-sm" type="submit"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-filter"/></svg><span th:text="#{overview.apply}">Apply</span></button>
       <span class="sub" th:text="#{overview.custom.help}">Up to 30 days back.</span>
     </form>
 
@@ -54,7 +54,7 @@
     <!-- KPI tiles -->
     <div class="ov-kpis">
       <div class="panel kpi ov-kpi" th:each="k : ${d.kpis}" th:classappend="${k.tone}">
-        <span class="sub" th:text="${k.label}">Events</span>
+        <span class="sub kpi-label"><svg class="ico" aria-hidden="true" focusable="false"><use th:attr="href='#i-' + (${k.id} == 'events' ? 'pulse' : (${k.id} == 'failed' ? 'x-circle' : (${k.id} == 'btg' ? 'breakglass' : (${k.id} == 'reviews' ? 'review' : (${k.id} == 'people' ? 'people' : 'server')))))"/></svg><span th:text="${k.label}">Events</span></span>
         <span class="value"><span th:text="${k.value}">12,840</span><small th:if="${k.suffix != null}" th:text="' ' + ${k.suffix}"> of 6</small></span>
         <span class="delta" th:classappend="'t-' + ${k.subTone}" th:text="${k.sub}">8% more than yesterday</span>
         <svg th:if="${k.spark != null}" class="spark" th:classappend="'s-' + ${k.id}" viewBox="0 0 120 26" preserveAspectRatio="none" role="img" th:attr="aria-label=${k.sparkAlt}"><polyline fill="none" stroke-width="2" vector-effect="non-scaling-stroke" th:attr="points=${k.spark}"></polyline></svg>
@@ -109,7 +109,7 @@
           <span class="tag tag-planned tag-sm" th:text="#{overview.needs.demo}">Demo scoring</span>
           <span class="sub" th:text="#{overview.needs.demo.text}">Risk is a simple points rule, not a trained model.</span>
         </div>
-        <div class="panel-pad"><a class="btn btn-primary ov-wide" th:href="@{/reviews}" th:text="#{overview.needs.open}">Open the review queue</a></div>
+        <div class="panel-pad"><a class="btn btn-primary ov-wide" th:href="@{/reviews}"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-review"/></svg><span th:text="#{overview.needs.open}">Open the review queue</span></a></div>
       </aside>
     </div>
 
@@ -216,7 +216,7 @@
             <span th:text="#{overview.rq.decided(${d.decidedReviewed}, ${d.decidedFlagged})}">Marked reviewed: 14. Flagged: 3.</span>
           </div>
           <div class="notice notice-planned" th:text="#{overview.rq.planned}">Median time to decide and peer-review disagreements arrive with case reviews.</div>
-          <a class="btn" th:href="@{/reviews}" th:text="#{overview.needs.open}">Open the review queue</a>
+          <a class="btn" th:href="@{/reviews}"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-review"/></svg><span th:text="#{overview.needs.open}">Open the review queue</span></a>
         </div>
       </section>
     </div>

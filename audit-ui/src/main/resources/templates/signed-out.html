@@ -8,18 +8,20 @@
   <script th:src="@{/js/access-session.js}" defer></script>
 </head>
 <body>
+<th:block th:replace="~{fragments/icons :: sprite}"></th:block>
 <main id="main" class="page">
   <section class="panel acc-signed" aria-labelledby="so-h">
     <div class="panel-head"><h3 th:text="#{access.out.head}">Signed out</h3></div>
     <div class="state">
-      <div class="state-icon bad" aria-hidden="true">!</div>
+      <div class="state-art bad" aria-hidden="true"><th:block th:replace="~{fragments/brand-mark :: mark}"></th:block><span class="state-badge"><svg class="ico ico-sm" focusable="false"><use href="#i-warning"/></svg></span></div>
       <h1 id="so-h" th:text="#{access.out.title}">Your sign-in has expired</h1>
       <p th:if="${fromPage == null}" th:text="#{access.out.text}">Sign in again to carry on.</p>
       <p th:if="${fromPage != null}" th:text="${fromCase != null} ? #{access.out.back.case(#{'nav.' + ${fromPage}}, ${fromCase})} : #{access.out.back(#{'nav.' + ${fromPage}})}">Sign in again to go back.</p>
       <p class="sub" th:text="#{access.out.draft}">Unsaved text in the decision box was kept on this device and will return.</p>
-      <a class="btn btn-primary" th:href="@{/login}" th:text="#{access.out.signin}">Sign in</a>
+      <a class="btn btn-primary" th:href="@{/login}"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-lock"/></svg><span th:text="#{access.out.signin}">Sign in</span></a>
     </div>
   </section>
 </main>
+<th:block th:replace="~{fragments/layout :: footer}"></th:block>
 </body>
 </html>

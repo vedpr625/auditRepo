@@ -6,7 +6,7 @@
 <th:block th:replace="~{fragments/layout :: header('admin')}"></th:block>
 <main id="main" class="page">
   <div class="page-head"><h1 th:text="#{admin.title}">Admin</h1><span class="lede" th:text="#{admin.lede2}">Who can use the console</span>
-    <span class="actions"><a class="btn btn-sm" th:href="@{/checklist}" th:text="#{admin.checklist}">Delivered and planned</a></span></div>
+    <span class="actions"><a class="btn btn-sm" th:href="@{/checklist}"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-list"/></svg><span th:text="#{admin.checklist}">Delivered and planned</span></a></span></div>
 
   <div data-flash class="notice notice-info" role="status" th:if="${flash == 'saved'}" th:text="#{admin.saved}">Saved.</div>
   <div data-flash class="notice notice-info" role="status" th:if="${flash == 'discovered'}" th:text="#{admin.discovered(${flashCount})}">Found.</div>
@@ -27,7 +27,7 @@
   <div class="split" th:if="${tab == 'systems'}">
     <section class="panel grow" aria-labelledby="a-sys">
       <div class="panel-head"><h3 id="a-sys" th:text="#{admin.systems.head}">Systems that have sent audit records</h3>
-        <form th:action="@{/admin/systems/discover}" method="post"><button class="btn btn-sm" type="submit" th:text="#{admin.discover}">Look for new ones</button></form></div>
+        <form th:action="@{/admin/systems/discover}" method="post"><button class="btn btn-sm" type="submit"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-refresh"/></svg><span th:text="#{admin.discover}">Look for new ones</span></button></form></div>
       <th:block th:if="${#lists.isEmpty(rows)}"><th:block th:replace="~{fragments/states :: empty('0', #{admin.empty.title}, #{admin.empty.text}, null, null)}"></th:block></th:block>
       <div class="table-wrap" th:unless="${#lists.isEmpty(rows)}">
         <table class="table table-cards">
@@ -132,7 +132,7 @@
           <label class="field"><span th:text="#{admin.users.f.username}">Sign-in name</span><input class="input mono" name="username" maxlength="39" pattern="[a-z0-9][a-z0-9._\-]{1,38}" required></label>
           <label class="field"><span th:text="#{admin.users.f.email}">Email</span><input class="input" type="email" name="email" maxlength="255" required></label>
           <label class="field"><span th:text="#{admin.col.role}">Role</span><select class="select" name="role"><option th:each="r : ${userRoles}" th:value="${r}" th:text="${r}" th:selected="${r == 'FACILITY_AUDITOR'}">ROLE</option></select></label>
-          <button class="btn btn-primary" type="submit" th:text="#{admin.users.invite.do}">Invite</button>
+          <button class="btn btn-primary" type="submit"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-user-plus"/></svg><span th:text="#{admin.users.invite.do}">Invite</span></button>
         </form>
         <div class="panel-foot" th:text="#{admin.users.demo.warn}">Not real</div>
       </section>
@@ -177,5 +177,6 @@
   </section>
   <div class="mt-3"><th:block th:replace="~{fragments/access :: links}"></th:block></div>
 </main>
+<th:block th:replace="~{fragments/layout :: footer}"></th:block>
 </body>
 </html>

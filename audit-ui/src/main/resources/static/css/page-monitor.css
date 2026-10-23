@@ -154,7 +154,7 @@
   transition: color .15s, border-color .15s;
 }
 .mon .tab-btn:hover{ color: var(--text); }
-.mon .tab-btn.active{ color: var(--accent); border-bottom-color: var(--accent); }
+.mon .tab-btn.active{ color: var(--accent-text); border-bottom-color: var(--accent-line); }
 .mon .badge-count{
   display: inline-flex; align-items: center; justify-content: center;
   min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px;

@@ -45,7 +45,7 @@
         <div class="field" th:if="${hasInclude}"><label for="f-inc" th:text="#{reports.f.include}">Include</label>
           <select class="select" id="f-inc" name="include"><option value="all" th:selected="${fInclude == 'all'}" th:text="#{reports.f.include.all}">All</option>
             <option value="reads" th:selected="${fInclude == 'reads'}" th:text="#{reports.f.include.reads}">Reads</option></select></div>
-        <button class="btn btn-primary" type="submit" th:text="#{reports.f.show}">Show report</button>
+        <button class="btn btn-primary" type="submit"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-search"/></svg><span th:text="#{reports.f.show}">Show report</span></button>
       </form>
       <div class="panel-pad" th:if="${demo and (needsPatient or needsPerson) and res != null and res.needsInput}">
         <span class="sub" th:text="#{reports.f.try}">Try</span>
@@ -66,9 +66,9 @@
             <div class="rep-stat" th:each="s : ${res.stats}" th:classappend="${s.tone != 'plain'} ? ${s.tone}"><b th:text="${s.value}">0</b><span th:text="#{'reports.stat.' + ${s.label}}">label</span></div>
           </div>
           <div class="rep-actions no-print">
-            <a class="btn btn-sm" th:href="@{${csvHref}}" th:text="#{reports.csv}">CSV</a>
-            <a class="btn btn-sm" th:href="@{${jsonHref}}" th:text="#{reports.json}">JSON</a>
-            <a class="btn btn-sm" th:href="@{${pdfHref}}" th:text="#{reports.pdf}">PDF</a>
+            <a class="btn btn-sm" th:href="@{${csvHref}}"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-download"/></svg><span th:text="#{reports.csv}">CSV</span></a>
+            <a class="btn btn-sm" th:href="@{${jsonHref}}"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-download"/></svg><span th:text="#{reports.json}">JSON</span></a>
+            <a class="btn btn-sm" th:href="@{${pdfHref}}"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-reports"/></svg><span th:text="#{reports.pdf}">PDF</span></a>
             <button class="btn btn-sm btn-planned" type="button" disabled th:title="#{reports.schedule.note}"><span th:text="#{reports.schedule}">Schedule this</span> <span class="tag tag-planned tag-sm" th:text="#{common.planned}">Planned</span></button>
           </div>
 
@@ -101,5 +101,6 @@
     </section>
   </div>
 </main>
+<th:block th:replace="~{fragments/layout :: footer}"></th:block>
 </body>
 </html>

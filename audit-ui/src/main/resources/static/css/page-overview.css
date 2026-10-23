@@ -122,3 +122,20 @@
 .ov .panel-head h3{font-size:15px;text-transform:none;letter-spacing:0;font-weight:600;color:var(--ink)}
 :root{--heat-0:#dfe9f8;--heat-1:#9fc2ee;--heat-2:#5b97e0}
 :root[data-theme="dark"]{--heat-0:#1d2b3d}
+
+/* look pass: the chart panel takes the height of the list beside it; calmer panel titles */
+.ov-y,.ov-plot{height:300px}
+.ov-chart{margin-top:4px}
+.ov-plot{border-bottom-color:var(--border-input);gap:4px}
+.ov-col i{border-radius:2px 2px 0 0}
+.ov-col:hover{background:var(--accent-wash)}
+.ov-summary{background:var(--panel-sub);border:1px solid var(--line)}
+.ov-kpi .spark polyline{stroke-width:2.25;stroke-linecap:round;stroke-linejoin:round}
+.ov-kpi .delta.t-info{color:var(--ov-ok-text)}
+.ov-need{padding:12px 20px;transition:background-color .14s}
+.ov-need:hover{background:var(--panel-sub)}
+.ov .panel-head{padding-top:16px;padding-bottom:6px}
+.ov-hbar .track,.hbar .track{height:12px;border-radius:6px;background:var(--border-faint)}
+.hbar .track>b{border-radius:6px}
+.ov-heat i{border-radius:3px}
+.ov-heat{gap:3px}

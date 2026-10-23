@@ -176,7 +176,6 @@ td.td-sm:first-child{max-width:none;white-space:nowrap}
 .explore .chip-add:hover{background:var(--accent-wash)}
 .ex-groupby{display:flex;align-items:center;gap:10px;color:var(--ink-2)}
 .ex-groupby .segmented>*{min-height:36px;padding:0 16px;font-size:14px}
-.ex-groupby .segmented>[aria-pressed="true"]{background:var(--accent-wash);color:var(--accent-text);font-weight:600}
 
 .ex-tryrow{gap:10px;position:relative;row-gap:6px}
 .ex-tryrow .try{font-size:13px;padding:3px 10px;background:var(--panel-sub);color:var(--ink-2);cursor:pointer}

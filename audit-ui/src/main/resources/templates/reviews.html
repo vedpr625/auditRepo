@@ -17,7 +17,7 @@
           <label class="field"><span th:text="#{reviews.new.title}">Short title</span><input class="input" name="title" maxlength="200" required></label>
           <label class="field"><span th:text="#{reviews.new.patient}">Patient id (optional)</span><input class="input mono" name="patient" maxlength="64" placeholder="P-10407"></label>
           <p class="sub" th:text="#{reviews.new.help}">The latest records for this patient are attached. You become the first reviewer.</p>
-          <button class="btn btn-primary" type="submit" th:text="#{reviews.new.create}">Open the case</button>
+          <button class="btn btn-primary" type="submit"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-plus"/></svg><span th:text="#{reviews.new.create}">Open the case</span></button>
         </form>
       </details>
     </div>
@@ -28,7 +28,7 @@
   <div data-flash class="notice notice-bad" role="alert" th:if="${flashText != null}" th:text="${flashText}">Not done</div>
 
   <section class="panel" th:unless="${canView}">
-    <div class="state"><div class="state-icon warn" aria-hidden="true">!</div>
+    <div class="state"><div class="state-art warn" aria-hidden="true"><th:block th:replace="~{fragments/brand-mark :: mark}"></th:block><span class="state-badge"><svg class="ico ico-sm" focusable="false"><use href="#i-warning"/></svg></span></div>
       <h2 th:text="#{reviews.noview.title}">Cases are for ministry-level roles</h2>
       <p th:text="#{reviews.noview.text}">Cases can involve several facilities.</p>
       <span class="tag tag-planned" th:text="#{reviews.noview.planned}">Planned</span></div>
@@ -46,7 +46,7 @@
       <select class="select rv-kind" id="rv-kind" name="kind"><option value="" th:text="#{reviews.filter.anykind}">Any kind</option><option th:each="k : ${kinds}" th:value="${k}" th:text="#{'reviews.kind.' + ${k}}" th:selected="${k == kind}">kind</option></select>
       <label class="sr-only" for="rv-q" th:text="#{reviews.filter.q}">Search</label>
       <input class="input rv-q" id="rv-q" name="q" th:value="${q}" maxlength="80" th:placeholder="#{reviews.filter.q}">
-      <button class="btn btn-sm" type="submit" th:text="#{reviews.filter.apply}">Filter</button>
+      <button class="btn btn-sm" type="submit"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-filter"/></svg><span th:text="#{reviews.filter.apply}">Filter</span></button>
       <a class="btn btn-sm btn-ghost" th:if="${!kind.isEmpty() || !q.isEmpty() || scope != 'all'}" th:href="@{/reviews}" th:text="#{reviews.filter.clear}">Clear</a>
     </form>
 
@@ -115,7 +115,7 @@
             <form class="rv-note" th:if="${canReview && !sel.closed}" th:action="@{/reviews/{id}/note(id=${sel.id})}" method="post">
               <label class="sr-only" for="rv-note" th:text="#{reviews.note.label}">Add a note</label>
               <input class="input" id="rv-note" name="text" maxlength="500" th:placeholder="#{reviews.note.label}" required>
-              <button class="btn btn-sm" type="submit" th:text="#{reviews.note.add}">Add</button>
+              <button class="btn btn-sm" type="submit"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-plus"/></svg><span th:text="#{reviews.note.add}">Add</span></button>
             </form>
           </div>
 
@@ -138,8 +138,8 @@
               <p class="sub" th:if="${sel.reopenOf != null}"><span th:text="#{reviews.reopen.of}">Reopened from</span> <a th:href="@{/reviews(case=${sel.reopenOf})}" th:text="${sel.reopenOf}">C-1</a></p>
               <p class="sub" th:if="${!#lists.isEmpty(reopenedBy)}"><span th:text="#{reviews.reopen.by}">Reopened as</span> <a th:each="r : ${reopenedBy}" th:href="@{/reviews(case=${r})}" th:text="${r}">C-2</a></p>
               <div class="rv-actions">
-                <a class="btn" th:href="@{/reviews/{id}/evidence.pdf(id=${sel.id})}" th:text="#{reviews.evidence}">Download evidence pack (PDF)</a>
-                <form th:if="${canReview}" th:action="@{/reviews/{id}/reopen(id=${sel.id})}" method="post"><button class="btn" type="submit" th:text="#{reviews.reopen}">Reopen as new case</button></form>
+                <a class="btn" th:href="@{/reviews/{id}/evidence.pdf(id=${sel.id})}"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-download"/></svg><span th:text="#{reviews.evidence}">Download evidence pack (PDF)</span></a>
+                <form th:if="${canReview}" th:action="@{/reviews/{id}/reopen(id=${sel.id})}" method="post"><button class="btn" type="submit"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-refresh"/></svg><span th:text="#{reviews.reopen}">Reopen as new case</span></button></form>
               </div>
             </th:block>
 
@@ -168,7 +168,7 @@
                 <p class="sub" th:text="#{reviews.rule.two}">The case closes when both of you choose the same decision. If you differ, it goes to the privacy officer.</p>
                 <div class="rv-buttons">
                   <button class="btn btn-primary grow" type="submit" name="act" value="send" th:text="${stage == 'first'} ? #{reviews.send.second} : (${stage == 'second'} ? #{reviews.send.mine} : #{reviews.send.rule})">Send</button>
-                  <button class="btn" type="submit" name="act" value="save" formnovalidate th:if="${stage == 'first'}" th:text="#{common.save}">Save</button>
+                  <button class="btn" type="submit" name="act" value="save" formnovalidate th:if="${stage == 'first'}"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-check"/></svg><span th:text="#{common.save}">Save</span></button>
                 </div>
               </form>
               <p class="sub" th:unless="${canDecide}" th:text="${!canReview} ? #{reviews.readonly} : (${sel.status == 'second'} ? #{reviews.waiting.for(${sel.secondReviewer})} : (${sel.status == 'escalated'} ? #{reviews.with.officer} : #{reviews.notyours(${sel.assignee})}))">read only</p>
@@ -218,5 +218,6 @@
     </details>
   </th:block>
 </main>
+<th:block th:replace="~{fragments/layout :: footer}"></th:block>
 </body>
 </html>

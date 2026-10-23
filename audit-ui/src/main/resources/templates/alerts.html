@@ -50,7 +50,7 @@
               <a th:if="${f.caseId != null}" th:href="@{/reviews(case=${f.caseId})}" th:text="#{alerts.case(${f.caseId})}">case C-1</a>
               <span class="tag tag-off tag-sm" th:if="${f.markedNormal}" th:text="#{alerts.normal}">Marked normal</span></span>
           </div>
-          <form th:if="${canReview && !f.markedNormal}" th:action="@{/alerts/firing/{id}/normal(id=${f.id})}" method="post"><button class="btn btn-sm" type="submit" th:text="#{alerts.normal.do}">Mark normal</button></form>
+          <form th:if="${canReview && !f.markedNormal}" th:action="@{/alerts/firing/{id}/normal(id=${f.id})}" method="post"><button class="btn btn-sm" type="submit"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-check"/></svg><span th:text="#{alerts.normal.do}">Mark normal</span></button></form>
         </div>
       </section>
 
@@ -68,5 +68,6 @@
     </aside>
   </div>
 </main>
+<th:block th:replace="~{fragments/layout :: footer}"></th:block>
 </body>
 </html>

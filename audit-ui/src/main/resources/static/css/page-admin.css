@@ -22,4 +22,3 @@
 .ad-kv dt{color:var(--ink-2)} .ad-kv dd{margin:0}
 .btn-block{display:flex;width:100%;justify-content:center}
 .ad-role{font-weight:600}
-.ad-tabs .segmented a[aria-current="true"]{background:var(--accent-wash);color:var(--accent-text)}

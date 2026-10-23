@@ -12,7 +12,7 @@
       <div class="segmented" role="group" th:attr="aria-label=#{breakglass.period}">
         <a th:each="p : ${ {'24h','7d','30d'} }" th:href="@{/break-glass(period=${p},filter=${filter},facility=${facility})}" th:classappend="${period == p} ? 'on'" th:attr="aria-current=${period == p} ? 'true' : null" th:text="#{'breakglass.period.' + ${p}}">7 days</a>
       </div>
-      <a class="btn" th:href="@{/break-glass.csv(period=${period},filter=${filter},facility=${facility})}" th:text="#{breakglass.csv}">Download CSV</a>
+      <a class="btn" th:href="@{/break-glass.csv(period=${period},filter=${filter},facility=${facility})}"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-download"/></svg><span th:text="#{breakglass.csv}">Download CSV</span></a>
     </div>
   </div>
 
@@ -21,12 +21,12 @@
 
   <th:block th:if="${v.error == null}">
     <div class="grid-kpi">
-      <div class="panel kpi"><span class="sub" th:text="#{'breakglass.kpi.total.' + ${period}}">Break-glass, 7 days</span><span class="value num" th:text="${v.total}">23</span></div>
-      <div class="panel kpi" th:classappend="${v.waiting > 0} ? 'warn'"><span class="sub" th:text="#{breakglass.kpi.waiting}">Waiting for a reason</span><span class="value num" th:text="${v.waiting}">2</span></div>
-      <div class="panel kpi" th:classappend="${v.overdue > 0} ? 'bad' : 'ok'"><span class="sub" th:text="#{breakglass.kpi.overdue}">Reason overdue</span><span class="value num" th:text="${v.overdue}">1</span><span class="delta" th:text="#{breakglass.kpi.late(${v.late})}">1 given late</span></div>
-      <div class="panel kpi"><span class="sub" th:text="#{breakglass.kpi.avg}">Average time to give a reason</span><span class="value num" th:text="${minutes.of(v.avgMinutes)}">5 h 10 min</span></div>
-      <div class="panel kpi"><span class="sub" th:text="#{breakglass.kpi.ok}">Reviewed as appropriate</span><span class="value num"><span th:text="${v.reviewedOk}">17</span> <small th:text="#{breakglass.kpi.of(${v.reviewable})}">of 20</small></span></div>
-      <div class="panel kpi" th:classappend="${v.repeatPeople > 0} ? 'warn'"><span class="sub" th:text="#{breakglass.kpi.repeat(${repeatMore})}">People using it more than twice</span><span class="value num" th:text="${v.repeatPeople}">3</span></div>
+      <div class="panel kpi"><span class="sub kpi-label"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-breakglass"/></svg><span th:text="#{'breakglass.kpi.total.' + ${period}}">Break-glass, 7 days</span></span><span class="value num" th:text="${v.total}">23</span></div>
+      <div class="panel kpi" th:classappend="${v.waiting > 0} ? 'warn'"><span class="sub kpi-label"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-clock"/></svg><span th:text="#{breakglass.kpi.waiting}">Waiting for a reason</span></span><span class="value num" th:text="${v.waiting}">2</span></div>
+      <div class="panel kpi" th:classappend="${v.overdue > 0} ? 'bad' : 'ok'"><span class="sub kpi-label"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-warning"/></svg><span th:text="#{breakglass.kpi.overdue}">Reason overdue</span></span><span class="value num" th:text="${v.overdue}">1</span><span class="delta" th:text="#{breakglass.kpi.late(${v.late})}">1 given late</span></div>
+      <div class="panel kpi"><span class="sub kpi-label"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-clock"/></svg><span th:text="#{breakglass.kpi.avg}">Average time to give a reason</span></span><span class="value num" th:text="${minutes.of(v.avgMinutes)}">5 h 10 min</span></div>
+      <div class="panel kpi"><span class="sub kpi-label"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-check-circle"/></svg><span th:text="#{breakglass.kpi.ok}">Reviewed as appropriate</span></span><span class="value num"><span th:text="${v.reviewedOk}">17</span> <small th:text="#{breakglass.kpi.of(${v.reviewable})}">of 20</small></span></div>
+      <div class="panel kpi" th:classappend="${v.repeatPeople > 0} ? 'warn'"><span class="sub kpi-label"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-people"/></svg><span th:text="#{breakglass.kpi.repeat(${repeatMore})}">People using it more than twice</span></span><span class="value num" th:text="${v.repeatPeople}">3</span></div>
     </div>
 
     <section class="panel" aria-labelledby="bg-trend">
@@ -58,7 +58,7 @@
           <option value="" th:text="#{breakglass.facility.any}">All facilities</option>
           <option th:each="f : ${facilities}" th:value="${f}" th:text="${fac.of(f)}" th:selected="${f == facility}">Kandy TH</option>
         </select>
-        <noscript><button class="btn btn-sm" type="submit" th:text="#{reviews.filter.apply}">Filter</button></noscript>
+        <noscript><button class="btn btn-sm" type="submit"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-filter"/></svg><span th:text="#{reviews.filter.apply}">Filter</span></button></noscript>
       </form>
     </div>
     <p class="sub" th:if="${v.truncated}" th:text="#{breakglass.truncated}">Only the newest 100 are shown.</p>
@@ -121,8 +121,8 @@
             </ol>
             <div class="notice notice-planned"><span class="tag tag-planned tag-sm" th:text="#{breakglass.confirm.tag}">To confirm · AR-09</span> <span th:text="#{breakglass.confirm}">The reason is written in the vendor’s application and sent to the audit repository afterwards. Linking it to this record is not yet confirmed with the vendors. This build reads two extensions on the record.</span></div>
             <div class="row-wrap">
-              <a class="btn btn-primary" th:if="${selRow.caseId != null}" th:href="@{/reviews(case=${selRow.caseId})}" th:text="#{breakglass.case.open}">Open the case</a>
-              <form th:if="${selRow.caseId == null && canReview}" th:action="@{/break-glass/{id}/case(id=${selRow.r.id})}" method="post"><button class="btn btn-primary" type="submit" th:text="#{breakglass.case.new}">Open a case</button></form>
+              <a class="btn btn-primary" th:if="${selRow.caseId != null}" th:href="@{/reviews(case=${selRow.caseId})}"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-review"/></svg><span th:text="#{breakglass.case.open}">Open the case</span></a>
+              <form th:if="${selRow.caseId == null && canReview}" th:action="@{/break-glass/{id}/case(id=${selRow.r.id})}" method="post"><button class="btn btn-primary" type="submit"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-review"/></svg><span th:text="#{breakglass.case.new}">Open a case</span></button></form>
               <span class="btn btn-planned" role="button" aria-disabled="true" tabindex="0"><span th:text="#{breakglass.remind}">Send a reminder</span> <span class="tag tag-planned tag-sm" th:text="#{common.planned}">Planned</span></span>
             </div>
           </div>
@@ -139,5 +139,6 @@
     </div>
   </th:block>
 </main>
+<th:block th:replace="~{fragments/layout :: footer}"></th:block>
 </body>
 </html>

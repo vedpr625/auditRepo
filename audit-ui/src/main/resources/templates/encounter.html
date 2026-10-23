@@ -11,8 +11,8 @@
 
   <!-- Nothing visible to this person (or no such encounter: same words on purpose) -->
   <div th:if="${state == 'notfound'}" class="panel"><div class="state"><h2 th:text="#{encounter.notfound.title}">Nothing found</h2><p th:text="#{encounter.notfound.text}">No records you can see.</p>
-    <a class="btn" th:href="@{/people}" th:text="#{nav.people}">People and patients</a></div></div>
-  <div th:if="${state == 'chester'}" class="panel"><div class="state"><div class="state-icon bad" aria-hidden="true">!</div><h2 th:text="#{state.chester.down.title}">Down</h2><p th:text="#{state.chester.down.text}">Try again.</p></div></div>
+    <a class="btn" th:href="@{/people}"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-arrow-left"/></svg><span th:text="#{nav.people}">People and patients</span></a></div></div>
+  <div th:if="${state == 'chester'}" class="panel"><div class="state"><div class="state-art bad" aria-hidden="true"><th:block th:replace="~{fragments/brand-mark :: mark}"></th:block><span class="state-badge"><svg class="ico ico-sm" focusable="false"><use href="#i-warning"/></svg></span></div><h2 th:text="#{state.chester.down.title}">Down</h2><p th:text="#{state.chester.down.text}">Try again.</p></div></div>
 
   <th:block th:if="${state == 'restricted'}">
     <div class="notice notice-warn" role="status"><b th:text="#{encounter.restricted}">The patient of this encounter is a restricted record.</b></div>
@@ -116,13 +116,14 @@
 
     <!-- links -->
     <div class="en-links">
-      <a class="btn" th:href="@{/patient/{id}(id=${patientId})}" th:text="#{encounter.link.patient}">Back to the patient</a>
-      <a class="btn" th:href="@{/patient/{id}(id=${patientId},tab='encounters')}" th:text="#{encounter.link.list}">All encounters</a>
-      <a class="btn" th:href="@{/(encounter=${encounterId},range='all')}" th:text="#{encounter.link.explore}">Open the events in Explore</a>
-      <a class="btn btn-primary" th:if="${canReview}" th:href="@{/reviews(patient=${patientId})}" th:text="#{patient.review.open}">Open a review</a>
+      <a class="btn" th:href="@{/patient/{id}(id=${patientId})}"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-user"/></svg><span th:text="#{encounter.link.patient}">Back to the patient</span></a>
+      <a class="btn" th:href="@{/patient/{id}(id=${patientId},tab='encounters')}"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-list"/></svg><span th:text="#{encounter.link.list}">All encounters</span></a>
+      <a class="btn" th:href="@{/(encounter=${encounterId},range='all')}"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-search"/></svg><span th:text="#{encounter.link.explore}">Open the events in Explore</span></a>
+      <a class="btn btn-primary" th:if="${canReview}" th:href="@{/reviews(patient=${patientId})}"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-review"/></svg><span th:text="#{patient.review.open}">Open a review</span></a>
     </div>
   </th:block>
 </main>
 
+<th:block th:replace="~{fragments/layout :: footer}"></th:block>
 </body>
 </html>

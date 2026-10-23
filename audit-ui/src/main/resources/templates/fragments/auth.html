@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<!-- Brand side of the sign-in pages: the mark, the purpose in one line, and what the person can rely on. -->
+<aside th:fragment="brand" class="auth-brand-panel">
+  <div class="abp-inner">
+    <a class="abp-logo" th:href="@{/login}"><th:block th:replace="~{fragments/brand-mark :: mark}"></th:block><span th:text="#{app.name}">Audit Repository</span></a>
+    <div class="abp-copy">
+      <h2 th:text="#{login.brand.headline}">Who opened which record, when, and why.</h2>
+      <p th:text="#{login.brand.purpose}">Review access to health records, follow up on emergency access, and show the audit trail is complete.</p>
+    </div>
+    <ul class="abp-trust">
+      <li><svg class="ico ico-lg" aria-hidden="true" focusable="false"><use href="#i-shield-check"/></svg><span th:text="#{login.trust.integrity}">Records are kept in a tamper-evident chain, so a change can be seen.</span></li>
+      <li><svg class="ico ico-lg" aria-hidden="true" focusable="false"><use href="#i-eye"/></svg><span th:text="#{login.trust.recorded}">Your sign-in and everything you open here is recorded.</span></li>
+    </ul>
+  </div>
+</aside>
+</body>
+</html>

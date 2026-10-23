@@ -110,7 +110,7 @@
           </div>
         </div>
 
-        <div class="set-save"><button class="btn btn-primary" type="submit" th:text="#{set.save}">Save my preferences</button></div>
+        <div class="set-save"><button class="btn btn-primary" type="submit"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-check"/></svg><span th:text="#{set.save}">Save my preferences</span></button></div>
       </form>
 
       <div class="set-row set-saved" id="saved">
@@ -166,7 +166,7 @@
             <span class="sub" th:text="#{set.rules.ident.help}">Who may see names</span>
           </div>
         </fieldset>
-        <div class="set-save" th:if="${canEditRules}"><button class="btn btn-primary" type="submit" th:text="#{set.rules.save}">Save rules</button></div>
+        <div class="set-save" th:if="${canEditRules}"><button class="btn btn-primary" type="submit"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-check"/></svg><span th:text="#{set.rules.save}">Save rules</span></button></div>
       </form>
       <div class="set-note">
         <span th:if="${rulesChanged != null}" th:text="#{set.rules.changed(${rulesChanged.by}, ${tf.brief(rulesChanged.at)})}">Last changed by Admin</span>
@@ -179,7 +179,7 @@
     <!-- ── The other sections ── -->
     <div class="set-more">
       <section class="panel" id="thresholds" aria-labelledby="h-thr">
-        <div class="panel-head set-head2"><h2 id="h-thr" th:text="#{set.thr}">Alert thresholds</h2><a class="btn btn-sm" th:href="@{/alerts}" th:text="#{set.thr.open}">Open Alerts</a></div>
+        <div class="panel-head set-head2"><h2 id="h-thr" th:text="#{set.thr}">Alert thresholds</h2><a class="btn btn-sm" th:href="@{/alerts}"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-alerts"/></svg><span th:text="#{set.thr.open}">Open Alerts</span></a></div>
         <div class="panel-pad"><p class="muted" th:text="#{set.thr.help}">When an alert fires.</p></div>
         <table class="table table-plain">
           <thead><tr><th th:text="#{set.thr.rule}">Rule</th><th th:text="#{set.thr.when}">Fires when</th><th th:text="#{set.thr.state}">State</th></tr></thead>
@@ -213,8 +213,8 @@
               <span th:if="${registryTest == 'unreachable'}" th:text="#{settings.registry.test.unreachable}">Could not be reached.</span>
             </div>
             <div class="row-wrap">
-              <button class="btn btn-primary" type="submit" name="action" value="save" th:text="#{common.save}">Save</button>
-              <button class="btn" type="submit" name="action" value="test" th:text="#{settings.registry.test}">Test the connection</button>
+              <button class="btn btn-primary" type="submit" name="action" value="save"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-check"/></svg><span th:text="#{common.save}">Save</span></button>
+              <button class="btn" type="submit" name="action" value="test"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-link"/></svg><span th:text="#{settings.registry.test}">Test the connection</span></button>
             </div>
           </th:block>
           <p th:unless="${canAdmin}" class="notice" th:text="#{set.reg.admin}">Only administrators can change the registry address.</p>
@@ -248,5 +248,6 @@
   <div class="mt-3"><th:block th:replace="~{fragments/access :: links}"></th:block></div>
 </main>
 <script th:src="@{/js/page-settings.js}" defer></script>
+<th:block th:replace="~{fragments/layout :: footer}"></th:block>
 </body>
 </html>

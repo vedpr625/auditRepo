@@ -20,5 +20,6 @@
   <noscript><div class="notice notice-warn" th:text="#{overview.noscript}">Overview needs JavaScript to load its figures.</div></noscript>
 </main>
 <script th:src="@{/js/page-overview.js}" defer></script>
+<th:block th:replace="~{fragments/layout :: footer}"></th:block>
 </body>
 </html>

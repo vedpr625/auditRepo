@@ -16,7 +16,7 @@
       <input type="hidden" name="tab" th:value="${tab}">
       <label class="sr-only" for="pp-q" th:text="#{people.filter.label}">Filter</label>
       <input class="input" id="pp-q" name="q" maxlength="100" th:value="${q}" th:placeholder="#{people.filter.placeholder}">
-      <button class="btn" type="submit" th:text="#{people.filter.go}">Filter</button>
+      <button class="btn" type="submit"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-search"/></svg><span th:text="#{people.filter.go}">Filter</span></button>
       <a class="btn btn-ghost" th:if="${!#strings.isEmpty(q)}" th:href="@{/people(tab=${tab})}" th:text="#{people.filter.clear}">Clear</a>
     </form>
   </div>
@@ -39,8 +39,8 @@
           <td class="num" th:attr="data-label=#{people.col.failed}"><div th:class="${x.failed > 0} ? 'pp-bad'" th:text="${x.failed}">0</div></td>
           <td class="num" th:attr="data-label=#{people.col.breakglass}"><div th:class="${x.breakGlass > 0} ? 'pp-warn'" th:text="${x.breakGlass}">0</div></td>
           <td th:attr="data-label=#{people.col.last}"><div><th:block th:replace="~{fragments/layout :: when(${x.last})}"></th:block></div></td>
-          <td><div class="row-wrap"><a class="btn btn-sm" th:if="${x.ref != null}" th:href="@{/(agent=${x.ref})}" th:text="#{people.row.records}">Explore</a>
-            <a class="btn btn-sm" th:if="${x.ref != null and x.kind == 'person'}" th:href="@{/reports(r='person',person=${x.ref})}" th:text="#{people.row.report}">Report</a></div></td>
+          <td><div class="row-wrap"><a class="btn btn-sm" th:if="${x.ref != null}" th:href="@{/(agent=${x.ref})}"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-list"/></svg><span th:text="#{people.row.records}">Explore</span></a>
+            <a class="btn btn-sm" th:if="${x.ref != null and x.kind == 'person'}" th:href="@{/reports(r='person',person=${x.ref})}"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-reports"/></svg><span th:text="#{people.row.report}">Report</span></a></div></td>
         </tr></tbody>
       </table>
     </div>
@@ -61,7 +61,7 @@
           <td class="num" th:attr="data-label=#{people.col.failed}"><div th:class="${x.failed > 0} ? 'pp-bad'" th:text="${x.failed}">0</div></td>
           <td class="num" th:attr="data-label=#{people.col.breakglass}"><div th:class="${x.breakGlass > 0} ? 'pp-warn'" th:text="${x.breakGlass}">0</div></td>
           <td th:attr="data-label=#{people.col.last}"><div><th:block th:replace="~{fragments/layout :: when(${x.last})}"></th:block></div></td>
-          <td><div><a class="btn btn-sm" th:href="@{/patient/{id}(id=${x.id})}" th:text="#{people.row.open}">Open</a></div></td>
+          <td><div><a class="btn btn-sm" th:href="@{/patient/{id}(id=${x.id})}"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-user"/></svg><span th:text="#{people.row.open}">Open</span></a></div></td>
         </tr></tbody>
       </table>
     </div>
@@ -70,7 +70,7 @@
   <div class="pp-pager" th:if="${pages > 1}">
     <a class="btn btn-sm" th:if="${page > 1}" th:href="@{/people(tab=${tab},q=${q},p=${page - 1})}" th:text="#{people.prev}">Previous</a>
     <span class="sub" th:text="#{people.page(${page}, ${pages})}">Page 1 of 2</span>
-    <a class="btn btn-sm" th:if="${page < pages}" th:href="@{/people(tab=${tab},q=${q},p=${page + 1})}" th:text="#{people.next}">Next</a>
+    <a class="btn btn-sm" th:if="${page < pages}" th:href="@{/people(tab=${tab},q=${q},p=${page + 1})}"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-arrow-right"/></svg><span th:text="#{people.next}">Next</span></a>
   </div>
 
   <p class="sub" th:if="${s.error == null}">
@@ -79,5 +79,6 @@
     <span th:if="${s.truncated}" th:text="#{people.scope.truncated(${s.scanned})}">truncated</span>
   </p>
 </main>
+<th:block th:replace="~{fragments/layout :: footer}"></th:block>
 </body>
 </html>

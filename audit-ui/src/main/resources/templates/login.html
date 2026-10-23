@@ -2,20 +2,26 @@
 <html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}">
 <head th:replace="~{fragments/layout :: headbare(#{login.title})}"></head>
 <body class="auth-body">
+<th:block th:replace="~{fragments/icons :: sprite}"></th:block>
 <div class="demo-strip" role="note" th:if="${demoBanner}"><b th:text="#{demo.banner}">Sample data</b></div>
-<main id="main" class="auth">
-  <div class="auth-brand"><th:block th:replace="~{fragments/brand-mark :: mark}"></th:block><span th:text="#{app.name}">Audit Repository</span></div>
-  <h1 th:text="#{login.title}">Sign in</h1>
-  <p class="auth-tag" th:text="#{login.tagline}">Audit event review</p>
-  <div class="notice notice-bad" role="alert" th:if="${param.error != null}" th:text="#{login.error.sso}">Sign-in failed. Please try again or contact your administrator.</div>
-  <div class="notice notice-info" role="status" th:if="${param.logout != null}" th:text="#{login.loggedout}">You have been signed out.</div>
-  <section class="panel">
-    <div class="panel-pad stack">
-      <!-- Sign-in happens at Keycloak; no password is entered or stored here -->
-      <a class="btn btn-primary" th:href="@{/oauth2/authorization/keycloak}" th:text="#{login.sso}">Sign in with Keycloak</a>
-      <p class="sub" th:text="#{login.sso.help}">You will be sent to your organisation's sign-in page.</p>
-    </div>
-  </section>
-</main>
+<div class="auth-shell">
+  <th:block th:replace="~{fragments/auth :: brand}"></th:block>
+  <main id="main" class="auth">
+    <header class="auth-head">
+      <h1 th:text="#{login.title}">Sign in</h1>
+      <p class="auth-tag" th:text="#{login.tagline}">Audit event review</p>
+    </header>
+    <div class="notice notice-bad" role="alert" th:if="${param.error != null}"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-warning"/></svg><span th:text="#{login.error.sso}">Sign-in failed. Please try again or contact your administrator.</span></div>
+    <div class="notice notice-info" role="status" th:if="${param.logout != null}"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-check-circle"/></svg><span th:text="#{login.loggedout}">You have been signed out.</span></div>
+    <section class="panel auth-card">
+      <div class="panel-pad stack">
+        <!-- Sign-in happens at Keycloak; no password is entered or stored here -->
+        <a class="btn btn-primary" th:href="@{/oauth2/authorization/keycloak}"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-lock"/></svg><span th:text="#{login.sso}">Sign in with Keycloak</span></a>
+        <p class="sub" th:text="#{login.sso.help}">You will be sent to your organisation's sign-in page.</p>
+      </div>
+    </section>
+  </main>
+</div>
+<th:block th:replace="~{fragments/layout :: footer}"></th:block>
 </body>
 </html>

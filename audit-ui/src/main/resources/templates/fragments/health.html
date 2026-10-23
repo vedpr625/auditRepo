@@ -24,25 +24,25 @@
   <th:block th:if="${h != null}">
     <div class="hl-kpis">
       <div class="panel kpi">
-        <span class="sub" th:text="#{health.k.rate}">Receiving now</span>
+        <span class="sub kpi-label"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-pulse"/></svg><span th:text="#{health.k.rate}">Receiving now</span></span>
         <span class="value"><span th:text="${#numbers.formatDecimal(h.perMinute, 1, 1)}">8.9</span> <small th:text="#{health.k.rate.unit}">events / min</small></span>
         <span class="delta" th:text="#{health.k.rate.help(${h.lastHour})}">average of the last 10 minutes</span>
       </div>
       <div class="panel kpi" th:classappend="${h.lastEvent == null} ? 'bad'">
-        <span class="sub" th:text="#{health.k.last}">Last event</span>
+        <span class="sub kpi-label"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-clock"/></svg><span th:text="#{health.k.last}">Last event</span></span>
         <span class="value" th:text="${h.lastEvent != null} ? ${tf.relative(h.lastEvent)} : '—'">12 s ago</span>
         <span class="delta" th:if="${h.lastEvent != null}"><th:block th:replace="~{fragments/layout :: when(${h.lastEvent})}"></th:block></span>
       </div>
       <div class="panel kpi" th:classappend="${h.chester.up} ? 'ok' : 'bad'">
-        <span class="sub" th:text="#{health.k.server}">Audit Repository server</span>
+        <span class="sub kpi-label"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-server"/></svg><span th:text="#{health.k.server}">Audit Repository server</span></span>
         <span class="value" th:text="${h.chester.up} ? #{health.up} : #{health.down}">Up</span>
         <span class="delta" th:if="${h.chester.up}" th:text="#{health.chester.detail(${h.chester.millis}, ${h.chester.fhirVersion ?: '?'}, ${h.chester.software ?: '?'})}">detail</span>
       </div>
       <div class="panel kpi" id="h-kpi-int" hx-get="/health/integrity-tile" hx-trigger="load, healthChecked from:body" hx-swap="outerHTML">
-        <span class="sub" th:text="#{health.k.integrity}">Integrity</span><span class="value">…</span>
+        <span class="sub kpi-label"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-shield-check"/></svg><span th:text="#{health.k.integrity}">Integrity</span></span><span class="value">…</span>
       </div>
       <div class="panel kpi" th:classappend="${h.failed24 > 0} ? 'warn'">
-        <span class="sub" th:text="#{health.k.rejected}">Rejected in 24 h</span>
+        <span class="sub kpi-label"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-x-circle"/></svg><span th:text="#{health.k.rejected}">Rejected in 24 h</span></span>
         <span class="value" th:text="${#numbers.formatInteger(h.failed24, 1, 'COMMA')}">37</span>
         <span class="delta" th:text="#{health.k.rejected.share(${h.events24 == 0 ? '0%' : #numbers.formatDecimal(h.failed24 * 100.0 / h.events24, 1, 2) + '%'}, ${#numbers.formatInteger(h.events24, 1, 'COMMA')})}">0.29% of events</span>
       </div>
@@ -74,7 +74,7 @@
 
 <!-- Integrity tile (from the last check) -->
 <div th:fragment="tile" class="panel kpi" th:classappend="${check == null} ? '' : (${bad == 0} ? 'ok' : 'bad')" id="h-kpi-int" hx-get="/health/integrity-tile" hx-trigger="healthChecked from:body" hx-swap="outerHTML">
-  <span class="sub" th:text="#{health.k.integrity}">Integrity</span>
+  <span class="sub kpi-label"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-shield-check"/></svg><span th:text="#{health.k.integrity}">Integrity</span></span>
   <span class="value" th:if="${check == null}" th:text="#{health.k.integrity.none}">Not checked</span>
   <span class="value" th:if="${check != null}" th:text="#{health.k.integrity.days(${ok}, ${total})}">7 of 7 days OK</span>
   <span class="delta" th:if="${check == null}" th:text="#{health.k.integrity.help}">Use Verify now</span>

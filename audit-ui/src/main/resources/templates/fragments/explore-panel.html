@@ -62,9 +62,9 @@
         <input type="hidden" name="kind" value="manual">
         <input type="hidden" name="title" th:value="#{explore.panel.review.title(${p.item.id})}">
         <input type="hidden" name="patient" th:if="${p.item.patientId != null}" th:value="${p.item.patientId}">
-        <button class="btn btn-primary" type="submit" th:text="#{explore.panel.review}">Open a review</button>
+        <button class="btn btn-primary" type="submit"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-review"/></svg><span th:text="#{explore.panel.review}">Open a review</span></button>
       </form>
-      <a class="btn" th:if="${p.item.patientId != null}" th:href="@{/patient/{id}(id=${p.item.patientId})}" th:text="#{explore.panel.trail}">See the full trail</a>
+      <a class="btn" th:if="${p.item.patientId != null}" th:href="@{/patient/{id}(id=${p.item.patientId})}"><svg class="ico" aria-hidden="true" focusable="false"><use href="#i-clock"/></svg><span th:text="#{explore.panel.trail}">See the full trail</span></a>
     </div>
     <div class="px-more">
       <th:block th:if="${isAdmin}">
