@@ -12,6 +12,8 @@
   <link rel="stylesheet" th:href="@{/css/audit-console.css}">
   <script th:src="@{/js/htmx.min.js}" defer></script>
   <script th:src="@{/js/console.js}" defer></script>
+  <link rel="stylesheet" th:href="@{/css/find-palette.css}">
+  <script th:src="@{/js/find-palette.js}" defer></script>
 </head>
 
 <!-- Same as head(title) plus one page stylesheet: <head th:replace="~{fragments/layout :: headx(MESSAGE, 'page-x.css')}"> -->
@@ -25,6 +27,8 @@
   <link rel="stylesheet" th:href="@{'/css/' + ${css}}">
   <script th:src="@{/js/htmx.min.js}" defer></script>
   <script th:src="@{/js/console.js}" defer></script>
+  <link rel="stylesheet" th:href="@{/css/find-palette.css}">
+  <script th:src="@{/js/find-palette.js}" defer></script>
 </head>
 
 <!-- Top bar and main navigation. active = overview | explore | people | reviews | breakglass | alerts | reports | health | settings | admin -->
@@ -60,6 +64,7 @@
   </div>
 </header>
 <div class="notice notice-warn" role="note" th:if="${demo}" style="border-radius:0;text-align:center"><b th:text="#{demo.banner}">DEMONSTRATION</b></div>
+<th:block th:replace="~{fragments/find-palette :: palette}"></th:block>
 </th:block>
 
 <!--

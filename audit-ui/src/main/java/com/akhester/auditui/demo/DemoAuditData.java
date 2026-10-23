@@ -153,6 +153,11 @@ public class DemoAuditData {
             String[] c = clinician("Dr. K. Wickrama");
             add(now.minus(30, ChronoUnit.HOURS).minus(i * 8L, ChronoUnit.MINUTES), "P-10407", GAL, c[0], c[1], "TREAT", 0, null, i % 5 == 4 ? "U" : "R", false, false, "Ward 4", "hhims-audit", null, null);
         }
+        // a short burst today (Explore collapses it as "14 similar views of the same patient"): 14 views of one patient in five minutes
+        for (int i = 0; i < 14; i++) {
+            String[] c = clinician("Dr. K. Wickrama");
+            add(now.minus(95, ChronoUnit.MINUTES).minusSeconds(i * 21L), "P-40119", GAL, c[0], c[1], "TREAT", 0, null, "R", false, false, "Outpatient OPD-1", "hhims-audit", null, null);
+        }
         // high volume: 62 records in one hour by one person ~4 h ago
         for (int i = 0; i < 62; i++) {
             String[] c = clinician("Dr. R. Fernando");

@@ -34,12 +34,24 @@ public class SettingsController {
     private final LocaleResolver localeResolver;
     private final AppSettingRepository settings;
     private final SlaPolicy sla;
+    private final UserSettingRepository userSettings;
+    private final com.akhester.auditui.explore.SavedSearchRepository saved;
+    private final ReviewRules rules;
+    private final com.akhester.auditui.alerts.AlertRules alertRules;
+    private final org.springframework.jdbc.core.JdbcTemplate jdbc;
 
-    public SettingsController(PrefsContext prefsContext, LocaleResolver localeResolver, AppSettingRepository settings, SlaPolicy sla) {
+    public SettingsController(PrefsContext prefsContext, LocaleResolver localeResolver, AppSettingRepository settings, SlaPolicy sla,
+                              UserSettingRepository userSettings, com.akhester.auditui.explore.SavedSearchRepository saved, ReviewRules rules,
+                              com.akhester.auditui.alerts.AlertRules alertRules, org.springframework.jdbc.core.JdbcTemplate jdbc) {
         this.prefsContext = prefsContext;
         this.localeResolver = localeResolver;
         this.settings = settings;
         this.sla = sla;
+        this.userSettings = userSettings;
+        this.saved = saved;
+        this.rules = rules;
+        this.alertRules = alertRules;
+        this.jdbc = jdbc;
     }
 
     /** Time zones offered: every "Region/City" id, with the default first. */
@@ -60,17 +72,45 @@ public class SettingsController {
         model.addAttribute("registryUrl", settings.get(AppSettingRepository.REGISTRY_BASE_URL).orElse(""));
         model.addAttribute("slaWarning", sla.warningHours());
         model.addAttribute("slaOverdue", sla.overdueHours());
+        String user = PrefsContext.username();
+        boolean admin = com.akhester.auditui.people.Who.isAdmin();
+        model.addAttribute("canEditRules", admin);
+        model.addAttribute("rules", rules.current());
+        model.addAttribute("rulesChanged", safe(() -> rules.lastChanged()));
+        model.addAttribute("notify", userSettings.notifications(user));
+        model.addAttribute("email", user == null ? "" : user.toLowerCase(java.util.Locale.ROOT).replaceAll("[^a-z0-9._-]", "") + "@moh.example");
+        model.addAttribute("savedSearches", saved.forUser(user));
+        model.addAttribute("alertRuleList", alertRules.all());
+        model.addAttribute("counts", counts());
         return "settings";
+    }
+
+    private static <T> T safe(java.util.function.Supplier<T> s) {
+        try { return s.get(); } catch (RuntimeException e) { return null; }
+    }
+
+    /** How much of each kind of thing this console itself keeps (Settings, "Data and retention"). */
+    private java.util.Map<String, Integer> counts() {
+        java.util.Map<String, Integer> m = new java.util.LinkedHashMap<>();
+        for (String[] t : new String[][]{{"reviews", "audit_review_log"}, {"cases", "review_case"}, {"consent", "consent_check_log"}, {"saved", "saved_search"}, {"changes", "admin_change_log"}}) {
+            Integer n = safe(() -> jdbc.queryForObject("SELECT COUNT(*) FROM " + t[1], Integer.class));
+            m.put(t[0], n == null ? 0 : n);
+        }
+        return m;
     }
 
     @PostMapping("/settings/prefs")
     public String savePrefs(@RequestParam String language, @RequestParam String timeZone, @RequestParam String timeDisplay,
                             @RequestParam(defaultValue = "false") boolean clock24, @RequestParam(defaultValue = "false") boolean showUtc,
                             @RequestParam String theme, @RequestParam String density,
+                            @RequestParam(required = false) String notifyForm, @RequestParam(required = false) java.util.List<String> notify,
                             HttpServletRequest request, HttpServletResponse response, RedirectAttributes ra) {
         try {
             UserPrefs p = new UserPrefs(language, timeZone, timeDisplay, clock24, showUtc, theme, density).checked();
             prefsContext.save(request, p);
+            if (notifyForm != null && PrefsContext.username() != null) {
+                for (String k : UserSettingRepository.NOTIFY.keySet()) userSettings.set(PrefsContext.username(), k, String.valueOf(notify != null && notify.contains(k)));
+            }
             localeResolver.setLocale(request, response, java.util.Locale.forLanguageTag(language));
             ra.addFlashAttribute("flash", "saved");
         } catch (IllegalArgumentException e) {
@@ -133,5 +173,32 @@ public class SettingsController {
         } catch (Exception e) {
             return "unreachable";
         }
+    }
+
+    // ── Saved searches ───────────────────────────────────────────────────────
+
+    @PostMapping("/settings/saved/{id}/delete")
+    public String removeSaved(@org.springframework.web.bind.annotation.PathVariable long id, RedirectAttributes ra) {
+        String user = PrefsContext.username();
+        boolean gone = user != null && saved.delete(user, id);
+        ra.addFlashAttribute("flash", gone ? "savedRemoved" : "invalid");
+        return "redirect:/settings#saved";
+    }
+
+    // ── Review rules (administrators change them; everyone can read them) ─────
+
+    @PostMapping("/settings/rules")
+    public String saveRules(@RequestParam String decideHours, @RequestParam String reasonHours, @RequestParam String reminderHours,
+                            @RequestParam String reviewers, @RequestParam(defaultValue = "false") boolean ownFacility,
+                            @RequestParam String identifiers, RedirectAttributes ra) {
+        if (!com.akhester.auditui.people.Who.isAdmin()) throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.FORBIDDEN, "Only administrators change the review rules.");
+        try {
+            ReviewRules.Rules r = ReviewRules.checked(Integer.parseInt(decideHours.strip()), Integer.parseInt(reasonHours.strip()), Integer.parseInt(reminderHours.strip()), reviewers, ownFacility, identifiers);
+            int n = rules.save(PrefsContext.username(), r);
+            ra.addFlashAttribute("flash", n == 0 ? "rulesSame" : "rulesSaved");
+        } catch (IllegalArgumentException e) {   // NumberFormatException is one too
+            ra.addFlashAttribute("flash", "rulesInvalid");
+        }
+        return "redirect:/settings#rules";
     }
 }

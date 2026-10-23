@@ -53,6 +53,8 @@ public class AuditRow {
     private Instant reasonGivenAt;
     /** Why a failed request failed (AuditEvent.outcomeDesc), when Chester sends it. */
     private String outcomeDesc;
+    /** source.site: the ward or department the sending system wrote (null when none). */
+    private String department;
     /** Patient's Encounter reference, when the record has one. */
     private String encounterRef;
     /** Outcome code: 0=success, 4=minor failure, 8=serious failure, 12=major failure */

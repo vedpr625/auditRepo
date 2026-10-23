@@ -1,0 +1,35 @@
+/* Ctrl K Find palette (a modal, not a page) and the compact Find box in the header. Loaded on every page. */
+.find-box .input{width:132px;padding-inline-end:46px;cursor:pointer}
+.find-box kbd{font-size:10.5px}
+
+.fp-overlay{position:fixed;inset:0;z-index:400;background:rgba(24,36,38,.58);display:flex;align-items:flex-start;justify-content:center;padding:84px 16px 16px;overflow:auto}
+.fp-overlay[hidden]{display:none}
+.fp-box{width:100%;max-width:740px;background:var(--panel);color:var(--ink);border-radius:14px;box-shadow:0 24px 60px rgba(10,24,26,.38);overflow:hidden;display:flex;flex-direction:column;max-height:calc(100vh - 110px)}
+.fp-head{display:flex;align-items:center;gap:14px;padding:20px 20px 18px}
+.fp-scope{background:var(--accent-wash);color:var(--accent-text);font-weight:600;border-radius:8px;padding:6px 12px;font-size:15px;flex:none}
+.fp-head input{flex:1;min-width:0;border:0;background:none;font:400 20px var(--font-mono);color:var(--ink);outline:none;box-shadow:none;padding:4px 0}
+.fp-head input::placeholder{color:var(--ink-3);font-size:16px}
+.fp-esc{flex:none;color:var(--ink-2)}
+.fp-narrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:12px 20px;border-top:1px solid var(--border-soft);border-bottom:1px solid var(--border-soft);font-size:13px;color:var(--ink-2)}
+.fp-narrow button{border:1px solid var(--border-input);background:var(--panel);color:var(--ink);border-radius:999px;padding:3px 14px;font-size:14px;min-height:30px}
+.fp-narrow button:hover{border-color:var(--accent-line)}
+.fp-narrow button[aria-pressed="true"]{background:var(--accent-wash);border-color:var(--accent-text);color:var(--accent-text);font-weight:600}
+.fp-list{overflow:auto;min-height:60px;padding-bottom:6px}
+.fp-group{padding:14px 20px 6px;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2)}
+.fp-item{display:flex;align-items:center;gap:14px;padding:9px 20px;color:var(--ink);text-decoration:none;border-inline-start:3px solid transparent;min-height:48px}
+.fp-item:hover{background:var(--panel-sub)}
+.fp-item.on{background:var(--accent-wash);border-inline-start-color:var(--accent-text)}
+.fp-badge{width:30px;height:30px;border-radius:6px;background:var(--accent-wash);color:var(--accent-text);display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex:none}
+.fp-item.on .fp-badge{background:var(--panel)}
+.fp-main{flex:1;min-width:0;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.fp-title{font-weight:600;font-size:15px}
+.fp-item.k-case .fp-title,.fp-item.k-visit .fp-title,.fp-item.k-event .fp-title,.fp-item.k-system .fp-title{font-weight:400}
+.fp-title.mono{font-weight:600;font-size:14px}
+.fp-sub{color:var(--ink-2);font-size:13px}
+.fp-meta{color:var(--ink-2);font-size:13px;white-space:nowrap;flex:none}
+.fp-msg{padding:22px 20px;color:var(--ink-2)}
+.fp-msg.bad{color:var(--bad-fg)}
+.fp-foot{display:flex;gap:18px;flex-wrap:wrap;align-items:center;padding:12px 20px;background:var(--panel-sub);border-top:1px solid var(--border-soft);font-size:13px;color:var(--ink-2)}
+.fp-foot kbd{font-size:11.5px}
+.fp-note{margin-inline-start:auto}
+@media (max-width:700px){.fp-overlay{padding-top:16px}.fp-note{margin-inline-start:0;flex-basis:100%}.fp-box{max-height:calc(100vh - 32px)}}
