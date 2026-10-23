@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}"
+      th:attr="data-theme=${prefs.themeAttr()},data-density=${prefs.densityAttr()}">
+<head th:replace="~{fragments/layout :: headx(#{admin.title}, 'page-admin.css')}"></head>
+<body>
+<th:block th:replace="~{fragments/layout :: header('admin')}"></th:block>
+<main id="main" class="page">
+  <div class="breadcrumb"><a th:href="@{/admin}" th:text="#{admin.title}">Admin</a> / <a th:href="@{/admin(tab='systems')}" th:text="#{admin.sys.back}">Sending systems</a>
+    <th:block th:if="${s != null}"> / <b th:text="${s.label}">HHIMS</b></th:block></div>
+
+  <div class="panel" th:if="${notfound == true}"><div class="state"><h2 th:text="#{admin.sys.notfound}">No such system</h2><p th:text="#{admin.sys.notfound.text}">Go back.</p>
+    <a class="btn" th:href="@{/admin}" th:text="#{admin.sys.back}">Back</a></div></div>
+
+  <th:block th:if="${s != null}">
+    <div class="notice notice-info" role="status" th:if="${flash == 'saved'}" th:text="#{admin.saved}">Saved.</div>
+    <div class="page-head"><h1 th:text="${s.label}">HHIMS</h1><span class="mono lede" th:text="${s.clientId}">hhims-audit</span>
+      <span class="tag tag-ok" th:if="${st.status == 'active'}" th:text="#{admin.status.active}">Active</span>
+      <span class="tag tag-warn" th:if="${st.status == 'failing'}" th:text="#{admin.status.failing.n(${st.failed7})}">failures</span>
+      <span class="tag tag-warn" th:if="${st.status == 'quiet'}" th:text="#{admin.status.quiet}">Quiet</span>
+      <span class="tag tag-off" th:if="${st.status == 'gone'}" th:text="#{admin.status.gone(${st.days})}">Not seen</span>
+      <span class="tag tag-off" th:if="${st.status == 'none' or st.status == 'unknown'}" th:text="#{'admin.status.' + ${st.status}}">None</span></div>
+
+    <div class="split">
+      <div class="grow stack">
+        <section class="panel" aria-labelledby="s-day">
+          <div class="panel-head"><h3 id="s-day" th:text="#{admin.sys.perday}">Records per day</h3>
+            <div class="legend"><span><i style="background:var(--chart-ok)"></i><span th:text="#{reports.chart.ok}">OK</span></span><span><i style="background:var(--chart-fail)"></i><span th:text="#{reports.chart.failed}">Failed</span></span></div></div>
+          <div class="panel-pad" th:if="${#lists.isEmpty(days)}"><span class="sub" th:text="#{people.chester.down}">Down</span></div>
+          <th:block th:unless="${#lists.isEmpty(days)}">
+            <div class="ad-day" role="img" th:attr="aria-label=#{admin.sys.perday}" style="margin-top:14px">
+              <div th:each="d : ${days}" th:title="${d.day + ': ' + (d.ok + d.failed) + ' / ' + d.failed}">
+                <i class="fail" th:style="'height:' + ${d.failed * 100.0 / dayMax} + '%'"></i><i class="ok" th:style="'height:' + ${d.ok * 100.0 / dayMax} + '%'"></i></div>
+            </div>
+            <div class="ad-axis"><span th:each="d : ${days}" th:text="${#temporals.format(d.day, 'dd')}">22</span></div>
+          </th:block>
+        </section>
+        <section class="panel" aria-labelledby="s-latest">
+          <div class="panel-head"><h3 id="s-latest" th:text="#{admin.sys.latest}">Newest records</h3></div>
+          <div class="panel-pad" th:if="${#lists.isEmpty(latest)}"><span class="sub" th:text="#{admin.sys.none}">None</span></div>
+          <div class="table-wrap" th:unless="${#lists.isEmpty(latest)}"><table class="table table-cards">
+            <thead><tr><th th:text="#{admin.col.when}">When</th><th th:text="#{admin.col.agent}">Person</th><th th:text="#{admin.col.facility}">Facility</th><th th:text="#{admin.col.patient}">Patient</th><th th:text="#{admin.col.outcome}">Outcome</th></tr></thead>
+            <tbody><tr th:each="r : ${latest}">
+              <td th:attr="data-label=#{admin.col.when}"><div><th:block th:replace="~{fragments/layout :: when(${r.recordedInstant})}"></th:block></div></td>
+              <td th:attr="data-label=#{admin.col.agent}"><div th:text="${r.agentName}">Name</div></td>
+              <td th:attr="data-label=#{admin.col.facility}"><div th:text="${facNames.getOrDefault(r.facility, r.facility)}">Fac</div></td>
+              <td th:attr="data-label=#{admin.col.patient}"><div class="mono" th:text="${r.patientRef == null} ? '—' : ${r.patientRef.replace('Patient/', '')}">P</div></td>
+              <td th:attr="data-label=#{admin.col.outcome}"><div><span class="tag" th:classappend="${r.outcomeCode == '0'} ? 'tag-ok' : 'tag-bad'" th:text="${r.outcomeLabel}">OK</span></div></td>
+            </tr></tbody></table></div>
+        </section>
+      </div>
+      <div class="side">
+        <section class="panel" aria-labelledby="s-det">
+          <div class="panel-head"><h3 id="s-det" th:text="#{admin.sys.details}">Details</h3></div>
+          <div class="panel-pad">
+            <dl class="dl">
+              <dt th:text="#{admin.sys.name}">Name</dt><dd th:text="${s.label}">HHIMS</dd>
+              <dt th:text="#{admin.sys.client}">Client</dt><dd class="mono" th:text="${s.clientId}">id</dd>
+              <dt th:text="#{admin.sys.facilities}">Facilities</dt><dd th:text="#{admin.sys.facilities.value(${facCount})}">n</dd>
+              <dt th:text="#{admin.sys.first}">First</dt><dd><th:block th:replace="~{fragments/layout :: when(${s.firstSeen})}"></th:block></dd>
+              <dt th:text="#{admin.sys.last}">Last</dt><dd><th:block th:replace="~{fragments/layout :: when(${st.last})}"></th:block><span th:if="${st.last == null}">—</span></dd>
+              <dt th:text="#{admin.sys.events30}">30 d</dt><dd th:text="${#numbers.formatInteger(st.events30, 1, 'COMMA')}">0</dd>
+              <dt th:text="#{admin.sys.failed7}">7 d</dt><dd th:text="${st.failed7}">0</dd>
+              <dt th:text="#{admin.sys.dry}">Dry-run</dt><dd th:text="#{admin.sys.dry.value}">Unknown</dd>
+            </dl>
+            <p class="sub mt-2" th:text="#{admin.sys.keycloak}">Keycloak</p>
+          </div>
+        </section>
+        <section class="panel" aria-labelledby="s-edit">
+          <div class="panel-head"><h3 id="s-edit" th:text="#{admin.sys.edit}">Edit name</h3></div>
+          <form class="panel-pad stack-sm" th:action="@{/admin/systems/rename}" method="post">
+            <input type="hidden" name="clientId" th:value="${s.clientId}">
+            <div class="field"><label for="s-name" th:text="#{admin.sys.name}">Name</label><input class="input" id="s-name" name="displayName" maxlength="120" th:value="${s.displayName}" th:placeholder="#{admin.name.placeholder}"></div>
+            <div class="field"><label for="s-note" th:text="#{admin.sys.note}">Note</label><input class="input" id="s-note" name="note" maxlength="255" th:value="${s.note}" th:placeholder="#{admin.sys.contact.ph}"></div>
+            <button class="btn btn-primary" type="submit" th:text="#{common.save}">Save</button>
+          </form>
+        </section>
+      </div>
+    </div>
+  </th:block>
+</main>
+</body>
+</html>

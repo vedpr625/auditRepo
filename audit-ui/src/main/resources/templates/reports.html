@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}"
+      th:attr="data-theme=${prefs.themeAttr()},data-density=${prefs.densityAttr()}">
+<head th:replace="~{fragments/layout :: headx(#{reports.title}, 'page-reports.css')}"></head>
+<body>
+<th:block th:replace="~{fragments/layout :: header('reports')}"></th:block>
+<main id="main" class="page">
+  <div class="page-head"><h1 th:text="#{reports.title}">Reports</h1><span class="lede" th:text="#{reports.lede}">Ready-made reports</span></div>
+
+  <div class="split">
+    <aside class="side" th:attr="aria-label=#{reports.choose}">
+      <section class="panel">
+        <div class="panel-head"><h3 th:text="#{reports.choose}">Choose a report</h3></div>
+        <nav class="rep-list">
+          <a th:each="k : ${keys}" th:href="@{/reports(r=${k})}" th:attr="aria-current=${k == key} ? 'page' : null">
+            <b th:text="#{'reports.r.' + ${k} + '.title'}">Title</b><span th:text="#{'reports.r.' + ${k} + '.sub'}">Sub</span></a>
+        </nav>
+      </section>
+      <section class="panel" aria-labelledby="rep-sched-h">
+        <div class="panel-head"><h3 id="rep-sched-h" th:text="#{reports.scheduled}">Scheduled</h3><span class="tag tag-planned" th:text="#{common.planned}">Planned</span></div>
+        <ul class="rep-sched panel-pad">
+          <li th:each="s : ${schedules}"><b th:text="#{'reports.r.' + ${s.reportKey} + '.title'}">Report</b> · <span th:text="${s.cadence}">cadence</span>
+            <span class="sub" th:text="#{reports.scheduled.to(${s.recipients})}">To someone</span></li>
+          <li th:if="${#lists.isEmpty(schedules)}" class="sub" th:text="#{find.none}">None</li>
+        </ul>
+        <div class="panel-foot" th:text="#{reports.scheduled.demo}">Demo data. Nothing is sent.</div>
+      </section>
+    </aside>
+
+    <section class="panel grow" aria-labelledby="rep-h">
+      <div class="panel-head" style="display:block">
+        <h2 id="rep-h" th:text="#{'reports.r.' + ${key} + '.title'}">Report</h2>
+        <p class="sub" th:text="#{'reports.r.' + ${key} + '.desc'}">Description</p>
+      </div>
+
+      <form class="rep-filters" th:action="@{/reports}" method="get">
+        <input type="hidden" name="r" th:value="${key}">
+        <div class="field wide" th:if="${needsPatient}"><label for="f-patient" th:text="#{reports.f.patient}">Patient</label>
+          <input class="input mono" id="f-patient" name="patient" maxlength="64" autocomplete="off" th:value="${fPatient}" th:placeholder="#{reports.f.patient.ph}"></div>
+        <div class="field wide" th:if="${needsPerson}"><label for="f-person" th:text="#{reports.f.person}">Person</label>
+          <input class="input" id="f-person" name="person" maxlength="80" autocomplete="off" list="people-list" th:value="${fPerson}" th:placeholder="#{reports.f.person.ph}">
+          <datalist id="people-list"><option th:each="p : ${peopleList}" th:value="${p.ref}" th:label="${p.name}"></option></datalist></div>
+        <div class="field"><label for="f-from" th:text="#{reports.f.from}">From</label><input class="input" type="date" id="f-from" name="from" th:value="${fFrom}"></div>
+        <div class="field"><label for="f-to" th:text="#{reports.f.to}">To</label><input class="input" type="date" id="f-to" name="to" th:value="${fTo}"></div>
+        <div class="field" th:if="${hasInclude}"><label for="f-inc" th:text="#{reports.f.include}">Include</label>
+          <select class="select" id="f-inc" name="include"><option value="all" th:selected="${fInclude == 'all'}" th:text="#{reports.f.include.all}">All</option>
+            <option value="reads" th:selected="${fInclude == 'reads'}" th:text="#{reports.f.include.reads}">Reads</option></select></div>
+        <button class="btn btn-primary" type="submit" th:text="#{reports.f.show}">Show report</button>
+      </form>
+      <div class="panel-pad" th:if="${demo and (needsPatient or needsPerson) and res != null and res.needsInput}">
+        <span class="sub" th:text="#{reports.f.try}">Try</span>
+        <a class="try" th:if="${needsPatient}" th:href="@{/reports(r='patient',patient='P-10407')}">P-10407</a>
+        <a class="try" th:if="${needsPerson}" th:href="@{/reports(r='person',person='Practitioner/dr-silva')}">Practitioner/dr-silva</a>
+      </div>
+
+      <div class="panel-pad" th:if="${problem != null}"><div class="notice notice-bad" role="alert" th:text="#{'reports.err.' + ${problem}}">Problem</div></div>
+      <div class="panel-pad" th:if="${problem == null}"><span class="sub" th:text="#{reports.f.days}">Dates are UTC days.</span></div>
+
+      <th:block th:if="${res != null}">
+        <div class="panel-pad" th:if="${res.needsInput}"><div class="notice notice-info" role="status" th:text="${key == 'patient'} ? #{reports.input.patient} : #{reports.input.person}">Enter something</div></div>
+        <div class="panel-pad" th:if="${res.error == 'chester'}"><div class="notice notice-bad" role="alert" th:text="#{reports.chester.down}">Down</div></div>
+        <div class="panel-pad" th:if="${res.error == 'forbidden'}"><div class="notice notice-warn" role="alert" th:text="#{reports.forbidden}">Reviewers only</div></div>
+
+        <th:block th:if="${res.error == null and !res.needsInput}">
+          <div class="rep-stats">
+            <div class="rep-stat" th:each="s : ${res.stats}" th:classappend="${s.tone != 'plain'} ? ${s.tone}"><b th:text="${s.value}">0</b><span th:text="#{'reports.stat.' + ${s.label}}">label</span></div>
+          </div>
+          <div class="rep-actions no-print">
+            <a class="btn btn-sm" th:href="@{${csvHref}}" th:text="#{reports.csv}">CSV</a>
+            <a class="btn btn-sm" th:href="@{${jsonHref}}" th:text="#{reports.json}">JSON</a>
+            <button class="btn btn-sm btn-planned" type="button" disabled th:title="#{reports.pdf.note}"><span th:text="#{reports.pdf}">PDF</span> <span class="tag tag-planned tag-sm" th:text="#{common.planned}">Planned</span></button>
+            <button class="btn btn-sm btn-planned" type="button" disabled th:title="#{reports.schedule.note}"><span th:text="#{reports.schedule}">Schedule this</span> <span class="tag tag-planned tag-sm" th:text="#{common.planned}">Planned</span></button>
+            <span class="sub" th:text="#{reports.pdf.note}">Planned</span>
+          </div>
+
+          <div class="chart-pad" th:if="${!#lists.isEmpty(res.bars)}">
+            <div class="legend"><span><i class="ok"></i><span th:text="#{reports.chart.ok}">OK</span></span><span><i class="fail"></i><span th:text="#{reports.chart.failed}">Failed</span></span></div>
+            <div class="sbar" th:each="b : ${res.bars}">
+              <span th:text="${b.label}">label</span>
+              <span class="track" role="img" th:attr="aria-label=${b.label + ': ' + b.ok + ' / ' + b.failed}"><i class="ok" th:style="'width:' + ${b.ok * 100.0 / barMax} + '%'"></i><i class="fail" th:style="'width:' + ${b.failed * 100.0 / barMax} + '%'"></i></span>
+              <span class="nums"><span th:text="${b.ok + b.failed}">0</span> · <span th:text="${b.failed}">0</span></span>
+            </div>
+          </div>
+
+          <div class="panel-pad" th:if="${#lists.isEmpty(res.rows)}"><div class="state"><h2 th:text="#{reports.empty}">Nothing</h2></div></div>
+          <div class="table-wrap" th:unless="${#lists.isEmpty(res.rows)}">
+            <table class="table table-cards">
+              <thead><tr><th th:if="${res.hasWhen}" th:text="#{reports.col.when}">When</th><th th:each="c : ${res.columns}" th:text="#{'reports.col.' + ${c}}">col</th></tr></thead>
+              <tbody><tr th:each="row : ${shown}">
+                <td th:if="${res.hasWhen}" th:attr="data-label=#{reports.col.when}"><div><th:block th:replace="~{fragments/layout :: when(${row.when})}"></th:block></div></td>
+                <td th:each="c, st : ${row.cells}" th:attr="data-label=#{'reports.col.' + ${res.columns[st.index]}}"><div th:classappend="${res.columns[st.index] == 'reason' or res.columns[st.index] == 'note'} ? 'cell-reason'">
+                  <span th:class="${res.columns[st.index] == 'event' or res.columns[st.index] == 'clientid' or res.columns[st.index] == 'patient'} ? 'mono'" th:text="${c}">cell</span>
+                  <span class="tag tag-btg tag-sm" th:if="${row.breakGlass and res.columns[st.index] == 'what'}" th:text="#{reports.bg.tag}">Break-glass</span></div></td>
+              </tr></tbody>
+            </table>
+          </div>
+          <div class="panel-foot" th:unless="${#lists.isEmpty(res.rows)}"
+               th:text="${res.truncated} ? #{reports.shown.cap(${#lists.size(shown)}, ${res.total}, ${#lists.size(res.rows)})} : #{reports.shown(${#lists.size(shown)}, ${#lists.size(res.rows)})}">Showing 25 of 38</div>
+        </th:block>
+      </th:block>
+      <div class="panel-foot" th:with="g=${generated}" th:text="#{reports.generated(${tf.exact(g)}, ${tf.utc(g)}, ${shellUser})}">Generated</div>
+    </section>
+  </div>
+</main>
+</body>
+</html>

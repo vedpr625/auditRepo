@@ -1,84 +1,119 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}"
       th:attr="data-theme=${prefs.themeAttr()},data-density=${prefs.densityAttr()}">
-<head th:replace="~{fragments/layout :: head(#{patient.title})}"></head>
+<head th:replace="~{fragments/layout :: headx(#{patient.title}, 'page-patient.css')}"></head>
 <body>
-<th:block th:replace="~{fragments/layout :: header('overview')}"></th:block>
+<th:block th:replace="~{fragments/layout :: header('people')}"></th:block>
 <main id="main" class="page">
-  <div class="page-head"><h1 th:text="#{patient.title}">Patient</h1>
-    <span class="lede mono" th:if="${patientId != null}" th:text="'Patient/' + ${patientId}">Patient/P-1</span></div>
+  <div class="breadcrumb"><a th:href="@{/people}" th:text="#{patient.back}">People and patients</a> / <a th:href="@{/people(tab='patients')}" th:text="#{patient.crumb.patients}">Patients</a>
+    <th:block th:if="${patientId != null}"> / <b class="mono" th:text="${patientId}">P-1</b></th:block></div>
 
   <!-- Nothing visible to this person (or no such patient: same words on purpose) -->
   <div th:if="${state == 'notfound'}" class="panel"><div class="state"><h2 th:text="#{patient.notfound.title}">Nothing found</h2><p th:text="#{patient.notfound.text}">No records you can see.</p>
-    <a class="btn" th:href="@{/overview}" th:text="#{nav.overview}">Overview</a></div></div>
+    <a class="btn" th:href="@{/people}" th:text="#{nav.people}">People and patients</a></div></div>
   <div th:if="${state == 'chester'}" class="panel"><div class="state"><div class="state-icon bad" aria-hidden="true">!</div><h2 th:text="#{state.chester.down.title}">Down</h2><p th:text="#{state.chester.down.text}">Try again.</p></div></div>
 
   <th:block th:if="${state == 'shown' or state == 'withheld'}">
-    <div class="grid-2">
-      <section class="panel" aria-labelledby="p-detail">
-        <div class="panel-head"><h3 id="p-detail" th:text="#{patient.details}">Patient details</h3>
-          <span class="tag tag-warn" th:if="${demo}" th:text="#{demo.tag}">Demo data</span></div>
-
-        <div th:if="${state == 'shown' and info != null}" class="panel-pad">
-          <dl class="dl">
-            <dt th:text="#{patient.name}">Name</dt><dd th:text="${info.name}">name</dd>
-            <dt th:text="#{patient.sex}">Sex</dt><dd th:text="${info.sex}">female</dd>
-            <dt th:text="#{patient.age}">Age</dt><dd th:text="${info.ageBand}">30–39</dd>
-            <dt th:text="#{patient.idmasked}">National id</dt><dd class="mono" th:text="${info.idMasked}">••••V</dd>
-          </dl>
-          <h4 class="mt-3" th:text="#{patient.stays}">Hospital stays</h4>
-          <div class="stack-sm mt-1">
-            <div class="row" th:each="s : ${info.stays}">
-              <span class="tag" th:classappend="${s.current} ? 'tag-info' : 'tag-off'" th:text="${s.current} ? #{patient.stay.now} : #{patient.stay.past}">Admitted</span>
-              <span><b th:text="${s.facilityName}">Hospital</b> · <span th:text="${s.ward}">Ward</span></span>
-              <span class="sub"><th:block th:replace="~{fragments/layout :: when(${s.from})}"></th:block></span>
-            </div>
-            <span class="sub" th:if="${#lists.isEmpty(info.stays)}" th:text="#{patient.stays.none}">None</span>
-          </div>
-        </div>
-        <div th:if="${state == 'shown' and registryMissing == true}" class="panel-pad"><div class="notice notice-warn" th:text="#{patient.registry.missing}">Not in registry</div></div>
-        <div th:if="${state == 'shown' and registryDown == true}" class="panel-pad"><div class="notice notice-bad" role="alert" th:text="#{patient.registry.down}">Registry not answering</div></div>
-
-        <!-- Withheld: say why, never show the details -->
-        <div th:if="${state == 'withheld'}" class="panel-pad stack-sm">
-          <div class="notice notice-warn" role="status"><b th:text="#{patient.withheld}">Details not shown</b><br>
-            <span th:text="#{'consent.reason.' + ${decision.reason ?: 'unknown'}}">reason</span></div>
-          <span class="sub" th:text="#{patient.withheld.records}">The records below are still shown.</span>
-        </div>
-      </section>
-
-      <section class="panel" aria-labelledby="p-consent">
-        <div class="panel-head"><h3 id="p-consent" th:text="#{patient.consent}">Consent check</h3>
-          <span class="tag tag-warn" th:if="${demo}" th:text="#{demo.tag}">Demo data</span></div>
-        <div class="panel-pad stack-sm">
-          <div class="row"><span class="tag" th:classappend="${decision.result.name() == 'PERMIT'} ? 'tag-ok' : (${decision.result.name() == 'UNAVAILABLE'} ? 'tag-warn' : 'tag-bad')"
-              th:text="#{'consent.result.' + ${decision.result.name()}}">Permitted</span></div>
-          <span th:text="#{'consent.reason.' + ${decision.reason ?: 'unknown'}}">reason</span>
-          <span class="sub mono" th:if="${decision.consentId != null}" th:text="${decision.consentId}">id</span>
-          <span class="sub" th:text="#{patient.consent.logged}">This check was recorded.</span>
-        </div>
-      </section>
-    </div>
-
-    <section class="panel" aria-labelledby="p-events">
-      <div class="panel-head"><h3 id="p-events" th:text="#{patient.records}">Records about this patient</h3><span class="sub" th:text="#{patient.records.count(${#lists.size(lines)})}">n records</span></div>
-      <table class="table table-cards">
-        <thead><tr><th th:text="#{patient.col.when}">When</th><th th:text="#{patient.col.who}">Who</th><th th:text="#{patient.col.where}">System</th><th th:text="#{patient.col.purpose}">Purpose</th><th th:text="#{patient.col.link}">Care link</th></tr></thead>
-        <tbody><tr th:each="l : ${lines}">
-          <td th:attr="data-label=#{patient.col.when}"><div><th:block th:replace="~{fragments/layout :: when(${l.row.recordedInstant})}"></th:block></div></td>
-          <td th:attr="data-label=#{patient.col.who}"><div th:text="${l.row.agentName}">agent</div></td>
-          <td th:attr="data-label=#{patient.col.where}"><div class="mono" th:text="${l.row.facility}">facility</div></td>
-          <td th:attr="data-label=#{patient.col.purpose}"><div><span th:class="${l.row.purposeTagCss}" th:text="${l.row.purposeLabel}">Treatment</span></div></td>
-          <td th:attr="data-label=#{patient.col.link}"><div>
-            <span class="tag tag-ok" th:if="${l.link == 'ok'}" th:text="#{patient.link.ok}">Linked</span>
-            <span class="tag tag-bad" th:if="${l.link == 'none'}" th:text="#{patient.link.none}">No link</span>
-            <span class="tag tag-off" th:if="${l.link == 'unknown'}" th:text="#{patient.link.unknown}">Unknown</span>
-            <span class="sub" th:if="${l.link == 'na'}">—</span></div></td>
-        </tr></tbody>
-      </table>
-      <div class="panel-foot sub" th:text="#{patient.link.help}">How the care link is judged.</div>
+    <!-- Header: who, and the 30-day numbers -->
+    <section class="panel pt-head" aria-labelledby="p-name">
+      <span class="avatar avatar-lg" aria-hidden="true" th:text="${initials}">KM</span>
+      <div>
+        <h1 id="p-name" th:if="${state == 'shown' and info != null}" th:text="${#strings.replace(info.name, ' (demo)', '')}">Name</h1>
+        <h1 id="p-name" th:unless="${state == 'shown' and info != null}" class="mono" th:text="${patientId}">P-1</h1>
+        <span class="sub" th:if="${state == 'shown' and info != null}"><span class="mono" th:text="${patientId}">P-1</span> · <span th:text="${info.ageBand}">30–39</span> · <span th:text="${info.sex}">male</span> · <span th:text="#{patient.idmasked}">National id</span> <span class="mono" th:text="${info.idMasked}">••••</span></span>
+        <span class="sub" th:if="${state == 'withheld'}" th:text="#{patient.sub.withheld}">Details not shown</span>
+        <span class="tag tag-warn" th:if="${demo}" th:text="#{demo.tag}">Demo data</span>
+      </div>
+      <div class="pt-kpis">
+        <div><b th:text="${k30[0]}">0</b><span th:text="#{patient.k.events}">events</span></div>
+        <div><b th:text="${k30[1]}">0</b><span th:text="#{patient.k.people}">people</span></div>
+        <div><b th:text="${k30[2]}">0</b><span th:text="#{patient.k.systems}">systems</span></div>
+        <div th:class="${k30[3] > 0} ? 'warn'"><b th:text="${k30[3]}">0</b><span th:text="#{patient.k.btg}">break-glass</span></div>
+      </div>
+      <a class="btn btn-primary" th:if="${canReview}" th:href="@{/reviews(patient=${patientId})}" th:text="#{patient.review.open}">Open a review</a>
     </section>
+
+    <div class="notice notice-warn" role="status" th:if="${state == 'withheld'}"><b th:text="#{patient.withheld}">Details not shown</b><br>
+      <span th:text="#{'consent.reason.' + ${decision.reason ?: 'unknown'}}">reason</span> <span th:text="#{patient.withheld.records}">The records are still shown.</span></div>
+    <div class="notice notice-warn" th:if="${state == 'shown' and registryMissing == true}" th:text="#{patient.registry.missing}">Not in registry</div>
+    <div class="notice notice-bad" role="alert" th:if="${state == 'shown' and registryDown == true}" th:text="#{patient.registry.down}">Registry not answering</div>
+
+    <div class="split">
+      <section class="panel grow" aria-labelledby="p-visits">
+        <div class="panel-head"><h3 id="p-visits" th:text="#{patient.visits}">Visits and who looked</h3>
+          <div class="segmented" role="group" th:attr="aria-label=#{patient.window}">
+            <a th:href="@{/patient/{id}(id=${patientId},days='30')}" th:attr="aria-current=${window == '30'} ? 'true' : null" th:text="#{patient.window.30}">30 days</a>
+            <a th:href="@{/patient/{id}(id=${patientId},days='90')}" th:attr="aria-current=${window == '90'} ? 'true' : null" th:text="#{patient.window.90}">90 days</a>
+            <a th:href="@{/patient/{id}(id=${patientId},days='all')}" th:attr="aria-current=${window == 'all'} ? 'true' : null" th:text="#{patient.window.all}">All</a>
+          </div></div>
+        <div class="panel-pad" th:if="${emptyWindow == true}"><div class="notice notice-info" th:text="#{patient.window.empty}">No records</div></div>
+
+        <th:block th:each="v, vs : ${visits}"><th:block th:if="${vs.index < 6}"><th:block th:replace="~{fragments/patient :: visit(${v})}"></th:block></th:block></th:block>
+        <details class="pt-more" th:if="${#lists.size(visits) > 6}">
+          <summary th:text="#{patient.visits.more(${#lists.size(visits) - 6})}">More visits</summary>
+          <th:block th:each="v, vs : ${visits}"><th:block th:if="${vs.index >= 6}"><th:block th:replace="~{fragments/patient :: visit(${v})}"></th:block></th:block></th:block>
+        </details>
+        <div class="panel-foot sub" th:if="${truncated}" th:text="#{patient.records.cap(${#lists.size(lines)}, ${total})}">Cap</div>
+        <div class="panel-foot sub" th:text="#{patient.link.help}">How the care link is judged.</div>
+      </section>
+
+      <div class="side">
+        <section class="panel" aria-labelledby="p-who">
+          <div class="panel-head"><h3 id="p-who" th:text="${window == 'all'} ? #{patient.who.all} : #{patient.who.window(${window})}">Who looked</h3></div>
+          <ul class="pt-who panel-pad">
+            <li th:each="w, st : ${lookers}" th:if="${st.index < 5}"><div><b th:text="${w.name}">Name</b><span class="sub"><span th:text="${w.facilityName}">Fac</span> · <span th:text="#{'people.role.' + ${w.role}}">Role</span></span></div><b th:text="${w.count}">0</b></li>
+          </ul>
+          <details class="pt-more" th:if="${#lists.size(lookers) > 5}">
+            <summary th:text="#{patient.who.all.link(${#lists.size(lookers)})}">See all</summary>
+            <ul class="pt-who panel-pad">
+              <li th:each="w, st : ${lookers}" th:if="${st.index >= 5}"><div><b th:text="${w.name}">Name</b><span class="sub"><span th:text="${w.facilityName}">Fac</span> · <span th:text="#{'people.role.' + ${w.role}}">Role</span></span></div><b th:text="${w.count}">0</b></li>
+            </ul>
+          </details>
+        </section>
+
+        <section class="panel" aria-labelledby="p-flags">
+          <div class="panel-head"><h3 id="p-flags" th:text="#{patient.flags}">Flags</h3></div>
+          <div class="panel-pad">
+            <div class="pt-flag"><span class="n" th:classappend="${flags.breakGlass > 0} ? 'warn' : 'ok'" th:text="${flags.breakGlass}">1</span><span><span th:text="#{patient.flag.btg}">break-glass</span><span class="sub" th:if="${flags.breakGlass > 0}" th:text="#{patient.flag.btg.detail(${flags.breakGlassDecided}, ${flags.breakGlassWaiting})}">detail</span></span></div>
+            <div class="pt-flag"><span class="n" th:classappend="${flags.refused > 0} ? 'bad' : 'ok'" th:text="${flags.refused}">0</span><span th:text="#{patient.flag.refused}">refused</span></div>
+            <div class="pt-flag"><span class="n" th:classappend="${flags.noLink > 0} ? 'bad' : (${flags.unknownLink > 0} ? 'off' : 'ok')" th:text="${flags.noLink}">0</span><span th:text="#{patient.flag.nolink}">no link</span></div>
+            <div class="pt-flag" th:if="${flags.unknownLink > 0}"><span class="n off" th:text="${flags.unknownLink}">0</span><span th:text="#{patient.flag.unknown}">unknown</span></div>
+            <div class="pt-flag"><span class="n off">–</span><span><span th:text="#{patient.flag.scope}">scope</span> <span class="tag tag-planned tag-sm" th:text="#{patient.flag.scope.planned}">Planned</span></span></div>
+          </div>
+        </section>
+
+        <section class="panel" aria-labelledby="p-reg">
+          <div class="panel-head"><h3 id="p-reg" th:text="#{patient.registry}">From the registry</h3><span class="tag tag-warn" th:if="${demo}" th:text="#{demo.tag}">Demo data</span></div>
+          <div class="panel-pad">
+            <dl class="dl" th:if="${state == 'shown' and info != null}">
+              <dt th:text="#{patient.registry.source}">Source</dt><dd th:text="#{patient.registry.source.value}">Registry</dd>
+              <dt th:text="#{patient.stays}">Stays</dt>
+              <dd><div th:each="s : ${info.stays}"><b th:text="${fnames.getOrDefault(s.facilityRef, s.facilityName)}">Facility</b> · <span th:text="${s.ward}">Ward</span>
+                <span class="tag tag-sm" th:classappend="${s.current} ? 'tag-info' : 'tag-off'" th:text="${s.current} ? #{patient.stay.now} : #{patient.stay.past}">Admitted</span>
+                <span class="sub"><th:block th:replace="~{fragments/layout :: when(${s.from})}"></th:block></span></div>
+                <span class="sub" th:if="${#lists.isEmpty(info.stays)}" th:text="#{patient.stays.none}">None</span></dd>
+            </dl>
+            <span class="sub" th:if="${state == 'withheld'}" th:text="#{patient.registry.withheld}">Not read</span>
+            <span class="sub" th:if="${state == 'shown' and info == null}" th:text="#{patient.registry.none}">None</span>
+          </div>
+        </section>
+
+        <section class="panel planned" aria-labelledby="p-consent">
+          <div class="panel-head"><h3 id="p-consent" th:text="#{patient.consent}">Consent check</h3><span class="tag tag-planned" th:text="#{patient.consent.planned}">Planned</span></div>
+          <div class="panel-pad stack-sm">
+            <div class="row"><span class="tag" th:classappend="${decision.result.name() == 'PERMIT'} ? 'tag-ok' : (${decision.result.name() == 'UNAVAILABLE'} ? 'tag-warn' : 'tag-bad')"
+                th:text="#{'consent.result.' + ${decision.result.name()}}">Permitted</span>
+              <span class="tag tag-warn" th:if="${demo}" th:text="#{demo.tag}">Demo data</span></div>
+            <span th:text="#{'consent.reason.' + ${decision.reason ?: 'unknown'}}">reason</span>
+            <span class="sub mono" th:if="${decision.consentId != null}" th:text="${decision.consentId}">id</span>
+            <span class="sub" th:text="#{patient.consent.logged}">This check was recorded.</span>
+            <span class="sub" th:text="#{patient.consent.note}">Note</span>
+          </div>
+        </section>
+      </div>
+    </div>
   </th:block>
 </main>
+
 </body>
 </html>

@@ -1,48 +1,138 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}"
       th:attr="data-theme=${prefs.themeAttr()},data-density=${prefs.densityAttr()}">
-<head th:replace="~{fragments/layout :: head(#{admin.title})}"></head>
+<head th:replace="~{fragments/layout :: headx(#{admin.title}, 'page-admin.css')}"></head>
 <body>
 <th:block th:replace="~{fragments/layout :: header('admin')}"></th:block>
 <main id="main" class="page">
-  <div class="page-head"><h1 th:text="#{admin.title}">Admin</h1><span class="lede" th:text="#{admin.lede}">Who sends records here</span></div>
+  <div class="page-head"><h1 th:text="#{admin.title}">Admin</h1><span class="lede" th:text="#{admin.lede2}">Who can use the console</span>
+    <span class="actions"><a class="btn btn-sm" th:href="@{/checklist}" th:text="#{admin.checklist}">Delivered and planned</a></span></div>
 
   <div class="notice notice-info" role="status" th:if="${flash == 'saved'}" th:text="#{admin.saved}">Saved.</div>
   <div class="notice notice-info" role="status" th:if="${flash == 'discovered'}" th:text="#{admin.discovered(${flashCount})}">Found.</div>
   <div class="notice notice-bad" role="alert" th:if="${flash == 'failed'}" th:text="#{admin.failed}">Failed.</div>
 
-  <section class="panel" aria-labelledby="a-sys">
-    <div class="panel-head">
-      <h3 id="a-sys" th:text="#{admin.systems}">Sending systems</h3>
-      <form th:action="@{/admin/systems/discover}" method="post"><button class="btn btn-sm" type="submit" th:text="#{admin.discover}">Look for new ones</button></form>
+  <nav class="ad-tabs" th:attr="aria-label=#{admin.tab.label}">
+    <div class="segmented">
+      <a th:each="t : ${tabs}" th:href="@{/admin(tab=${t})}" th:attr="aria-current=${t == tab} ? 'true' : null"><span th:text="#{'admin.tab.' + ${t}}">Tab</span>
+        <span class="tag tag-planned tag-sm" th:if="${t == 'users'}" th:text="#{common.planned}">Planned</span></a>
+      <a th:href="@{/health}" th:text="#{nav.health}">Health</a>
     </div>
-    <div class="panel-pad"><p class="muted" th:text="#{admin.systems.help}">Each system that sends records signs in with its own client id.</p></div>
-    <div th:if="${#lists.isEmpty(systems)}" class="state"><h2 th:text="#{admin.empty.title}">None yet</h2><p th:text="#{admin.empty.text}">Press the button.</p></div>
-    <table class="table table-cards" th:unless="${#lists.isEmpty(systems)}">
-      <thead><tr><th th:text="#{admin.col.id}">Client id</th><th th:text="#{admin.col.name}">Display name</th><th th:text="#{admin.col.note}">Note</th><th th:text="#{admin.col.last}">Last seen</th><th></th></tr></thead>
-      <tbody>
-        <tr th:each="s, st : ${systems}">
-          <td th:attr="data-label=#{admin.col.id}"><div class="mono" th:text="${s.clientId}">client</div></td>
-          <td th:attr="data-label=#{admin.col.name}"><div><input class="input" name="displayName" maxlength="120" th:attr="form='f'+${st.index},aria-label=#{admin.col.name},placeholder=#{admin.name.placeholder}" th:value="${s.displayName}"></div></td>
-          <td th:attr="data-label=#{admin.col.note}"><div><input class="input" name="note" maxlength="255" th:attr="form='f'+${st.index},aria-label=#{admin.col.note},placeholder=#{admin.note.placeholder}" th:value="${s.note}"></div></td>
-          <td th:attr="data-label=#{admin.col.last}"><div><th:block th:replace="~{fragments/layout :: when(${s.lastSeen})}"></th:block></div></td>
-          <td><div>
-            <form th:id="'f'+${st.index}" th:action="@{/admin/systems/rename}" method="post">
-              <input type="hidden" name="clientId" th:value="${s.clientId}">
-              <button class="btn btn-sm btn-primary" type="submit" th:text="#{common.save}">Save</button>
-            </form></div></td>
-        </tr>
-      </tbody>
-    </table>
+  </nav>
+
+  <!-- Sending systems -->
+  <div class="split" th:if="${tab == 'systems'}">
+    <section class="panel grow" aria-labelledby="a-sys">
+      <div class="panel-head"><h3 id="a-sys" th:text="#{admin.systems.head}">Systems that have sent audit records</h3>
+        <form th:action="@{/admin/systems/discover}" method="post"><button class="btn btn-sm" type="submit" th:text="#{admin.discover}">Look for new ones</button></form></div>
+      <div th:if="${#lists.isEmpty(rows)}" class="state"><h2 th:text="#{admin.empty.title}">None yet</h2><p th:text="#{admin.empty.text}">Press the button.</p></div>
+      <div class="table-wrap" th:unless="${#lists.isEmpty(rows)}">
+        <table class="table table-cards">
+          <thead><tr><th th:text="#{admin.col.system}">Name</th><th th:text="#{admin.col.client}">Client</th><th th:text="#{admin.col.role}">Role</th><th th:text="#{admin.col.lastsent}">Last sent</th><th class="num" th:text="#{admin.col.events30}">Records</th><th th:text="#{admin.col.status}">Status</th></tr></thead>
+          <tbody><tr th:each="r : ${rows}">
+            <td th:attr="data-label=#{admin.col.system}"><div><a th:href="@{/admin/systems/{id}(id=${r.system.clientId})}"><b th:text="${r.system.label}">HHIMS</b></a><span class="sub" th:if="${r.system.note != null}" th:text="${r.system.note}">note</span></div></td>
+            <td th:attr="data-label=#{admin.col.client}"><div class="mono" th:text="${r.system.clientId}">hhims-audit</div></td>
+            <td th:attr="data-label=#{admin.col.role}"><div><span class="ad-role">AUDIT_WRITER</span></div></td>
+            <td th:attr="data-label=#{admin.col.lastsent}"><div><th:block th:replace="~{fragments/layout :: when(${r.stats.last})}"></th:block><span th:if="${r.stats.last == null}">—</span></div></td>
+            <td class="num" th:attr="data-label=#{admin.col.events30}"><div th:text="${#numbers.formatInteger(r.stats.events30, 1, 'COMMA')}">0</div></td>
+            <td th:attr="data-label=#{admin.col.status}"><div>
+              <span class="tag tag-ok" th:if="${r.stats.status == 'active'}" th:text="#{admin.status.active}">Active</span>
+              <span class="tag tag-warn" th:if="${r.stats.status == 'failing'}" th:text="#{admin.status.failing.n(${r.stats.failed7})}">failures</span>
+              <span class="tag tag-warn" th:if="${r.stats.status == 'quiet'}" th:text="#{admin.status.quiet}">Quiet</span>
+              <span class="tag tag-off" th:if="${r.stats.status == 'gone'}" th:text="#{admin.status.gone(${r.stats.days})}">Not seen</span>
+              <span class="tag tag-off" th:if="${r.stats.status == 'none' or r.stats.status == 'unknown'}" th:text="#{'admin.status.' + ${r.stats.status}}">None</span></div></td>
+          </tr></tbody>
+        </table>
+      </div>
+      <div class="panel-foot" th:text="#{admin.systems.foot}">Foot</div>
+    </section>
+    <div class="side">
+      <section class="panel" aria-labelledby="a-roles">
+        <div class="panel-head"><h3 id="a-roles" th:text="#{admin.roles.head}">Roles</h3></div>
+        <ul class="ad-roles panel-pad">
+          <li th:each="role : ${ {'AUDIT_WRITER','MINISTRY_AUDITOR','PRIVACY_OFFICER','FACILITY_AUDITOR','AUDIT_ADMIN'} }"><span class="ad-role" th:text="${role}">ROLE</span> <span th:text="#{'admin.role.' + ${role}}">does</span></li>
+        </ul>
+        <div class="panel-foot" th:text="#{admin.roles.note}">Note</div>
+      </section>
+      <div class="notice notice-info" th:text="#{admin.keycloak.note}">Clients are managed in Keycloak.</div>
+    </div>
+  </div>
+
+  <!-- Facilities -->
+  <section class="panel" th:if="${tab == 'facilities'}" aria-labelledby="a-fac">
+    <div class="panel-head"><h3 id="a-fac" th:text="#{admin.fac.head}">Facilities</h3><span class="tag tag-warn" th:if="${demo}" th:text="#{admin.fac.demo}">Demo names</span></div>
+    <div class="panel-pad" th:if="${chesterDown}"><div class="notice notice-bad" role="alert" th:text="#{people.chester.down}">Down</div></div>
+    <div class="table-wrap">
+      <table class="table table-cards">
+        <thead><tr><th th:text="#{admin.col.facility}">Facility</th><th th:text="#{admin.col.ref}">Ref</th><th th:text="#{admin.col.district}">District</th><th th:text="#{admin.col.kind}">Kind</th>
+          <th class="num" th:text="#{admin.col.events30}">Records</th><th class="num" th:text="#{admin.col.failed30}">Refused</th><th th:text="#{admin.col.listed}">Listed</th></tr></thead>
+        <tbody><tr th:each="r : ${facRows}">
+          <td th:attr="data-label=#{admin.col.facility}"><div><b th:text="${r.facility.name}">Colombo NH</b></div></td>
+          <td th:attr="data-label=#{admin.col.ref}"><div class="mono" th:text="${r.facility.ref}">ref</div></td>
+          <td th:attr="data-label=#{admin.col.district}"><div th:text="${r.facility.district ?: '—'}">Colombo</div></td>
+          <td th:attr="data-label=#{admin.col.kind}"><div th:text="${r.facility.kind ?: '—'}">Hospital</div></td>
+          <td class="num" th:attr="data-label=#{admin.col.events30}"><div th:text="${#numbers.formatInteger(r.events30, 1, 'COMMA')}">0</div></td>
+          <td class="num" th:attr="data-label=#{admin.col.failed30}"><div th:text="${r.failed30}">0</div></td>
+          <td th:attr="data-label=#{admin.col.listed}"><div><span class="tag tag-sm" th:classappend="${r.facility.listed} ? 'tag-ok' : 'tag-off'" th:text="${r.facility.listed} ? #{admin.fac.listed} : #{admin.fac.notlisted}">Listed</span></div></td>
+        </tr></tbody>
+      </table>
+    </div>
+    <div class="panel-foot row"><span class="grow" th:text="#{admin.fac.foot}">Foot</span><button class="btn btn-sm btn-planned" type="button" disabled><span th:text="#{admin.fac.add}">Add facility</span> <span class="tag tag-planned tag-sm" th:text="#{common.planned}">Planned</span></button></div>
   </section>
 
-  <section class="panel planned" aria-labelledby="a-users">
-    <div class="panel-head"><h3 id="a-users" th:text="#{admin.users}">Users</h3><span class="tag tag-planned" th:text="#{common.planned}">Planned</span></div>
-    <div class="panel-pad stack-sm">
-      <p th:text="#{admin.users.text}">Add and disable people, assign roles.</p>
-      <p class="sub" th:text="#{admin.users.scope}">Realm and client set-up stays in Keycloak.</p>
-      <button class="btn btn-planned" type="button" disabled th:text="#{admin.users.add}">Add user</button>
-    </div>
+  <!-- Users (planned) -->
+  <div class="split" th:if="${tab == 'users'}">
+    <section class="panel planned grow" aria-labelledby="a-users">
+      <div class="panel-head"><h3 id="a-users" th:text="#{admin.users.head}">Users</h3><span class="tag tag-planned" th:text="#{admin.users.planned}">Planned</span></div>
+      <div class="panel-pad stack-sm">
+        <p th:text="#{admin.users.text2}">Plan</p>
+        <div class="notice notice-warn" th:text="#{admin.users.warn}">Warning</div>
+        <div class="row-wrap">
+          <button class="btn btn-planned" type="button" disabled th:text="#{admin.users.invite}">Invite</button>
+          <button class="btn btn-planned" type="button" disabled th:text="#{admin.users.disable}">Disable</button>
+          <button class="btn btn-planned" type="button" disabled th:text="#{admin.users.reset}">Reset</button>
+        </div>
+      </div>
+      <th:block th:if="${!#lists.isEmpty(demoUsers)}">
+        <div class="panel-head"><h3 th:text="#{admin.users.demo}">Demo accounts</h3><span class="tag tag-warn" th:text="#{demo.tag}">Demo data</span></div>
+        <div class="table-wrap"><table class="table table-cards">
+          <thead><tr><th th:text="#{admin.col.user}">User</th><th th:text="#{admin.col.title}">Role</th><th th:text="#{admin.col.scope}">Sees</th></tr></thead>
+          <tbody><tr th:each="u : ${demoUsers}">
+            <td th:attr="data-label=#{admin.col.user}"><div class="mono" th:text="${u.username}">user</div></td>
+            <td th:attr="data-label=#{admin.col.title}"><div><span class="ad-role" th:text="${u.role}">ROLE</span></div></td>
+            <td th:attr="data-label=#{admin.col.scope}"><div th:text="${u.can}">can</div></td>
+          </tr></tbody></table></div>
+        <div class="panel-foot" th:text="#{admin.users.demo.note}">Note</div>
+      </th:block>
+    </section>
+  </div>
+
+  <!-- Rules (read only) -->
+  <section class="panel" th:if="${tab == 'rules'}" aria-labelledby="a-rules">
+    <div class="panel-head"><h3 id="a-rules" th:text="#{admin.rules.head}">Rules</h3></div>
+    <div class="panel-pad"><span class="sub" th:text="#{admin.rules.text}">Read only</span></div>
+    <div class="table-wrap"><table class="table table-cards">
+      <thead><tr><th th:text="#{admin.col.rule}">Rule</th><th th:text="#{admin.col.value}">Value</th><th th:text="#{admin.col.source}">Set in</th><th th:text="#{admin.col.used}">Used for</th></tr></thead>
+      <tbody><tr th:each="r : ${rules}">
+        <td th:attr="data-label=#{admin.col.rule}"><div><b th:text="#{'admin.rule.' + ${r.key}}">Rule</b></div></td>
+        <td th:attr="data-label=#{admin.col.value}"><div class="mono" th:text="${r.value}">6 h</div></td>
+        <td th:attr="data-label=#{admin.col.source}"><div class="mono" th:text="${r.source}">key</div></td>
+        <td th:attr="data-label=#{admin.col.used}"><div th:text="#{'admin.rule.' + ${r.key} + '.used'}">Used</div></td>
+      </tr></tbody></table></div>
+  </section>
+
+  <!-- Change history -->
+  <section class="panel" th:if="${tab == 'history'}" aria-labelledby="a-hist">
+    <div class="panel-head"><h3 id="a-hist" th:text="#{admin.history.head}">Change history</h3></div>
+    <div class="panel-pad"><span class="sub" th:text="#{admin.history.text}">Text</span></div>
+    <div class="state" th:if="${#lists.isEmpty(changes)}"><h2 th:text="#{admin.history.empty}">None</h2></div>
+    <div class="table-wrap" th:unless="${#lists.isEmpty(changes)}"><table class="table table-cards">
+      <thead><tr><th th:text="#{admin.col.when}">When</th><th th:text="#{admin.col.who}">Who</th><th th:text="#{admin.col.what}">What</th></tr></thead>
+      <tbody><tr th:each="c : ${changes}">
+        <td th:attr="data-label=#{admin.col.when}"><div><th:block th:replace="~{fragments/layout :: when(${c.at})}"></th:block></div></td>
+        <td th:attr="data-label=#{admin.col.who}"><div th:text="${c.who}">Who</div></td>
+        <td th:attr="data-label=#{admin.col.what}"><div><span th:text="${c.what}">What</span> <span class="tag tag-warn tag-sm" th:if="${c.demo}" th:text="#{admin.history.demo}">Demo</span></div></td>
+      </tr></tbody></table></div>
   </section>
 </main>
 </body>

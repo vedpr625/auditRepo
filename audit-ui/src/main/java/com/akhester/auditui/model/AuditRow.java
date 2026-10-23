@@ -37,6 +37,8 @@ public class AuditRow {
 
     /** Practitioner / agent who performed the action */
     private String agentName;
+    /** The agent's reference, e.g. "Practitioner/dr-silva" (null when Chester sent none) */
+    private String agentRef;
     /** source.observer.reference (facility), submitting client tag, and the two flags */
     private String facility;
     private String submittedBy;

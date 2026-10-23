@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}"
+      th:attr="data-theme=${prefs.themeAttr()},data-density=${prefs.densityAttr()}">
+<head th:replace="~{fragments/layout :: headx(#{people.title}, 'page-people.css')}"></head>
+<body>
+<th:block th:replace="~{fragments/layout :: header('people')}"></th:block>
+<main id="main" class="page">
+  <div class="page-head"><h1 th:text="#{people.title}">People and patients</h1><span class="lede" th:text="#{people.lede}">Who appears</span></div>
+
+  <div class="pp-tabs">
+    <div class="segmented" role="group" th:attr="aria-label=#{people.title}">
+      <a th:href="@{/people(tab='people',q=${q})}" th:attr="aria-current=${tab == 'people'} ? 'true' : null"><span th:text="#{people.tab.people}">People</span> <span class="sub" th:text="${allPeople}">0</span></a>
+      <a th:href="@{/people(tab='patients',q=${q})}" th:attr="aria-current=${tab == 'patients'} ? 'true' : null"><span th:text="#{people.tab.patients}">Patients</span> <span class="sub" th:text="${allPatients}">0</span></a>
+    </div>
+    <form class="pp-filter" th:action="@{/people}" method="get" role="search">
+      <input type="hidden" name="tab" th:value="${tab}">
+      <label class="sr-only" for="pp-q" th:text="#{people.filter.label}">Filter</label>
+      <input class="input" id="pp-q" name="q" maxlength="100" th:value="${q}" th:placeholder="#{people.filter.placeholder}">
+      <button class="btn" type="submit" th:text="#{people.filter.go}">Filter</button>
+      <a class="btn btn-ghost" th:if="${!#strings.isEmpty(q)}" th:href="@{/people(tab=${tab})}" th:text="#{people.filter.clear}">Clear</a>
+    </form>
+  </div>
+
+  <div class="notice notice-bad" role="alert" th:if="${s.error != null}" th:text="#{people.chester.down}">Down</div>
+
+  <section class="panel" th:if="${tab == 'people' and s.error == null}" aria-labelledby="pp-h1">
+    <div class="panel-head"><h3 id="pp-h1" th:text="#{people.count.people(${peopleTotal})}">n people</h3></div>
+    <div class="state" th:if="${#lists.isEmpty(people)}"><h2 th:text="#{people.empty.people}">None</h2></div>
+    <div class="table-wrap" th:unless="${#lists.isEmpty(people)}">
+      <table class="table table-cards">
+        <thead><tr><th th:text="#{people.col.name}">Name</th><th th:text="#{people.col.kind}">Kind</th><th th:text="#{people.col.role}">Role</th><th th:text="#{people.col.facility}">Facility</th>
+          <th class="num" th:text="#{people.col.events}">Records</th><th class="num" th:text="#{people.col.failed}">Refused</th><th class="num" th:text="#{people.col.breakglass}">Break-glass</th><th th:text="#{people.col.last}">Last</th><th></th></tr></thead>
+        <tbody><tr th:each="x : ${people}">
+          <td th:attr="data-label=#{people.col.name}"><div><b th:text="${x.name}">Name</b><span class="sub mono" th:text="${x.ref}">ref</span></div></td>
+          <td th:attr="data-label=#{people.col.kind}"><div th:text="#{'people.kind.' + ${x.kind}}">Person</div></td>
+          <td th:attr="data-label=#{people.col.role}"><div th:text="#{'people.role.' + ${x.role}}">Role</div></td>
+          <td th:attr="data-label=#{people.col.facility}"><div th:text="${x.facility == null} ? '—' : ${fac.getOrDefault(x.facility, x.facility)}">Facility</div></td>
+          <td class="num" th:attr="data-label=#{people.col.events}"><div th:text="${x.events}">0</div></td>
+          <td class="num" th:attr="data-label=#{people.col.failed}"><div th:class="${x.failed > 0} ? 'pp-bad'" th:text="${x.failed}">0</div></td>
+          <td class="num" th:attr="data-label=#{people.col.breakglass}"><div th:class="${x.breakGlass > 0} ? 'pp-warn'" th:text="${x.breakGlass}">0</div></td>
+          <td th:attr="data-label=#{people.col.last}"><div><th:block th:replace="~{fragments/layout :: when(${x.last})}"></th:block></div></td>
+          <td><div class="row-wrap"><a class="btn btn-sm" th:if="${x.ref != null}" th:href="@{/(agent=${x.ref})}" th:text="#{people.row.records}">Explore</a>
+            <a class="btn btn-sm" th:if="${x.ref != null and x.kind == 'person'}" th:href="@{/reports(r='person',person=${x.ref})}" th:text="#{people.row.report}">Report</a></div></td>
+        </tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel" th:if="${tab == 'patients' and s.error == null}" aria-labelledby="pp-h2">
+    <div class="panel-head"><h3 id="pp-h2" th:text="#{people.count.patients(${patientsTotal})}">n patients</h3><span class="tag tag-warn" th:if="${demo}" th:text="#{demo.tag}">Demo data</span></div>
+    <div class="panel-pad"><span class="sub" th:text="#{people.patients.note}">Names are not listed</span></div>
+    <div class="state" th:if="${#lists.isEmpty(patients)}"><h2 th:text="#{people.empty.patients}">None</h2></div>
+    <div class="table-wrap" th:unless="${#lists.isEmpty(patients)}">
+      <table class="table table-cards">
+        <thead><tr><th th:text="#{people.col.patient}">Patient</th><th class="num" th:text="#{people.col.events}">Records</th><th class="num" th:text="#{people.col.people}">People</th>
+          <th class="num" th:text="#{people.col.failed}">Refused</th><th class="num" th:text="#{people.col.breakglass}">Break-glass</th><th th:text="#{people.col.last}">Last</th><th></th></tr></thead>
+        <tbody><tr th:each="x : ${patients}">
+          <td th:attr="data-label=#{people.col.patient}"><div><a class="mono" th:href="@{/patient/{id}(id=${x.id})}" th:text="${x.id}">P-1</a></div></td>
+          <td class="num" th:attr="data-label=#{people.col.events}"><div th:text="${x.events}">0</div></td>
+          <td class="num" th:attr="data-label=#{people.col.people}"><div th:text="${x.people}">0</div></td>
+          <td class="num" th:attr="data-label=#{people.col.failed}"><div th:class="${x.failed > 0} ? 'pp-bad'" th:text="${x.failed}">0</div></td>
+          <td class="num" th:attr="data-label=#{people.col.breakglass}"><div th:class="${x.breakGlass > 0} ? 'pp-warn'" th:text="${x.breakGlass}">0</div></td>
+          <td th:attr="data-label=#{people.col.last}"><div><th:block th:replace="~{fragments/layout :: when(${x.last})}"></th:block></div></td>
+          <td><div><a class="btn btn-sm" th:href="@{/patient/{id}(id=${x.id})}" th:text="#{people.row.open}">Open</a></div></td>
+        </tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="pp-pager" th:if="${pages > 1}">
+    <a class="btn btn-sm" th:if="${page > 1}" th:href="@{/people(tab=${tab},q=${q},p=${page - 1})}" th:text="#{people.prev}">Previous</a>
+    <span class="sub" th:text="#{people.page(${page}, ${pages})}">Page 1 of 2</span>
+    <a class="btn btn-sm" th:if="${page < pages}" th:href="@{/people(tab=${tab},q=${q},p=${page + 1})}" th:text="#{people.next}">Next</a>
+  </div>
+
+  <p class="sub" th:if="${s.error == null}">
+    <span th:if="${s.scanned > 0}" th:text="#{people.scope(${s.scanned}, ${tf.exact(s.oldest)} + ' – ' + ${tf.exact(s.newest)})}">scope</span>
+    <span th:if="${s.scanned == 0}" th:text="#{people.scope.none}">none</span>
+    <span th:if="${s.truncated}" th:text="#{people.scope.truncated(${s.scanned})}">truncated</span>
+  </p>
+</main>
+</body>
+</html>
