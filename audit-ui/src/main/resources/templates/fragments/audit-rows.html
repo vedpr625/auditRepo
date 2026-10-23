@@ -31,12 +31,10 @@
 <th:block th:fragment="auditSection">
 
   <!-- ── Chester problem / review-tab note ── -->
-  <div th:if="${error}" role="alert"
-       style="margin:6px 0 10px; padding:10px 12px; border:1px solid var(--red); border-radius:6px; color:var(--red); font-size:13px;"
-       th:text="'Could not load events: ' + ${error}">Could not load events</div>
-  <div th:if="${note}"
-       style="margin:6px 0 10px; padding:8px 12px; border:1px solid var(--border); border-radius:6px; color:var(--text-muted); font-size:12px;"
-       th:text="${note}"></div>
+  <div th:if="${error}" class="panel">
+    <th:block th:replace="~{fragments/states :: down(#{explore.error.title}, ${error}, #{common.retry}, null, null)}"></th:block>
+  </div>
+  <div th:if="${note}" class="notice" th:text="${note}"></div>
 
   <!-- ── Result count ── -->
   <div class="result-count" style="padding:4px 0 8px;">
@@ -65,9 +63,8 @@
 
         <!-- Empty state -->
         <tr th:if="${(rows == null or rows.empty) and error == null}">
-          <td colspan="10"
-              style="text-align:center; padding:40px; color:var(--text-muted); font-size:13px;">
-            No audit events match your filters.
+          <td colspan="10">
+            <th:block th:replace="~{fragments/states :: empty('0', #{explore.empty.title}, #{explore.empty.text}, #{explore.empty.clear}, '/')}"></th:block>
           </td>
         </tr>
 
@@ -87,9 +84,9 @@
           <td>
             <span th:class="${row.purposeTagCss}" th:text="${row.purposeLabel}">—</span>
             <span th:if="${row.breakGlass}" title="Carries the break-glass label"
-                  style="margin-left:4px; padding:1px 6px; border:1px solid var(--red); border-radius:10px; color:var(--red); font-size:10px;">BTG label</span>
+                  class="tag tag-sm tag-bad">BTG label</span>
             <span th:if="${row.incomplete}" title="Stored with the policy-incomplete flag (purpose or provenance missing)"
-                  style="margin-left:4px; padding:1px 6px; border:1px solid var(--border); border-radius:10px; color:var(--text-muted); font-size:10px;">incomplete</span>
+                  class="tag tag-sm tag-off">incomplete</span>
           </td>
 
           <td>
@@ -135,7 +132,7 @@
                         class="act-btn act-review"
                         type="button"
                         data-tip="Already reviewed"
-                        style="opacity:0.4; cursor:default; pointer-events:none;">
+                        disabled aria-disabled="true">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <polyline points="20 6 9 17 4 12"/>
                   </svg>
@@ -203,6 +200,8 @@
     <span class="page-info" th:text="|Page ${page} of ${totalPages}|">Page 1 of 1</span>
 
   </div>
+
+  <th:block th:if="${total > 0 and page >= totalPages}"><div th:replace="~{fragments/states :: endOfList(#{states.endoflist(${total})})}"></div></th:block>
 
 </th:block>
 

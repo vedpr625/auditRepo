@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<!--
+  Reusable screen states (design board StatesA). Every list and chart uses the same few states, so nobody is left looking at a blank box.
+  Text is passed in already translated, so each screen keeps its own wording in its own message file.
+
+    ~{fragments/states :: empty('0', MESSAGE, MESSAGE, MESSAGE, '/some/link')}   no results, or nothing yet ('0' or a check mark as icon; action may be null)
+    ~{fragments/states :: notAllowed(MESSAGE, MESSAGE, MESSAGE, '/overview')}      the person's role cannot open this
+    ~{fragments/states :: down(MESSAGE, MESSAGE, #{common.retry}, '/some/htmx/url', '#target')}  Chester or the app is not answering (retry reloads the target)
+    ~{fragments/states :: endOfList(MESSAGE)}                                              last row reached
+    ~{fragments/states :: stale(MESSAGE)}                                                  figures shown are older than the latest, with the time in the text
+    ~{fragments/states :: loading(4)}                                                         grey bars where rows will appear
+-->
+
+<div th:fragment="empty(icon, title, text, actionLabel, actionHref)" class="state" role="status">
+  <div class="state-icon" aria-hidden="true" th:text="${icon}">0</div>
+  <h2 th:text="${title}">No events match these filters</h2>
+  <p th:if="${text != null}" th:text="${text}">Try a wider date range.</p>
+  <a class="btn" th:if="${actionLabel != null and actionHref != null}" th:href="${actionHref}" th:text="${actionLabel}">Clear filters</a>
+</div>
+
+<div th:fragment="notAllowed(title, text, actionLabel, actionHref)" class="state" role="status">
+  <div class="state-icon warn" aria-hidden="true">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+  </div>
+  <h2 th:text="${title}">Your role cannot open this screen</h2>
+  <p th:if="${text != null}" th:text="${text}">Ask an administrator if you need more.</p>
+  <a class="btn" th:if="${actionLabel != null and actionHref != null}" th:href="${actionHref}" th:text="${actionLabel}">Back to Overview</a>
+</div>
+
+<div th:fragment="down(title, text, retryLabel, retryUrl, retryTarget)" class="state" role="alert">
+  <div class="state-icon bad" aria-hidden="true">!</div>
+  <h2 th:text="${title}">The audit repository is not answering</h2>
+  <p th:if="${text != null}" th:text="${text}">Nothing is lost. Try again in a moment.</p>
+  <button class="btn btn-primary" type="button" th:if="${retryUrl != null}" th:attr="hx-get=${retryUrl},hx-target=${retryTarget},hx-swap='innerHTML'" th:text="${retryLabel}">Try again</button>
+</div>
+
+<div th:fragment="endOfList(text)" class="end-of-list sub" role="status" th:text="${text}">That is every event for these filters.</div>
+
+<div th:fragment="stale(text)" class="notice notice-warn" role="status" th:text="${text}">Showing figures from 09:42.</div>
+
+<div th:fragment="loading(lines)" class="panel-pad stack" aria-hidden="true">
+  <div class="skeleton" th:each="i : ${#numbers.sequence(1, lines)}" th:style="'width:' + ${95 - (i * 11) % 40} + '%'"></div>
+</div>
+
+</body>
+</html>

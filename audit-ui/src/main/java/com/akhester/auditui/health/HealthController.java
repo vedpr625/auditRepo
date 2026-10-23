@@ -34,6 +34,8 @@ public class HealthController {
     private final JdbcTemplate jdbc;
     private final AppSettingRepository settings;
     private final PrefsContext prefsContext;
+    private final HealthService health;
+    private final org.springframework.context.MessageSource messages;
 
     @Value("${spring.datasource.url}")
     private String dbUrl;
@@ -44,7 +46,9 @@ public class HealthController {
     @Value("${management.server.address:}")
     private String metricsAddress;
 
-    public HealthController(AuditEventService audit, JdbcTemplate jdbc, AppSettingRepository settings, PrefsContext prefsContext) {
+    public HealthController(AuditEventService audit, JdbcTemplate jdbc, AppSettingRepository settings, PrefsContext prefsContext, HealthService health, org.springframework.context.MessageSource messages) {
+        this.messages = messages;
+        this.health = health;
         this.audit = audit;
         this.jdbc = jdbc;
         this.settings = settings;
@@ -53,6 +57,9 @@ public class HealthController {
 
     @GetMapping("/health")
     public String page(Model model) {
+        var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        model.addAttribute("allowed", com.akhester.auditui.page.ShellAdvice.primaryRole() != null
+            || (auth != null && auth.getAuthorities().stream().anyMatch(g -> "ROLE_ADMIN".equals(g.getAuthority()))));
         model.addAttribute("registryUrl", settings.get(AppSettingRepository.REGISTRY_BASE_URL).orElse(null));
         model.addAttribute("metricsPort", metricsPort);
         model.addAttribute("metricsAddress", metricsAddress.isBlank() ? "localhost" : metricsAddress);
@@ -70,42 +77,56 @@ public class HealthController {
         return "fragments/health :: systems";
     }
 
-    /** Lazy panel: events received per day for the last 7 days, days cut at midnight in the person's own time zone. */
-    @GetMapping("/health/ingestion")
-    public String ingestion(Model model, HttpServletRequest request) {
-        UserPrefs p = prefsContext.forRequest(request);
-        ZoneId zone = p.zone();
-        LocalDate today = LocalDate.now(zone);
-        List<Day> days = new ArrayList<>();
-        boolean failed = false;
-        for (int i = 0; i < 7; i++) {
-            LocalDate d = today.minusDays(i);
-            ZonedDateTime start = d.atStartOfDay(zone);
-            ZonedDateTime end = d.plusDays(1).atStartOfDay(zone);
-            int c;
-            try {
-                Map<String, List<String>> params = new LinkedHashMap<>();
-                params.put("date", new ArrayList<>(List.of("ge" + start.toInstant(), "lt" + end.toInstant())));
-                c = audit.countWhere(params);
-            } catch (Exception e) {
-                c = -1;
-                failed = true;
-            }
-            days.add(new Day(d, start.toInstant(), c));
-            if (failed) break;   // Chester is not answering: do not wait for six more failures
-        }
-        model.addAttribute("days", days);
-        model.addAttribute("failed", failed);
-        int max = days.stream().mapToInt(Day::count).max().orElse(0);
-        model.addAttribute("maxCount", Math.max(max, 1));
-        return "fragments/health :: ingestion";
+    /** Live figures: tiles and the per-minute chart. Refreshed every 30 seconds. */
+    @GetMapping("/health/live")
+    public String live(Model model) {
+        try { model.addAttribute("h", health.live()); }
+        catch (RuntimeException e) { model.addAttribute("failed", true); }
+        return "fragments/health :: live";
     }
 
-    /** Button: asks Chester to verify the whole hash chain. Chester decides who may do this. */
-    @PostMapping("/health/integrity")
-    public String integrity(Model model) {
-        model.addAttribute("result", audit.verifyChain(null));
-        model.addAttribute("checkedAt", Instant.now());
-        return "fragments/health :: integrity";
+    /** Integrity by day, with the result of the last check (if any). */
+    @GetMapping("/health/days")
+    public String days(Model model) {
+        model.addAttribute("days", health.days());
+        model.addAttribute("check", health.lastCheck());
+        return "fragments/health :: days";
+    }
+
+    /** Button: asks Chester to verify each of the last seven days. Chester decides who may do this. */
+    @PostMapping("/health/verify")
+    public String verify(Model model, jakarta.servlet.http.HttpServletResponse response) {
+        response.setHeader("HX-Trigger", "healthChecked");
+        String by = PrefsContext.username();
+        var lc = health.verify(by == null ? "?" : by);
+        model.addAttribute("days", health.days());
+        model.addAttribute("check", lc);
+        return "fragments/health :: days";
+    }
+
+    /** Integrity tile: from the last check only (nothing is asked of Chester here). */
+    @GetMapping("/health/integrity-tile")
+    public String tile(Model model) {
+        var lc = health.lastCheck();
+        model.addAttribute("check", lc);
+        int total = lc == null ? 0 : lc.days().size();
+        long ok = lc == null ? 0 : lc.days().values().stream().filter(HealthService.DayCheck::valid).count();
+        model.addAttribute("total", total);
+        model.addAttribute("ok", ok);
+        model.addAttribute("bad", total - ok);
+        return "fragments/health :: tile";
+    }
+
+    /** Oldest record held, for the Keeping records panel. */
+    @GetMapping("/health/oldest")
+    @org.springframework.web.bind.annotation.ResponseBody
+    public String oldest(jakarta.servlet.http.HttpServletRequest request, java.util.Locale locale) {
+        try {
+            var rows = audit.recentWhere(new LinkedHashMap<>(), 1, "date");
+            if (rows.isEmpty() || rows.get(0).getRecordedInstant() == null) return "—";
+            Instant oldest = rows.get(0).getRecordedInstant();
+            var tf = new com.akhester.auditui.page.TimeFormat(prefsContext.forRequest(request), locale, messages, Instant.now());
+            return org.springframework.web.util.HtmlUtils.htmlEscape(tf.exact(oldest));
+        } catch (RuntimeException e) { return "—"; }
     }
 }
