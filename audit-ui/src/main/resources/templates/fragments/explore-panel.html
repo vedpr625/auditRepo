@@ -12,7 +12,7 @@
     <div class="px-head">
       <div>
         <div class="px-eyebrow" th:text="#{explore.panel.eyebrow}">Event</div>
-        <h2 th:text="#{${p.item.whatKey}}">Viewed patient record</h2>
+        <h2 th:text="${p.item.whatText != null} ? ${p.item.whatText} : #{${p.item.whatKey}}">Viewed patient record</h2>
       </div>
       <button type="button" class="px-close" id="panelClose" th:attr="aria-label=#{explore.panel.close}" th:title="#{explore.panel.close}">&#215;</button>
     </div>
