@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}"
+      th:attr="data-theme=${prefs.themeAttr()},data-density=${prefs.densityAttr()}">
+<head th:replace="~{fragments/layout :: headx(#{reviews.title}, 'page-reviews.css')}"></head>
+<body>
+<th:block th:replace="~{fragments/layout :: header('reviews')}"></th:block>
+<main id="main" class="page">
+  <div class="page-head">
+    <h1 th:text="#{reviews.title}">Reviews</h1>
+    <span class="lede" th:text="#{reviews.lede}">Cases that need a person to decide. Each case is closed when two reviewers agree.</span>
+    <div class="actions" th:if="${canView}">
+      <details class="rv-new" th:if="${canReview}">
+        <summary class="btn btn-sm" th:text="#{reviews.new}">New case</summary>
+        <form class="rv-new-form panel" th:action="@{/reviews/new}" method="post">
+          <label class="field"><span th:text="#{reviews.new.kind}">Kind</span>
+            <select class="select" name="kind"><option th:each="k : ${kinds}" th:value="${k}" th:text="#{'reviews.kind.' + ${k}}" th:selected="${k == 'manual'}">kind</option></select></label>
+          <label class="field"><span th:text="#{reviews.new.title}">Short title</span><input class="input" name="title" maxlength="200" required></label>
+          <label class="field"><span th:text="#{reviews.new.patient}">Patient id (optional)</span><input class="input mono" name="patient" maxlength="64" placeholder="P-10407"></label>
+          <p class="sub" th:text="#{reviews.new.help}">The latest records for this patient are attached. You become the first reviewer.</p>
+          <button class="btn btn-primary" type="submit" th:text="#{reviews.new.create}">Open the case</button>
+        </form>
+      </details>
+    </div>
+  </div>
+
+  <div class="notice notice-info" role="status" th:if="${flash != null}" th:text="#{${flash}}">Done</div>
+  <div class="notice notice-bad" role="alert" th:if="${flashBad != null}" th:text="#{${flashBad}}">Not done</div>
+  <div class="notice notice-bad" role="alert" th:if="${flashText != null}" th:text="${flashText}">Not done</div>
+
+  <section class="panel" th:unless="${canView}">
+    <div class="state"><div class="state-icon warn" aria-hidden="true">!</div>
+      <h2 th:text="#{reviews.noview.title}">Cases are for ministry-level roles</h2>
+      <p th:text="#{reviews.noview.text}">Cases can involve several facilities.</p>
+      <span class="tag tag-planned" th:text="#{reviews.noview.planned}">Planned</span></div>
+  </section>
+
+  <th:block th:if="${canView}">
+    <form class="rv-filters" th:action="@{/reviews}" method="get" role="search">
+      <div class="segmented" role="group" th:attr="aria-label=#{reviews.filter.scope}">
+        <a th:each="s : ${ {'all','mine','unassigned','closed'} }" th:href="@{/reviews(scope=${s},kind=${kind},q=${q})}" th:classappend="${scope == s} ? 'on'" th:attr="aria-current=${scope == s} ? 'true' : null">
+          <span th:text="#{'reviews.scope.' + ${s}}">All</span>
+          <span class="mono" th:if="${s == 'all'}" th:text="${openAll}">0</span><span class="mono" th:if="${s == 'mine'}" th:text="${openMine}">0</span></a>
+      </div>
+      <input type="hidden" name="scope" th:value="${scope}">
+      <label class="sr-only" for="rv-kind" th:text="#{reviews.filter.kind}">Kind</label>
+      <select class="select rv-kind" id="rv-kind" name="kind"><option value="" th:text="#{reviews.filter.anykind}">Any kind</option><option th:each="k : ${kinds}" th:value="${k}" th:text="#{'reviews.kind.' + ${k}}" th:selected="${k == kind}">kind</option></select>
+      <label class="sr-only" for="rv-q" th:text="#{reviews.filter.q}">Search</label>
+      <input class="input rv-q" id="rv-q" name="q" th:value="${q}" maxlength="80" th:placeholder="#{reviews.filter.q}">
+      <button class="btn btn-sm" type="submit" th:text="#{reviews.filter.apply}">Filter</button>
+      <a class="btn btn-sm btn-ghost" th:if="${!kind.isEmpty() || !q.isEmpty() || scope != 'all'}" th:href="@{/reviews}" th:text="#{reviews.filter.clear}">Clear</a>
+    </form>
+
+    <div class="split rv-split">
+      <!-- Case list -->
+      <section class="rv-list" th:attr="aria-label=#{reviews.list}">
+        <th:block th:each="g : ${ {'new','review','second','done'} }">
+          <th:block th:with="items=${g == 'new' ? colNew : (g == 'review' ? colReview : (g == 'second' ? colSecond : colDone))}">
+            <div class="rv-colh"><h3 th:text="#{'reviews.col.' + ${g}}">New</h3><span class="mono" th:text="${#lists.size(items)}">0</span></div>
+            <p class="sub rv-empty" th:if="${#lists.isEmpty(items)}" th:text="#{reviews.col.empty}">None</p>
+            <a class="rv-card" th:each="x : ${items}" th:href="@{/reviews(case=${x.c.id},scope=${scope},kind=${kind},q=${q})}"
+               th:classappend="${(sel != null && sel.id == x.c.id) ? 'on' : ''} + ${x.c.closed ? ' done' : ''}" th:attr="aria-current=${sel != null && sel.id == x.c.id} ? 'true' : null">
+              <span class="tag" th:classappend="'tag-' + ${x.tone}" th:if="${!x.c.closed}" th:text="#{reviews.open.hours(${x.openHours})}">27 h open</span>
+              <span class="tag" th:classappend="${x.c.outcome == 'appropriate'} ? 'tag-ok' : (${x.c.outcome == 'violation'} ? 'tag-bad' : 'tag-warn')" th:if="${x.c.closed}" th:text="#{'reviews.outcome.' + ${x.c.outcome}}">Appropriate</span>
+              <b><span class="mono" th:text="${x.c.id}">C-1043</span> · <span th:text="${x.c.title}">Title</span></b>
+              <span class="sub"><th:block th:text="${x.c.subject}">Person</th:block><th:block th:if="${x.c.facility != null}"> · <th:block th:text="${T(com.akhester.auditui.reviews.Labels).facility(x.c.facility)}">Facility</th:block></th:block></span>
+              <span class="sub" th:if="${x.c.status == 'review'}" th:text="${x.c.assignee == me} ? #{reviews.you} : ${x.c.assignee}">You</span>
+              <span class="sub" th:if="${x.c.status == 'second'}" th:text="${x.c.secondReviewer == me} ? #{reviews.waiting.you} : #{reviews.waiting.for(${x.c.secondReviewer})}">Waiting</span>
+              <span class="sub" th:if="${x.c.status == 'escalated'}" th:text="#{reviews.with.officer}">With the privacy officer</span>
+              <span class="sub" th:if="${x.c.status == 'new'}" th:text="#{reviews.unassigned}">Not assigned</span>
+              <span class="sub" th:if="${x.c.closed}"><th:block th:replace="~{fragments/layout :: when(${x.c.closedAt})}"></th:block></span>
+            </a>
+          </th:block>
+        </th:block>
+      </section>
+
+      <!-- Case detail -->
+      <section class="panel grow rv-detail" th:if="${sel != null}" aria-live="polite">
+        <div class="rv-head">
+          <div class="grow">
+            <div class="mono rv-meta"><span th:text="${sel.id}">C-1043</span> · <span th:text="#{reviews.opened}">opened</span> <th:block th:replace="~{fragments/layout :: whenFull(${sel.openedAt})}"></th:block>
+              <th:block th:unless="${sel.closed}"> · <span th:text="#{reviews.due}">due</span> <th:block th:replace="~{fragments/layout :: whenFull(${sel.dueAt})}"></th:block></th:block></div>
+            <h2 th:text="${sel.title}">Title</h2>
+            <span class="sub"><th:block th:text="#{'reviews.rule.' + ${sel.kind}}">Rule</th:block><th:block th:if="${sel.subject != null}"> · <th:block th:text="${sel.subject}">Person</th:block></th:block><th:block th:if="${sel.patientRef != null}">, <span class="mono" th:text="${sel.patientId}">P-1</span></th:block><th:block th:if="${!selFacility.isEmpty()}"> · <th:block th:text="${selFacility}">Facility</th:block></th:block></span>
+          </div>
+          <span class="tag" th:classappend="'tag-' + ${selTone}" th:if="${!sel.closed}" th:text="${selHours >= overdueHours} ? #{reviews.past(${overdueHours})} : #{reviews.open.hours(${selHours})}">Past 24 hours</span>
+          <span class="tag tag-ok" th:if="${sel.closed}" th:text="#{reviews.closed.tag}">Closed</span>
+          <span class="tag tag-info" th:text="#{'reviews.status.' + ${sel.status}}">Status</span>
+        </div>
+
+        <div class="rv-body">
+          <div class="rv-main">
+            <h3 th:text="#{reviews.found}">What was found</h3>
+            <div class="rv-tiles">
+              <div class="rv-tile"><b th:text="${selEventTotal}">14</b><span class="sub" th:text="#{reviews.tile.events}">events</span></div>
+              <div class="rv-tile"><b th:text="${selPeople}">1</b><span class="sub" th:text="#{reviews.tile.people}">people</span></div>
+              <div class="rv-tile"><b th:text="${selPatients}">1</b><span class="sub" th:text="#{reviews.tile.patients}">patients</span></div>
+              <div class="rv-tile"><b th:text="${selSpan < 60} ? ${selSpan} + ' min' : (${selSpan / 60} + ' h ' + ${selSpan % 60} + ' min')">2 h</b><span class="sub" th:text="#{reviews.tile.span}">time covered</span></div>
+              <div class="rv-tile planned"><b>?</b><span class="sub"><span th:text="#{reviews.tile.care}">Care link</span> <span class="tag tag-planned tag-sm" th:text="#{common.planned}">Planned</span></span></div>
+            </div>
+
+            <h3 class="rv-h" th:text="#{reviews.events}">Events in this case</h3>
+            <div class="notice notice-bad" th:if="${eventsFailed}" th:text="#{reviews.events.failed}">Chester did not answer.</div>
+            <p class="sub" th:if="${eventsHidden}" th:text="#{reviews.events.hidden}">Some events are outside your access.</p>
+            <p class="sub" th:if="${selEventTotal == 0}" th:text="#{reviews.events.none}">No events attached.</p>
+            <div class="table-wrap" th:if="${!#lists.isEmpty(selRows)}">
+              <table class="table table-plain table-cards">
+                <thead><tr><th th:text="#{reviews.col.when}">When</th><th th:text="#{reviews.col.who}">Who</th><th th:text="#{reviews.col.purpose}">Purpose</th><th th:text="#{reviews.col.where}">Where</th><th th:text="#{reviews.col.patient}">Patient</th></tr></thead>
+                <tbody><tr th:each="r : ${selRows}">
+                  <td th:attr="data-label=#{reviews.col.when}"><div><th:block th:replace="~{fragments/layout :: when(${r.recordedInstant})}"></th:block></div></td>
+                  <td th:attr="data-label=#{reviews.col.who}"><div th:text="${r.agentName}">Dr</div></td>
+                  <td th:attr="data-label=#{reviews.col.purpose}"><div><th:block th:text="${r.purposeLabel}">Treatment</th:block><span class="sub" th:if="${r.breakGlass && r.breakGlassReason != null}" th:text="'“' + ${r.breakGlassReason} + '”'">reason</span></div></td>
+                  <td th:attr="data-label=#{reviews.col.where}"><div th:text="${T(com.akhester.auditui.reviews.Labels).facility(r.facility)}">Galle TH</div></td>
+                  <td th:attr="data-label=#{reviews.col.patient}"><div class="mono" th:text="${#strings.substringAfter(r.patientRef, 'Patient/')}">P-1</div></td>
+                </tr></tbody>
+              </table>
+            </div>
+            <p class="sub" th:if="${selMore > 0}"><span th:text="#{reviews.events.more(${selMore})}">… more</span> <a th:href="@{/reviews(case=${sel.id},scope=${scope},kind=${kind},q=${q},all=true)}" th:text="#{reviews.events.showall}">Show all</a></p>
+            <p th:if="${sel.exploreQs != null}"><a class="btn btn-sm" th:href="@{'/?' + ${sel.exploreQs}}" th:text="#{reviews.events.explore(${selEventTotal})}">Open in Explore</a></p>
+
+            <h3 class="rv-h" th:text="#{reviews.history}">What happened so far</h3>
+            <div class="steps">
+              <div class="step" th:each="l : ${log}" th:classappend="${l.code == 'escalated'} ? 'warn'"
+                   th:with="a=${l.arg == null ? '' : (l.code == 'decided' ? #messages.msgOrNull('reviews.decision.' + l.arg) : (l.code == 'closed' ? #messages.msgOrNull('reviews.outcome.' + l.arg) : (l.code == 'escalated' ? #messages.msgOrNull('reviews.why.' + l.arg) : l.arg)))}">
+                <div><span th:text="#{${'reviews.log.' + l.code}(${l.actor}, ${a})}">Event</span>
+                  <span class="sub"><th:block th:replace="~{fragments/layout :: whenFull(${l.at})}"></th:block></span></div>
+              </div>
+            </div>
+            <form class="rv-note" th:if="${canReview && !sel.closed}" th:action="@{/reviews/{id}/note(id=${sel.id})}" method="post">
+              <label class="sr-only" for="rv-note" th:text="#{reviews.note.label}">Add a note</label>
+              <input class="input" id="rv-note" name="text" maxlength="500" th:placeholder="#{reviews.note.label}" required>
+              <button class="btn btn-sm" type="submit" th:text="#{reviews.note.add}">Add</button>
+            </form>
+          </div>
+
+          <aside class="rv-side">
+            <!-- closed and locked -->
+            <th:block th:if="${sel.closed}">
+              <h3 th:text="#{reviews.result}">Result</h3>
+              <p class="rv-result"><span class="tag" th:classappend="${sel.outcome == 'appropriate'} ? 'tag-ok' : (${sel.outcome == 'violation'} ? 'tag-bad' : 'tag-warn')" th:text="#{'reviews.outcome.' + ${sel.outcome}}">Appropriate</span></p>
+              <div class="rv-dec" th:each="d : ${decisions}">
+                <span class="avatar" aria-hidden="true" th:text="${#strings.toUpperCase(#strings.substring(d.reviewer, 0, 2))}">AB</span>
+                <div><b th:text="${d.reviewer}">name</b> <span class="sub" th:text="#{'reviews.role.' + ${d.role}}">First reviewer</span>
+                  <span th:text="#{'reviews.decision.' + ${d.decision}}">Appropriate</span>
+                  <span class="sub" th:if="${d.note != null}" th:text="'“' + ${d.note} + '”'">note</span></div>
+              </div>
+              <div class="notice notice-info rv-lock">
+                <b th:text="#{reviews.locked}">Locked.</b> <span th:text="#{reviews.locked.text}">Nothing can be edited.</span>
+                <span class="mono rv-fp" th:text="${#strings.substring(sel.fingerprint, 0, 16)} + '…'">abcd</span>
+                <span class="tag tag-sm" th:classappend="${sealed} ? 'tag-ok' : 'tag-bad'" th:text="${sealed} ? #{reviews.fp.ok} : #{reviews.fp.bad}">Matches</span>
+              </div>
+              <p class="sub" th:if="${sel.reopenOf != null}"><span th:text="#{reviews.reopen.of}">Reopened from</span> <a th:href="@{/reviews(case=${sel.reopenOf})}" th:text="${sel.reopenOf}">C-1</a></p>
+              <p class="sub" th:if="${!#lists.isEmpty(reopenedBy)}"><span th:text="#{reviews.reopen.by}">Reopened as</span> <a th:each="r : ${reopenedBy}" th:href="@{/reviews(case=${r})}" th:text="${r}">C-2</a></p>
+              <div class="rv-actions">
+                <span class="btn btn-planned" aria-disabled="true" role="button" tabindex="0"><span th:text="#{reviews.evidence}">Download evidence pack (PDF)</span> <span class="tag tag-planned tag-sm" th:text="#{common.planned}">Planned</span></span>
+                <form th:if="${canReview}" th:action="@{/reviews/{id}/reopen(id=${sel.id})}" method="post"><button class="btn" type="submit" th:text="#{reviews.reopen}">Reopen as new case</button></form>
+              </div>
+            </th:block>
+
+            <!-- open: decision -->
+            <th:block th:unless="${sel.closed}">
+              <h3 th:text="${stage == 'officer'} ? #{reviews.decision.officer} : #{reviews.decision.yours}">Your decision</h3>
+              <form th:if="${canDecide}" th:action="@{/reviews/{id}/decide(id=${sel.id})}" method="post" class="rv-form">
+                <div th:if="${firstDecision != null && stage != 'first'}" class="notice notice-info rv-first">
+                  <b th:text="${firstDecision.reviewer}">name</b>: <span th:text="#{'reviews.decision.' + ${firstDecision.decision}}">decision</span>
+                  <span class="sub" th:if="${firstDecision.note != null}" th:text="'“' + ${firstDecision.note} + '”'">note</span></div>
+                <fieldset class="rv-opts">
+                  <legend class="sr-only" th:text="#{reviews.decision.yours}">Your decision</legend>
+                  <label class="rv-opt" th:each="d : ${ {'follow_up','appropriate','violation'} }">
+                    <input type="radio" name="decision" th:value="${d}" th:checked="${sel.draftDecision == d}" required>
+                    <span><b th:text="#{'reviews.decision.' + ${d}}">Needs follow-up</b>
+                      <span class="sub" th:text="${d == 'violation' && !isPo} ? #{reviews.decision.violation.send} : #{'reviews.decision.' + ${d} + '.help'}">help</span></span>
+                  </label>
+                </fieldset>
+                <label class="field"><span th:text="#{reviews.why}">Why (visible to the second reviewer)</span>
+                  <textarea class="textarea" name="note" maxlength="2000" th:text="${sel.draftNote}"></textarea></label>
+                <th:block th:if="${stage == 'first'}">
+                  <label class="field"><span th:text="#{reviews.second.choose}">Second reviewer</span>
+                    <select class="select" name="second" th:if="${!#lists.isEmpty(otherReviewers)}"><option value="" th:text="#{reviews.second.pick}">Choose</option><option th:each="r : ${otherReviewers}" th:value="${r}" th:text="${r}">name</option></select>
+                    <input class="input" name="second" maxlength="100" th:if="${#lists.isEmpty(otherReviewers)}"></label>
+                </th:block>
+                <p class="sub" th:text="#{reviews.rule.two}">The case closes when both of you choose the same decision. If you differ, it goes to the privacy officer.</p>
+                <div class="rv-buttons">
+                  <button class="btn btn-primary grow" type="submit" name="act" value="send" th:text="${stage == 'first'} ? #{reviews.send.second} : (${stage == 'second'} ? #{reviews.send.mine} : #{reviews.send.rule})">Send</button>
+                  <button class="btn" type="submit" name="act" value="save" formnovalidate th:if="${stage == 'first'}" th:text="#{common.save}">Save</button>
+                </div>
+              </form>
+              <p class="sub" th:unless="${canDecide}" th:text="${!canReview} ? #{reviews.readonly} : (${sel.status == 'second'} ? #{reviews.waiting.for(${sel.secondReviewer})} : (${sel.status == 'escalated'} ? #{reviews.with.officer} : #{reviews.notyours(${sel.assignee})}))">read only</p>
+
+              <form th:if="${canAssign}" class="rv-assign" th:action="@{/reviews/{id}/assign(id=${sel.id})}" method="post">
+                <label class="field"><span th:text="#{reviews.assign}">Assign to</span>
+                  <select class="select" name="to"><option th:value="${me}" th:text="#{reviews.you}">You</option><option th:each="r : ${otherReviewers}" th:value="${r}" th:text="${r}" th:selected="${r == sel.assignee}">name</option></select></label>
+                <button class="btn btn-sm" type="submit" th:text="#{reviews.assign.do}">Assign</button>
+              </form>
+
+              <h3 class="rv-h" th:text="#{reviews.second}">Second opinion</h3>
+              <div class="rv-dec" th:if="${sel.secondReviewer != null}">
+                <span class="avatar" aria-hidden="true" th:text="${#strings.toUpperCase(#strings.substring(sel.secondReviewer, 0, 2))}">MP</span>
+                <div><b th:text="${sel.secondReviewer}">name</b><span class="sub" th:text="#{reviews.second.notyet}">Not yet decided</span></div>
+                <span class="tag tag-info push-end" th:text="#{reviews.second.waiting}">Waiting</span>
+              </div>
+              <p class="sub" th:if="${sel.secondReviewer == null}" th:text="#{reviews.second.none}">No second reviewer asked yet.</p>
+              <div class="rv-dec" th:each="d : ${decisions}">
+                <span class="avatar" aria-hidden="true" th:text="${#strings.toUpperCase(#strings.substring(d.reviewer, 0, 2))}">AB</span>
+                <div><b th:text="${d.reviewer}">name</b> <span class="sub" th:text="#{'reviews.role.' + ${d.role}}">First reviewer</span>
+                  <span th:text="#{'reviews.decision.' + ${d.decision}}">Appropriate</span></div>
+              </div>
+
+              <h3 class="rv-h"><span th:text="#{reviews.told}">Who gets told</span> <span class="tag tag-planned tag-sm" th:text="#{common.planned}">Planned</span></h3>
+              <p class="sub" th:text="#{reviews.told.text}">Email to the second reviewer, and to the facility’s privacy contact when the case closes. Not sent in this build.</p>
+            </th:block>
+          </aside>
+        </div>
+      </section>
+
+      <section class="panel grow rv-detail" th:if="${sel == null}">
+        <div class="state"><div class="state-icon" aria-hidden="true">✓</div><h2 th:text="#{reviews.none}">No cases here</h2><p th:text="#{reviews.none.text}">Nothing matches.</p></div>
+      </section>
+    </div>
+
+    <details class="panel rv-roles">
+      <summary class="panel-head"><h3 th:text="#{reviews.roles}">Who can do what in Reviews</h3></summary>
+      <div class="table-wrap"><table class="table table-plain">
+        <thead><tr><th th:text="#{reviews.roles.can}">Can</th><th th:text="#{reviews.roles.reviewer}">Reviewer</th><th th:text="#{reviews.roles.officer}">Privacy officer</th><th th:text="#{reviews.roles.read}">Read only</th></tr></thead>
+        <tbody>
+          <tr><td th:text="#{reviews.roles.r1}">Decide</td><td th:text="#{reviews.roles.withsecond}">Yes, with a second reviewer</td><td th:text="#{common.yes}">Yes</td><td th:text="#{common.no}">No</td></tr>
+          <tr><td th:text="#{reviews.roles.r2}">Rule violation</td><td th:text="#{reviews.roles.sendson}">No, sends on</td><td th:text="#{common.yes}">Yes</td><td th:text="#{common.no}">No</td></tr>
+          <tr><td th:text="#{reviews.roles.r3}">Settle disagreements</td><td th:text="#{common.no}">No</td><td th:text="#{common.yes}">Yes</td><td th:text="#{common.no}">No</td></tr>
+          <tr><td th:text="#{reviews.roles.r4}">Read cases</td><td th:text="#{common.yes}">Yes</td><td th:text="#{common.yes}">Yes</td><td th:text="#{common.yes}">Yes</td></tr>
+        </tbody></table></div>
+      <div class="panel-foot" th:text="#{reviews.roles.note}">Reviewers are Admin, Ministry auditor and Privacy officer.</div>
+    </details>
+  </th:block>
+</main>
+</body>
+</html>

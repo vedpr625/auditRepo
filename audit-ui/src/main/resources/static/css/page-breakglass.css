@@ -1,0 +1,18 @@
+/* Break-glass screen. Chart colours are the strong blue / red from the tokens. */
+.bg-trend{width:100%;max-width:760px;height:auto;display:block}
+.bg-axis{stroke:var(--chart-grid);stroke-width:1}
+.bg-bar-ok{fill:var(--chart-ok)}
+.bg-bar-bad{fill:var(--chart-fail)}
+.bg-num{font:600 11px var(--font);fill:var(--ink)}
+.bg-lab{font:400 10.5px var(--font);fill:var(--ink-2)}
+.legend i.bg-ok{background:var(--chart-ok)}
+.legend i.bg-bad{background:var(--chart-fail)}
+.bg-filters{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.bg-fac{min-width:200px}
+.bg-reason{font-style:italic}
+.bg-rep{color:var(--warn-fg)}
+.bg-quote{font-style:italic;color:var(--ink);border-inline-start:3px solid var(--accent-line);padding-inline-start:10px}
+.bg-time{display:flex;flex-direction:column;gap:8px;margin:0;padding:0;list-style:none}
+.bg-time li{display:flex;gap:10px;align-items:center}
+.bg-person{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.bg-sel h2{font-size:17px}
