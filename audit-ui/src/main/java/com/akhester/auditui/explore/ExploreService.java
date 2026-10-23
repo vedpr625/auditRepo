@@ -75,7 +75,7 @@ public class ExploreService {
         /** day | row | collapsed | group */
         private String type;
         private AuditRow row;
-        private String id, clock, patientId, actorName, actorRef, actorRole, systemId, systemLabel, facilityRef, facilityLabel, whatKey, dept, desc, action;
+        private String id, clock, patientId, actorName, actorRef, actorRole, systemId, systemLabel, facilityRef, facilityLabel, whatKey, whatText, dept, desc, action;
         private Instant at;
         /** ok | failed | btg */
         private String result;
@@ -152,7 +152,7 @@ public class ExploreService {
             .systemId(sys).systemLabel(sys == null ? "—" : sysNames.getOrDefault(sys, sys))
             .facilityRef(r.getFacility()).facilityLabel(r.getFacility() == null || "—".equals(r.getFacility()) ? "" : facNames.getOrDefault(r.getFacility(), tail(r.getFacility())))
             .whatKey(emergency && !failed && r.isBreakGlass() ? "explore.what.emergency" : "explore.what." + act)
-            .action(act).dept(r.getDepartment()).desc(failed ? r.getOutcomeDesc() : null)
+            .whatText(r.getSubtypeText()).action(act).dept(r.getDepartment()).desc(failed ? r.getOutcomeDesc() : null)
             .result(res)
             .noReason(r.isBreakGlass() && (r.getBreakGlassReason() == null || r.getBreakGlassReason().isBlank()))
             .careUnknown(r.isBreakGlass() || "BTG".equalsIgnoreCase(r.getPurposeCode()))

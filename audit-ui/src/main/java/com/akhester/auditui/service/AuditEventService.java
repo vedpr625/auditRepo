@@ -644,6 +644,7 @@ public class AuditEventService {
             .incomplete(tagCode(ae, "/tags") != null && ae.getMeta().getTag().stream().anyMatch(t -> "policy-incomplete".equals(t.getCode())))
             .breakGlass(ae.getMeta() != null && ae.getMeta().getSecurity().stream().anyMatch(c -> "BTG".equals(c.getCode())))
             .eventType(ae.getType() != null ? ae.getType().getCode() : null)
+            .subtypeText(!ae.getSubtype().isEmpty() && ae.getSubtype().get(0).getSystem() != null && ae.getSubtype().get(0).getSystem().endsWith("/console-activity") ? ae.getSubtype().get(0).getDisplay() : null)
             .action(ae.getAction() != null ? ae.getAction().toCode() : null)
             .reviewStatus(reviewStatus)
             .ageHours(ageHours)

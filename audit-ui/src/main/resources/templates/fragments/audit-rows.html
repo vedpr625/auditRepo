@@ -176,7 +176,7 @@
                 <td><span class="fv" data-k="client" th:attr="data-v=${it.systemId}" th:text="${it.systemLabel}">HHIMS</span><span class="sub" th:text="${it.facilityLabel}">Colombo NH</span></td>
                 <td><span class="fv" data-k="agent" th:attr="data-v=${it.actorRef}" th:text="${it.actorName}">Dr. N. Perera</span><span class="sub" th:text="#{'people.role.' + ${it.actorRole}}">Practitioner</span></td>
                 <td><span class="fv mono" th:if="${it.patientId != null}" data-k="q" th:attr="data-v=${it.patientId}" th:text="${it.patientId}">P-10407</span><span th:if="${it.patientId == null}" class="muted">—</span></td>
-                <td><span class="fv" data-k="action" th:attr="data-v=${it.action}" th:text="#{${it.whatKey}}">Viewed patient record</span>
+                <td><span class="fv" data-k="action" th:attr="data-v=${it.action}" th:text="${it.whatText != null} ? ${it.whatText} : #{${it.whatKey}}">Viewed patient record</span>
                   <span class="sub" th:if="${it.desc != null}" th:text="${it.desc}">Access refused (403)</span>
                   <span class="sub" th:if="${it.desc == null and it.dept != null}" th:text="${it.dept}">Outpatient · OPD-3</span>
                   <span class="ex-tags" th:if="${it.noReason or it.careUnknown or it.overdue or it.reviewStatus == 'reviewed' or it.reviewStatus == 'flagged'}">

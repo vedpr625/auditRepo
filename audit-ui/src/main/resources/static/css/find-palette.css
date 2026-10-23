@@ -1,5 +1,5 @@
 /* Ctrl K Find palette (a modal, not a page) and the compact Find box in the header. Loaded on every page. */
-.find-box .input{width:132px;padding-inline-end:46px;cursor:pointer}
+.find-box .input{width:170px;padding-inline-end:46px;cursor:pointer}
 .find-box kbd{font-size:10.5px}
 
 .fp-overlay{position:fixed;inset:0;z-index:400;background:rgba(24,36,38,.58);display:flex;align-items:flex-start;justify-content:center;padding:84px 16px 16px;overflow:auto}

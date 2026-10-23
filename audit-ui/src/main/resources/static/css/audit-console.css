@@ -356,7 +356,7 @@ kbd{font:500 12px var(--font-mono);border:1px solid var(--border-input);border-b
 .end-of-list{text-align:center;padding:12px 16px;border-top:1px dashed var(--border);color:var(--ink-2);font-size:13px}
 
 /* header fit: ten tabs, Find box, language, person (group A) */
-@media (max-width:1560px){.find-box{margin-inline-start:0}.find-box .input{width:150px}.find-box kbd{display:none}.main-nav a{margin-right:12px}.app-header{gap:var(--s3);padding:0 16px}.header-tools{gap:var(--s2)}}
+@media (max-width:1560px){.find-box{margin-inline-start:0}.find-box .input{width:150px;padding-inline-end:12px}.find-box kbd{display:none}.main-nav a{margin-right:12px}.app-header{gap:var(--s3);padding:0 16px}.header-tools{gap:var(--s2)}}
 
 /* narrow screens: the header wraps instead of overflowing (group A) */
 @media (max-width:900px){

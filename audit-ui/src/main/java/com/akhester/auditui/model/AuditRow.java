@@ -67,6 +67,9 @@ public class AuditRow {
     /** AuditEvent.type.code — e.g. "rest" */
     private String eventType;
 
+    /** Display text of the first AuditEvent.subtype when it carries a plain-language summary (console activity events); otherwise null. */
+    private String subtypeText;
+
     /** AuditEvent.action — C/R/U/D/E */
     private String action;
 
