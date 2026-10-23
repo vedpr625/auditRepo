@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="kpis">
+  <div th:if="${k.error != null}" class="state"><div class="state-icon bad" aria-hidden="true">!</div>
+    <h2 th:text="#{state.chester.down.title}">Chester is not answering</h2><p th:text="#{state.chester.down.text}">Try again.</p>
+    <button class="btn btn-primary" type="button" hx-get="/overview/kpis" hx-target="closest div[hx-get]" hx-swap="innerHTML" th:text="#{common.retry}">Try again</button></div>
+  <div th:if="${k.error == null}" class="grid-kpi">
+    <div class="panel kpi"><span class="sub" th:text="#{overview.kpi.events}">Records</span><span class="value" th:text="${#numbers.formatInteger(k.events24h, 1, 'COMMA')}">0</span><span class="delta" th:text="#{overview.kpi.last24}">last 24 hours</span></div>
+    <div class="panel kpi" th:classappend="${k.failed24h > 0} ? 'warn'"><span class="sub" th:text="#{overview.kpi.failed}">Failed</span><span class="value" th:text="${#numbers.formatInteger(k.failed24h, 1, 'COMMA')}">0</span><span class="delta" th:text="#{overview.kpi.last24}">last 24 hours</span></div>
+    <div class="panel kpi" th:classappend="${k.breakGlass24h > 0} ? 'warn'"><span class="sub" th:text="#{overview.kpi.btg}">Break-glass</span><span class="value" th:text="${#numbers.formatInteger(k.breakGlass24h, 1, 'COMMA')}">0</span><span class="delta" th:text="#{overview.kpi.last24}">last 24 hours</span></div>
+    <div class="panel kpi" th:classappend="${k.overdue > 0} ? 'bad' : (${k.warning > 0} ? 'warn' : 'ok')">
+      <span class="sub" th:text="#{overview.kpi.overdue}">Overdue reviews</span>
+      <span class="value"><span th:text="${k.overdue}">0</span><small th:text="' / ' + ${k.warning}"> / 0</small></span>
+      <span class="delta" th:text="${k.slaTruncated} ? #{overview.kpi.overdue.more} : #{overview.kpi.overdue.help}">overdue / due soon</span></div>
+  </div>
+</div>
+
+<div th:fragment="hours">
+  <div th:if="${#lists.isEmpty(hours)}" class="state"><h2 th:text="#{state.chester.down.title}">Chester is not answering</h2></div>
+  <div th:unless="${#lists.isEmpty(hours)}" class="panel-pad">
+    <div class="bars" role="img" th:attr="aria-label=#{overview.hours.alt}">
+      <b th:each="h : ${hours}" th:style="'height:' + ${h.count == 0 ? 2 : h.count * 100 / max} + '%'" th:title="${tf.brief(h.from) + ': ' + h.count}"></b>
+    </div>
+    <div class="chart-axis sub"><span th:text="${tf.hourLabel(hours[0].from)}">10:00</span><span th:text="${tf.hourLabel(hours[11].from)}">22:00</span><span th:text="#{overview.hours.now}">now</span></div>
+  </div>
+</div>
+
+<div th:fragment="queue">
+  <div th:if="${failed}" class="state"><h2 th:text="#{state.chester.down.title}">Chester is not answering</h2></div>
+  <div th:unless="${failed}">
+    <div th:if="${#lists.isEmpty(items)}" class="state"><div class="state-icon" aria-hidden="true">✓</div><h2 th:text="#{overview.queue.empty}">Nothing waiting</h2></div>
+    <a class="queue-item" th:each="i : ${items}" th:href="@{/patient/{id}(id=${#strings.substringAfter(i.row.patientRef, 'Patient/')})}" style="text-decoration:none;color:inherit">
+      <span class="tag" th:classappend="${i.row.slaCss == 'sla-over'} ? 'tag-bad' : (${i.row.slaCss == 'sla-warn'} ? 'tag-warn' : 'tag-info')" th:text="${i.row.slaLabel}">30h</span>
+      <span><b th:text="${i.row.agentName ?: '—'}">agent</b>
+        <span class="sub" th:text="${i.row.patientRef}">Patient/1</span>
+        <span class="why" style="display:block" th:classappend="${i.row.slaCss == 'sla-warn'} ? 'warn'" th:text="#{'overview.why.' + ${i.why}}">why</span></span>
+      <span class="sub"><th:block th:replace="~{fragments/layout :: when(${i.row.recordedInstant})}"></th:block></span>
+    </a>
+  </div>
+</div>
+
+<div th:fragment="systems">
+  <div th:if="${failed}" class="state"><h2 th:text="#{state.chester.down.title}">Chester is not answering</h2></div>
+  <div th:unless="${failed}">
+    <div th:if="${#lists.isEmpty(rows)}" class="state"><h2 th:text="#{overview.systems.empty}">No systems listed yet</h2><p th:text="#{overview.systems.empty.text}">Admin can add them.</p></div>
+    <table class="table table-cards" th:unless="${#lists.isEmpty(rows)}">
+      <thead><tr><th th:text="#{admin.col.name}">System</th><th class="right" th:text="#{overview.kpi.events}">Records</th></tr></thead>
+      <tbody><tr th:each="r : ${rows}">
+        <td th:attr="data-label=#{admin.col.name}"><div><b th:text="${r.label}">name</b> <span class="sub mono" th:if="${r.label != r.clientId}" th:text="${r.clientId}">id</span></div></td>
+        <td class="right num" th:attr="data-label=#{overview.kpi.events}"><div th:text="${#numbers.formatInteger(r.count24h, 1, 'COMMA')}">0</div></td>
+      </tr></tbody>
+    </table>
+  </div>
+</div>
+
+</body>
+</html>

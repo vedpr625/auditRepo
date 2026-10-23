@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- <head> shared by every new page. Usage: <head th:replace="~{fragments/layout :: head(#{overview.title})}"></head> -->
+<head th:fragment="head(title)">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="_csrf" th:content="${_csrf.token}">
+  <meta name="_csrf_header" th:content="${_csrf.headerName}">
+  <title th:text="${title} + ' · ' + #{app.name}">Audit Console</title>
+  <link rel="stylesheet" th:href="@{/css/audit-console.css}">
+  <script th:src="@{/js/htmx.min.js}" defer></script>
+  <script th:src="@{/js/console.js}" defer></script>
+</head>
+
+<!-- Top bar and main navigation. active = overview | explore | health | settings | admin -->
+<th:block th:fragment="header(active)">
+<a class="skip-link" href="#main" th:text="#{nav.skip}">Skip to content</a>
+<header class="app-header">
+  <a class="brand" th:href="@{/overview}"><span class="brand-mark" aria-hidden="true"></span><span th:text="#{app.name}">Audit Console</span></a>
+  <nav class="main-nav" th:attr="aria-label=#{nav.label}">
+    <a th:href="@{/overview}" th:text="#{nav.overview}" th:attr="aria-current=${active == 'overview'} ? 'page' : null">Overview</a>
+    <a th:href="@{/}" th:text="#{nav.explore}" th:attr="aria-current=${active == 'explore'} ? 'page' : null">Explore</a>
+    <a class="push" th:href="@{/health}" th:text="#{nav.health}" th:attr="aria-current=${active == 'health'} ? 'page' : null">Health</a>
+    <a th:href="@{/settings}" th:text="#{nav.settings}" th:attr="aria-current=${active == 'settings'} ? 'page' : null">Settings</a>
+    <a th:if="${canAdmin}" th:href="@{/admin}" th:text="#{nav.admin}" th:attr="aria-current=${active == 'admin'} ? 'page' : null">Admin</a>
+  </nav>
+  <div class="header-tools">
+    <div class="lang-switch" role="group" th:attr="aria-label=#{nav.language}">
+      <a th:href="@{${shellPath}(lang='en')}" lang="en" th:attr="aria-current=${#locale.language == 'en'} ? 'true' : null">EN</a>
+      <a th:href="@{${shellPath}(lang='si')}" lang="si" th:attr="aria-current=${#locale.language == 'si'} ? 'true' : null">සිං</a>
+      <a th:href="@{${shellPath}(lang='ta')}" lang="ta" th:attr="aria-current=${#locale.language == 'ta'} ? 'true' : null">த</a>
+    </div>
+    <div class="user-block"><b th:text="${shellUser}">user</b><span th:text="${shellRole}">role</span></div>
+    <form th:action="@{/logout}" method="post"><button class="btn btn-sm" type="submit" th:text="#{nav.signout}">Sign out</button></form>
+  </div>
+</header>
+<div class="notice notice-warn" role="note" th:if="${demo}" style="border-radius:0;text-align:center"><b th:text="#{demo.banner}">DEMONSTRATION</b></div>
+</th:block>
+
+<!--
+  One time, shown the way the person chose (exact, relative or both, with the zone named).
+  Usage: <th:block th:replace="~{fragments/layout :: when(${instant})}"></th:block>
+-->
+<time th:fragment="when(at)" th:if="${at != null}" th:datetime="${at}" th:title="${tf.exact(at) + ' · ' + tf.utc(at)}">
+  <span class="mono" th:if="${tf.showExact}" th:text="${tf.brief(at)}">23 Oct, 10:29</span>
+  <span th:class="${tf.showExact} ? 'sub' : ''" th:if="${tf.showRelative}" th:text="${tf.relative(at)}">4 min ago</span>
+  <span class="sub mono" th:if="${tf.showUtc}" th:text="${tf.utc(at)}">UTC</span>
+</time>
+
+<!-- Same, but only the exact full time on one line (for detail panels). -->
+<time th:fragment="whenFull(at)" th:if="${at != null}" th:datetime="${at}">
+  <span class="mono" th:text="${tf.exact(at)}">Fri 23 Oct 2026, 10:29:41 UTC+05:30</span>
+  <span class="muted" th:if="${tf.showRelative}" th:text="' · ' + ${tf.relative(at)}">· 4 min ago</span>
+  <span class="muted mono" th:if="${tf.showUtc}" th:text="' · ' + ${tf.utc(at)}">UTC</span>
+</time>
+
+</body>
+</html>

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}"
+      th:attr="data-theme=${prefs.themeAttr()},data-density=${prefs.densityAttr()}">
+<head th:replace="~{fragments/layout :: head(#{overview.title})}"></head>
+<body>
+<th:block th:replace="~{fragments/layout :: header('overview')}"></th:block>
+<main id="main" class="page">
+  <div class="page-head"><h1 th:text="#{overview.title}">Overview</h1><span class="lede" th:text="#{overview.lede}">What needs a decision, and what is arriving</span></div>
+
+  <form class="searchbar" th:action="@{/patient}" method="get" role="search" style="margin-bottom:16px">
+    <label class="sr-only" for="pid" th:text="#{overview.patient.label}">Patient id</label>
+    <input class="input" id="pid" name="id" maxlength="64" autocomplete="off" th:placeholder="#{overview.patient.placeholder}">
+    <button class="btn" type="submit" th:text="#{overview.patient.open}">Open patient</button>
+  </form>
+  <div class="notice notice-warn" role="alert" th:if="${param.badPatient != null}" th:text="#{overview.patient.bad}" style="margin-bottom:16px">Invalid id</div>
+
+  <div hx-get="/overview/kpis" hx-trigger="load, every 60s" hx-swap="innerHTML" aria-live="polite">
+    <div class="grid-kpi"><div class="panel kpi"><div class="skeleton" style="width:50%"></div></div><div class="panel kpi"><div class="skeleton" style="width:50%"></div></div><div class="panel kpi"><div class="skeleton" style="width:50%"></div></div><div class="panel kpi"><div class="skeleton" style="width:50%"></div></div></div>
+  </div>
+
+  <div class="split">
+    <section class="panel grow" aria-labelledby="o-queue">
+      <div class="panel-head"><h3 id="o-queue" th:text="#{overview.queue}">Waiting for a decision</h3><a class="btn btn-sm" th:href="@{/}" th:text="#{overview.queue.all}">Open all</a></div>
+      <div hx-get="/overview/queue" hx-trigger="load, every 60s" hx-swap="innerHTML" aria-live="polite">
+        <div class="panel-pad stack"><div class="skeleton" style="width:85%"></div><div class="skeleton" style="width:70%"></div><div class="skeleton" style="width:80%"></div></div>
+      </div>
+    </section>
+
+    <section class="panel side" aria-labelledby="o-hours">
+      <div class="panel-head"><h3 id="o-hours" th:text="#{overview.hours}">Records in the last 24 hours</h3></div>
+      <div hx-get="/overview/hours" hx-trigger="load" hx-swap="innerHTML" aria-live="polite">
+        <div class="panel-pad"><div class="skeleton" style="height:84px"></div></div>
+      </div>
+    </section>
+  </div>
+
+  <section class="panel" aria-labelledby="o-sys">
+    <div class="panel-head"><h3 id="o-sys" th:text="#{overview.systems}">Sending systems, last 24 hours</h3><a th:if="${canAdmin}" class="btn btn-sm" th:href="@{/admin}" th:text="#{nav.admin}">Admin</a></div>
+    <div hx-get="/overview/systems" hx-trigger="load" hx-swap="innerHTML" aria-live="polite">
+      <div class="panel-pad stack"><div class="skeleton" style="width:70%"></div><div class="skeleton" style="width:60%"></div></div>
+    </div>
+  </section>
+
+  <section class="panel planned" aria-labelledby="o-plan">
+    <div class="panel-head"><h3 id="o-plan" th:text="#{overview.planned}">Planned</h3><span class="tag tag-planned" th:text="#{common.planned}">Planned</span></div>
+    <ul class="panel-pad stack-sm"><li th:text="#{overview.planned.unusual}">Unusual access</li><li th:text="#{overview.planned.alerts}">Alerts</li><li th:text="#{overview.planned.reports}">Reports</li></ul>
+  </section>
+</main>
+</body>
+</html>

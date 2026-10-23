@@ -1,0 +1,93 @@
+server:
+  port: 8081
+  servlet:
+    session:
+      timeout: 30m              # idle time before the UI asks for a new sign-in
+      cookie:
+        http-only: true
+        same-site: lax
+        # Set AUDIT_UI_SECURE_COOKIE=true behind HTTPS (production). Left false so plain-http local runs still work.
+        secure: ${AUDIT_UI_SECURE_COOKIE:false}
+
+spring:
+  application:
+    name: audit-ui
+  datasource:
+    # Review decisions are stored here. Production: jdbc:postgresql://localhost:5432/auditui (its own database and user).
+    # The default is a local H2 file for development only; the UI logs a warning when it is used.
+    url: ${AUDIT_UI_DB_URL:jdbc:h2:file:./data/audit-ui}
+    username: ${AUDIT_UI_DB_USER:sa}
+    password: ${AUDIT_UI_DB_PASSWORD:}
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema.sql
+  messages:
+    basename: messages
+    encoding: UTF-8
+    fallback-to-system-locale: false
+  thymeleaf:
+    cache: false          # set true in production
+    mode: HTML
+    encoding: UTF-8
+  security:
+    oauth2:
+      client:
+        registration:
+          keycloak:
+            client-id: ${AUDIT_UI_CLIENT_ID:chester-audit-ui}
+            client-secret: ${AUDIT_UI_CLIENT_SECRET}        # required: no default (start-up fails without it)
+            scope: openid,profile
+            authorization-grant-type: authorization_code
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+        provider:
+          keycloak:
+            # e.g. https://keycloak.example.org/realms/bundle-3   (must equal the token "iss"; Keycloak must be
+            # reachable when the UI starts, because the endpoints are discovered from it)
+            issuer-uri: ${AUDIT_UI_KEYCLOAK_ISSUER}
+            user-name-attribute: preferred_username
+
+# Chester FHIR server. The signed-in user's own access token is sent on every call (token relay), so Chester
+# decides what each person may see.
+chester:
+  fhir:
+    base-url: ${CHESTER_FHIR_BASE_URL:http://localhost:8082/fhir}
+    connect-timeout-ms: 5000
+    socket-timeout-ms: 15000
+
+audit:
+  ui:
+    # Keycloak realm roles that count as UI "admin" (may mark events reviewed/flagged). Others are read-only.
+    admin-roles: AUDIT_ADMIN
+    # Browser origins allowed to call /api/** cross-origin (empty = same-origin only)
+    cors-origins: ""
+    default-time-zone: Asia/Colombo   # used until a person chooses their own in Settings
+    overview-cache-seconds: 60
+    # DEMONSTRATION MODE: fake registry and consent manager inside this app, and a banner on every page. Never on for real use.
+    demo: ${AUDIT_UI_DEMO:false}
+    # Addresses of the Bundle 2a registry (a Settings value overrides this) and of the consent service
+    registry-base-url: ${AUDIT_UI_REGISTRY_URL:${AUDIT_UI_DEMO_REGISTRY:}}
+    consent-base-url: ${AUDIT_UI_CONSENT_URL:}
+    consent-no-record: deny            # what to do when the consent service has no record for a patient: deny or permit
+  sla:
+    # Review clock for break-glass-labelled and incomplete events that nobody has reviewed or flagged yet.
+    # These hours are an organisational choice (not part of FHIR / IHE BALP): agree them with the client.
+    warning-hours: 6    # orange: review soon
+    overdue-hours: 24   # red: overdue
+
+management:
+  server:
+    port: ${AUDIT_UI_MANAGEMENT_PORT:8091}     # metrics are served on their own port, so the public port never shows them
+    address: ${AUDIT_UI_MANAGEMENT_ADDRESS:127.0.0.1}
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus
+  endpoint:
+    health:
+      show-details: never
+
+logging:
+  level:
+    com.akhester.auditui: INFO
+    ca.uhn.fhir: WARN

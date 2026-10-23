@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- Chester and the app's own database -->
+<div th:fragment="systems" class="panel-pad stack">
+  <div class="row">
+    <span class="tag" th:classappend="${chester.up} ? 'tag-ok' : 'tag-bad'" th:text="${chester.up} ? #{health.up} : #{health.down}">Up</span>
+    <b>Chester</b>
+    <span class="sub" th:if="${chester.up}" th:text="#{health.chester.detail(${chester.millis}, ${chester.fhirVersion ?: '?'}, ${chester.software ?: '?'})}">answered in 40 ms</span>
+    <span class="sub" th:unless="${chester.up}" th:text="${chester.error}">error</span>
+  </div>
+  <div class="row">
+    <span class="tag" th:classappend="${dbUp} ? 'tag-ok' : 'tag-bad'" th:text="${dbUp} ? #{health.up} : #{health.down}">Up</span>
+    <b th:text="#{health.db}">This app's database</b>
+    <span class="sub" th:text="${dbKind}">postgresql</span>
+  </div>
+  <div class="notice notice-warn" th:if="${dbKind == 'h2'}" th:text="#{health.db.h2}">Test database in use.</div>
+</div>
+
+<!-- Records per day: a horizontal bar per day, number at the end (a table underneath keeps it readable without the bars) -->
+<div th:fragment="ingestion">
+  <div th:if="${failed}" class="state"><div class="state-icon bad" aria-hidden="true">!</div><h2 th:text="#{state.chester.down.title}">Chester is not answering</h2><p th:text="#{state.chester.down.text}">Try again.</p>
+    <button class="btn btn-primary" type="button" hx-get="/health/ingestion" hx-target="closest div[hx-get]" hx-swap="innerHTML" th:text="#{common.retry}">Try again</button></div>
+  <div th:unless="${failed}" class="panel-pad">
+    <div class="hbar" th:each="d : ${days}">
+      <span><span th:text="${#temporals.format(d.day, 'EEE d MMM', #locale)}">Fri 23 Oct</span></span>
+      <div class="track" aria-hidden="true"><b th:style="'width:' + ${d.count * 100 / maxCount} + '%'"></b></div>
+      <span class="mono num" th:text="${#numbers.formatInteger(d.count, 1, 'COMMA')}">1,284</span>
+    </div>
+  </div>
+</div>
+
+<!-- Result of the hash-chain check -->
+<div th:fragment="integrity" class="stack">
+  <div th:if="${result['error'] != null}" class="notice notice-bad" role="alert" th:text="${result['error']}">error</div>
+  <div th:if="${result['error'] == null}">
+    <div class="row"><span class="tag" th:classappend="${result['valid'] == true} ? 'tag-ok' : 'tag-bad'" th:text="${result['valid'] == true} ? #{health.integrity.ok} : #{health.integrity.bad}">Intact</span></div>
+    <dl class="dl mt-2">
+      <dt th:text="#{health.integrity.checked}">Records checked</dt><dd class="mono" th:text="${result['eventsChecked'] ?: '?'}">0</dd>
+      <dt th:text="#{health.integrity.partitions}">Days</dt><dd class="mono" th:text="${result['partitions'] ?: '?'}">0</dd>
+      <dt th:text="#{health.integrity.unchained}">Without a link</dt><dd class="mono" th:text="${result['unchainedEvents'] ?: '?'}">0</dd>
+      <dt th:text="#{health.integrity.problems}">Problems</dt><dd class="mono" th:text="${result['problemCount'] ?: 0}">0</dd>
+    </dl>
+    <ul th:if="${result['details'] != null}" class="mt-2 stack-sm"><li class="sub mono" th:each="x : ${result['details']}" th:text="${x}">detail</li></ul>
+  </div>
+  <span class="sub"><th:block th:replace="~{fragments/layout :: whenFull(${checkedAt})}"></th:block></span>
+  <button class="btn" type="button" hx-post="/health/integrity" hx-target="#integrity" hx-swap="innerHTML" hx-disabled-elt="this" th:text="#{health.integrity.again}">Check again</button>
+</div>
+
+</body>
+</html>

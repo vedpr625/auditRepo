@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}"
+      th:attr="data-theme=${prefs.themeAttr()},data-density=${prefs.densityAttr()}">
+<head th:replace="~{fragments/layout :: head(#{settings.title})}"></head>
+<body>
+<th:block th:replace="~{fragments/layout :: header('settings')}"></th:block>
+<main id="main" class="page">
+  <div class="page-head"><h1 th:text="#{settings.title}">Settings</h1><span class="lede" th:text="#{settings.lede}">Your own display choices.</span></div>
+
+  <div th:if="${flash == 'saved'}" class="notice notice-info" role="status" th:text="#{settings.saved}">Saved.</div>
+  <div th:if="${flash == 'invalid'}" class="notice notice-bad" role="alert" th:text="#{settings.invalid}">Not saved.</div>
+  <div th:if="${flash == 'registrySaved'}" class="notice notice-info" role="status" th:text="#{settings.registry.saved}">Saved.</div>
+  <div th:if="${flash == 'registryCleared'}" class="notice notice-info" role="status" th:text="#{settings.registry.cleared}">Cleared.</div>
+  <div th:if="${flash == 'registryInvalid'}" class="notice notice-bad" role="alert" th:text="#{settings.registry.invalid}">Not a valid address.</div>
+
+  <form class="panel" th:action="@{/settings/prefs}" method="post" aria-labelledby="h-prefs">
+    <div class="panel-head"><h3 id="h-prefs" th:text="#{settings.prefs}">My preferences</h3></div>
+    <div class="panel-pad stack">
+      <label class="field"><span th:text="#{settings.language}">Language</span>
+        <select class="select" name="language" id="language">
+          <option value="en" th:selected="${prefs.language == 'en'}">English</option>
+          <option value="si" th:selected="${prefs.language == 'si'}">සිංහල</option>
+          <option value="ta" th:selected="${prefs.language == 'ta'}">தமிழ்</option>
+        </select><span class="sub" th:text="#{settings.language.help}">Screens and downloaded reports.</span></label>
+
+      <label class="field"><span th:text="#{settings.timezone}">Time zone</span>
+        <select class="select" name="timeZone" id="timeZone">
+          <option th:each="z : ${zones}" th:value="${z}" th:text="${z}" th:selected="${z == prefs.timeZone}">Asia/Colombo</option>
+        </select><span class="sub" th:text="#{settings.timezone.help}">Times are stored in UTC and shown in this zone.</span></label>
+
+      <label class="field"><span th:text="#{settings.timedisplay}">How times are shown</span>
+        <select class="select" name="timeDisplay" id="timeDisplay">
+          <option value="both" th:selected="${prefs.timeDisplay == 'both'}" th:text="#{settings.timedisplay.both}">Exact and relative</option>
+          <option value="exact" th:selected="${prefs.timeDisplay == 'exact'}" th:text="#{settings.timedisplay.exact}">Exact only</option>
+          <option value="relative" th:selected="${prefs.timeDisplay == 'relative'}" th:text="#{settings.timedisplay.relative}">Relative only</option>
+        </select></label>
+
+      <div class="grid-2">
+        <label class="field"><span th:text="#{settings.clock}">Clock</span>
+          <select class="select" name="clock24" id="clock24">
+            <option value="true" th:selected="${prefs.clock24}" th:text="#{settings.clock.24}">24-hour</option>
+            <option value="false" th:selected="${!prefs.clock24}" th:text="#{settings.clock.12}">12-hour</option>
+          </select></label>
+        <label class="field"><span th:text="#{settings.showutc}">Also show UTC</span>
+          <select class="select" name="showUtc" id="showUtc">
+            <option value="false" th:selected="${!prefs.showUtc}" th:text="#{common.no}">No</option>
+            <option value="true" th:selected="${prefs.showUtc}" th:text="#{common.yes}">Yes</option>
+          </select></label>
+      </div>
+
+      <div class="notice notice-info">
+        <b th:text="#{settings.preview}">Preview</b>
+        <div class="mono" th:text="${tf.exact(now)}">Fri 23 Oct 2026, 10:29:41 UTC+05:30</div>
+        <div th:text="${tf.relative(now.minusSeconds(240))}">4 min ago</div>
+        <div class="mono muted" th:text="${tf.utc(now)}">UTC</div>
+      </div>
+
+      <div class="grid-2">
+        <label class="field"><span th:text="#{settings.theme}">Theme</span>
+          <select class="select" name="theme" id="theme">
+            <option value="system" th:selected="${prefs.theme == 'system'}" th:text="#{settings.theme.system}">Follow my device</option>
+            <option value="light" th:selected="${prefs.theme == 'light'}" th:text="#{settings.theme.light}">Light</option>
+            <option value="dark" th:selected="${prefs.theme == 'dark'}" th:text="#{settings.theme.dark}">Dark</option>
+          </select></label>
+        <label class="field"><span th:text="#{settings.density}">Table spacing</span>
+          <select class="select" name="density" id="density">
+            <option value="comfortable" th:selected="${prefs.density == 'comfortable'}" th:text="#{settings.density.comfortable}">Comfortable</option>
+            <option value="compact" th:selected="${prefs.density == 'compact'}" th:text="#{settings.density.compact}">Compact</option>
+          </select></label>
+      </div>
+      <div class="row"><button class="btn btn-primary" type="submit" th:text="#{common.save}">Save</button></div>
+    </div>
+  </form>
+
+  <section class="panel" aria-labelledby="h-rules">
+    <div class="panel-head"><h3 id="h-rules" th:text="#{settings.rules}">Review time limits</h3><span class="tag tag-off" th:text="#{settings.rules.fixed}">Set in the configuration file</span></div>
+    <div class="panel-pad stack-sm">
+      <div th:text="#{settings.rules.warning(${slaWarning})}">Soon after 6 hours</div>
+      <div th:text="#{settings.rules.overdue(${slaOverdue})}">Overdue after 24 hours</div>
+      <span class="sub" th:text="#{settings.rules.help}">The Ministry gave no figure, so the default is 24 hours.</span>
+    </div>
+  </section>
+
+  <form class="panel" id="registry" th:if="${canAdmin}" th:action="@{/settings/registry}" method="post" aria-labelledby="h-reg">
+    <div class="panel-head"><h3 id="h-reg" th:text="#{settings.registry}">Registry connection (Bundle 2a)</h3><span class="tag tag-planned" th:text="#{settings.registry.notused}">Not used yet</span></div>
+    <div class="panel-pad stack">
+      <label class="field"><span th:text="#{settings.registry.url}">Registry address (FHIR base URL)</span>
+        <input class="input mono" type="url" name="registryUrl" id="registryUrl" th:value="${registryUrl}" maxlength="500" placeholder="https://registry.example.org/fhir"></label>
+      <span class="sub" th:text="#{settings.registry.help}">Later releases read practitioner and facility details from here.</span>
+      <div th:if="${registryTest != null}" class="notice" th:classappend="${registryTest.startsWith('ok:')} ? 'notice-info' : 'notice-bad'" role="status">
+        <span th:if="${registryTest.startsWith('ok:')}" th:text="#{settings.registry.test.ok(${registryTried}, ${registryTest.substring(3)})}">Reachable.</span>
+        <span th:if="${registryTest == 'notfhir'}" th:text="#{settings.registry.test.notfhir}">Answered, but not a FHIR server.</span>
+        <span th:if="${registryTest.startsWith('http:')}" th:text="#{settings.registry.test.http(${registryTest.substring(5)})}">Error.</span>
+        <span th:if="${registryTest == 'unreachable'}" th:text="#{settings.registry.test.unreachable}">Could not be reached.</span>
+      </div>
+      <div class="row-wrap">
+        <button class="btn btn-primary" type="submit" name="action" value="save" th:text="#{common.save}">Save</button>
+        <button class="btn" type="submit" name="action" value="test" th:text="#{settings.registry.test}">Test the connection</button>
+      </div>
+    </div>
+  </form>
+</main>
+</body>
+</html>
