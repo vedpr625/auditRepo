@@ -1,0 +1,56 @@
+/* Reviews screen. Tokens come from audit-console.css. */
+.rv-filters{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.rv-filters .rv-kind{width:200px}
+.rv-filters .rv-q{width:220px}
+.rv-split{align-items:flex-start}
+.rv-list{width:380px;flex:none;display:flex;flex-direction:column;gap:8px}
+.rv-colh{display:flex;justify-content:space-between;align-items:center;padding:8px 4px 0}
+.rv-colh h3{font-size:12px}
+.rv-empty{padding:0 4px}
+.rv-card{display:flex;flex-direction:column;gap:3px;background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:11px 12px;color:var(--ink);text-decoration:none}
+.rv-card:hover{border-color:var(--ink-2)}
+.rv-card.on{border-color:var(--accent-line);box-shadow:0 0 0 2px var(--accent-ring)}
+.rv-card.done{opacity:.9}
+.rv-card .tag{align-self:flex-start;margin-bottom:3px}
+.rv-card b{font-weight:600}
+.rv-detail{min-width:0}
+.rv-head{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap;padding:16px 22px;border-bottom:1px solid var(--border-soft)}
+.rv-head h2{margin-top:4px;font-size:19px}
+.rv-meta{color:var(--ink-2)}
+.rv-body{display:flex;min-height:0}
+.rv-main{flex:1.1;min-width:0;padding:16px 22px;border-inline-end:1px solid var(--border-soft)}
+.rv-side{width:380px;flex:none;padding:16px 22px;background:var(--panel-tint);display:flex;flex-direction:column;gap:10px}
+.rv-h{margin-top:18px}
+.rv-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-top:8px}
+.rv-tile{background:var(--bg);border-radius:var(--radius);padding:9px 12px}
+.rv-tile b{display:block;font-size:20px;font-weight:600;font-variant-numeric:tabular-nums}
+.rv-tile.planned{border:1.5px dashed var(--ink-3);background:var(--panel-tint)}
+.rv-note{display:flex;gap:8px;margin-top:8px}
+.rv-form{display:flex;flex-direction:column;gap:10px}
+.rv-opts{border:0;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.rv-opt{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:1px solid var(--border-input);border-radius:var(--radius);background:var(--panel);cursor:pointer}
+.rv-opt:has(input:checked){border-color:var(--accent-line);background:var(--accent-wash);box-shadow:inset 0 0 0 1px var(--accent-line)}
+.rv-opt input{margin-top:3px;accent-color:var(--accent)}
+.rv-opt b{font-weight:600}
+.rv-buttons{display:flex;gap:8px}
+.rv-dec{display:flex;gap:10px;align-items:center;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius);background:var(--panel)}
+.rv-dec .sub{display:inline}
+.rv-assign{display:flex;gap:8px;align-items:flex-end}
+.rv-assign .field{flex:1}
+.rv-actions{display:flex;gap:8px;flex-wrap:wrap}
+.rv-fp{display:block;margin-top:4px}
+.rv-lock{display:flex;flex-direction:column;gap:2px}
+.rv-first{margin-bottom:2px}
+.rv-new{position:relative}
+.rv-new summary{list-style:none;cursor:pointer}
+.rv-new summary::-webkit-details-marker{display:none}
+.rv-new-form{position:absolute;inset-inline-end:0;top:40px;z-index:50;width:320px;padding:14px;display:flex;flex-direction:column;gap:10px;box-shadow:0 8px 24px rgba(0,0,0,.18)}
+.rv-roles summary{list-style:none;cursor:pointer}
+.rv-roles summary::-webkit-details-marker{display:none}
+.rv-roles[open] summary{border-bottom:1px solid var(--border-soft)}
+@media (max-width:1100px){
+  .rv-list{width:100%}
+  .rv-body{flex-direction:column}
+  .rv-main{border-inline-end:0;border-bottom:1px solid var(--border-soft)}
+  .rv-side{width:100%}
+}

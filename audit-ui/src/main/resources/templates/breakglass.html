@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}"
+      th:attr="data-theme=${prefs.themeAttr()},data-density=${prefs.densityAttr()}">
+<head th:replace="~{fragments/layout :: headx(#{breakglass.title}, 'page-breakglass.css')}"></head>
+<body>
+<th:block th:replace="~{fragments/layout :: header('breakglass')}"></th:block>
+<main id="main" class="page">
+  <div class="page-head">
+    <h1 th:text="#{breakglass.title}">Break-glass</h1>
+    <span class="lede" th:text="#{breakglass.lede(${deadline})}">Emergency access. Each one needs a written reason from the person within 24 hours.</span>
+    <div class="actions">
+      <div class="segmented" role="group" th:attr="aria-label=#{breakglass.period}">
+        <a th:each="p : ${ {'24h','7d','30d'} }" th:href="@{/break-glass(period=${p},filter=${filter},facility=${facility})}" th:classappend="${period == p} ? 'on'" th:attr="aria-current=${period == p} ? 'true' : null" th:text="#{'breakglass.period.' + ${p}}">7 days</a>
+      </div>
+      <a class="btn" th:href="@{/break-glass.csv(period=${period},filter=${filter},facility=${facility})}" th:text="#{breakglass.csv}">Download CSV</a>
+    </div>
+  </div>
+
+  <div class="notice notice-bad" role="alert" th:if="${v.error != null}">
+    <b th:text="#{state.chester.down.title}">Chester is not answering</b> <span th:text="#{state.chester.down.text}">Try again.</span> <a th:href="@{/break-glass}" th:text="#{common.retry}">Try again</a></div>
+
+  <th:block th:if="${v.error == null}">
+    <div class="grid-kpi">
+      <div class="panel kpi"><span class="sub" th:text="#{'breakglass.kpi.total.' + ${period}}">Break-glass, 7 days</span><span class="value num" th:text="${v.total}">23</span></div>
+      <div class="panel kpi" th:classappend="${v.waiting > 0} ? 'warn'"><span class="sub" th:text="#{breakglass.kpi.waiting}">Waiting for a reason</span><span class="value num" th:text="${v.waiting}">2</span></div>
+      <div class="panel kpi" th:classappend="${v.overdue > 0} ? 'bad' : 'ok'"><span class="sub" th:text="#{breakglass.kpi.overdue}">Reason overdue</span><span class="value num" th:text="${v.overdue}">1</span><span class="delta" th:text="#{breakglass.kpi.late(${v.late})}">1 given late</span></div>
+      <div class="panel kpi"><span class="sub" th:text="#{breakglass.kpi.avg}">Average time to give a reason</span><span class="value num" th:text="${minutes.of(v.avgMinutes)}">5 h 10 min</span></div>
+      <div class="panel kpi"><span class="sub" th:text="#{breakglass.kpi.ok}">Reviewed as appropriate</span><span class="value num"><span th:text="${v.reviewedOk}">17</span> <small th:text="#{breakglass.kpi.of(${v.reviewable})}">of 20</small></span></div>
+      <div class="panel kpi" th:classappend="${v.repeatPeople > 0} ? 'warn'"><span class="sub" th:text="#{breakglass.kpi.repeat(${repeatMore})}">People using it more than twice</span><span class="value num" th:text="${v.repeatPeople}">3</span></div>
+    </div>
+
+    <section class="panel" aria-labelledby="bg-trend">
+      <div class="panel-head"><h3 id="bg-trend" th:text="#{breakglass.trend}">Last 14 days</h3>
+        <div class="legend"><span><i class="bg-ok"></i><span th:text="#{breakglass.trend.ok}">Reason in time</span></span><span><i class="bg-bad"></i><span th:text="#{breakglass.trend.bad}">No reason, or late</span></span></div></div>
+      <div class="panel-pad">
+        <svg class="bg-trend" viewBox="0 0 560 150" role="img" th:attr="aria-label=#{breakglass.trend.alt}" preserveAspectRatio="xMidYMid meet">
+          <line x1="0" y1="120" x2="560" y2="120" class="bg-axis"/>
+          <g th:each="d, st : ${v.trend}" th:with="x=${st.index * 40 + 7}, h1=${100 * d.withReason / maxDay}, h2=${100 * d.noReason / maxDay}">
+            <title th:text="#{breakglass.trend.tip(${#temporals.format(d.date, 'd MMM')}, ${d.withReason}, ${d.noReason})}">day</title>
+            <rect class="bg-bar-ok" th:attr="x=${x},y=${120 - h1},width=26,height=${h1}" th:if="${d.withReason > 0}"/>
+            <rect class="bg-bar-bad" th:attr="x=${x},y=${120 - h1 - h2},width=26,height=${h2}" th:if="${d.noReason > 0}"/>
+            <text class="bg-num" th:attr="x=${x + 13},y=${116 - h1 - h2}" text-anchor="middle" th:if="${d.withReason + d.noReason > 0}" th:text="${d.withReason + d.noReason}">3</text>
+            <text class="bg-lab" th:attr="x=${x + 13}" y="138" text-anchor="middle" th:text="${#temporals.format(d.date, 'd MMM')}">14 Oct</text>
+          </g>
+        </svg>
+      </div>
+    </section>
+
+    <div class="bg-filters">
+      <div class="segmented" role="group" th:attr="aria-label=#{breakglass.filter}">
+        <a th:each="k : ${filters}" th:href="@{/break-glass(period=${period},filter=${k},facility=${facility})}" th:classappend="${filter == k} ? 'on'" th:attr="aria-current=${filter == k} ? 'true' : null">
+          <span th:text="#{'breakglass.filter.' + ${k}}">All</span> <span class="mono" th:text="${k == 'all' ? n_all : (k == 'waiting' ? n_waiting : (k == 'overdue' ? n_overdue : (k == 'repeat' ? n_repeat : n_unreviewed)))}">0</span></a>
+      </div>
+      <form th:action="@{/break-glass}" method="get" class="row">
+        <input type="hidden" name="period" th:value="${period}"><input type="hidden" name="filter" th:value="${filter}">
+        <label class="sr-only" for="bg-fac" th:text="#{breakglass.facility}">Facility</label>
+        <select class="select bg-fac" id="bg-fac" name="facility" onchange="this.form.submit()">
+          <option value="" th:text="#{breakglass.facility.any}">All facilities</option>
+          <option th:each="f : ${facilities}" th:value="${f}" th:text="${fac.of(f)}" th:selected="${f == facility}">Kandy TH</option>
+        </select>
+        <noscript><button class="btn btn-sm" type="submit" th:text="#{reviews.filter.apply}">Filter</button></noscript>
+      </form>
+    </div>
+    <p class="sub" th:if="${v.truncated}" th:text="#{breakglass.truncated}">Only the newest 100 are shown.</p>
+
+    <div class="split">
+      <section class="panel grow" aria-labelledby="bg-list">
+        <h2 id="bg-list" class="sr-only" th:text="#{breakglass.list}">Break-glass records</h2>
+        <div class="state" th:if="${#lists.isEmpty(rows)}"><div class="state-icon" aria-hidden="true">✓</div><h2 th:text="#{breakglass.none}">No break-glass records here</h2></div>
+        <div class="table-wrap" th:unless="${#lists.isEmpty(rows)}">
+          <table class="table table-cards">
+            <thead><tr><th th:text="#{reviews.col.when}">When</th><th th:text="#{reviews.col.who}">Who</th><th th:text="#{reviews.col.patient}">Patient</th><th th:text="#{breakglass.col.reason}">Reason given</th><th th:text="#{breakglass.col.status}">Reason status</th><th th:text="#{breakglass.col.review}">Review</th></tr></thead>
+            <tbody>
+              <tr th:each="x : ${rows}" th:classappend="${selRow != null && selRow.r.id == x.r.id} ? 'selected'" th:attr="aria-selected=${selRow != null && selRow.r.id == x.r.id}">
+                <td th:attr="data-label=#{reviews.col.when}"><div>
+                  <a class="row-link" th:href="@{/break-glass(period=${period},filter=${filter},facility=${facility},sel=${x.r.id})}"><th:block th:replace="~{fragments/layout :: when(${x.r.recordedInstant})}"></th:block></a>
+                  <span class="sub" th:text="${fac.of(x.r.facility)}">Kandy TH</span></div></td>
+                <td th:attr="data-label=#{reviews.col.who}"><div><span th:text="${x.r.agentName}">Nurse</span>
+                  <span class="sub bg-rep" th:if="${x.uses7d >= 2}" th:text="#{breakglass.uses(${x.uses7d})}">3rd use this week</span></div></td>
+                <td class="mono" th:attr="data-label=#{reviews.col.patient}"><div th:text="${#strings.substringAfter(x.r.patientRef, 'Patient/')}">P-1</div></td>
+                <td th:attr="data-label=#{breakglass.col.reason}"><div>
+                  <span class="sub bg-reason" th:if="${x.r.breakGlassReason != null}" th:text="'“' + ${x.r.breakGlassReason} + '”'">reason</span>
+                  <span class="sub" th:if="${x.r.breakGlassReason == null}" th:text="${x.state == 'overdue'} ? #{breakglass.none.overdue(${x.waitingHours})} : #{breakglass.none.waiting(${x.waitingHours})}">Waiting</span></div></td>
+                <td th:attr="data-label=#{breakglass.col.status}"><div>
+                  <span class="tag tag-ok" th:if="${x.state == 'given'}" th:text="${x.minutesToReason != null} ? #{breakglass.state.given(${minutes.of(x.minutesToReason)})} : #{breakglass.state.given.unknown}">Given in 38 min</span>
+                  <span class="tag tag-warn" th:if="${x.state == 'late'}" th:text="#{breakglass.state.late(${minutes.of(x.minutesToReason)})}">Given late</span>
+                  <span class="tag tag-warn" th:if="${x.state == 'waiting'}" th:text="#{breakglass.state.waiting(${x.waitingHours})}">Waiting</span>
+                  <span class="tag tag-bad" th:if="${x.state == 'overdue'}" th:text="#{breakglass.state.overdue(${x.waitingHours})}">Overdue</span></div></td>
+                <td th:attr="data-label=#{breakglass.col.review}"><div>
+                  <a th:if="${x.caseId != null}" th:href="@{/reviews(case=${x.caseId})}" class="tag tag-info row-link" th:text="#{breakglass.case(${x.caseId})}">Case</a>
+                  <span class="tag" th:if="${x.caseId != null && x.caseStatus == 'done'}" th:classappend="${x.caseOutcome == 'appropriate'} ? 'tag-ok' : (${x.caseOutcome == 'violation'} ? 'tag-bad' : 'tag-warn')" th:text="#{'reviews.outcome.' + ${x.caseOutcome}}">Appropriate</span>
+                  <th:block th:if="${x.caseId == null}">
+                    <span class="tag tag-ok" th:if="${x.r.reviewStatus == 'reviewed'}" th:text="#{breakglass.review.ok}">Appropriate</span>
+                    <span class="tag tag-warn" th:if="${x.r.reviewStatus == 'flagged'}" th:text="#{breakglass.review.flagged}">Flagged</span>
+                    <span class="tag tag-warn" th:if="${x.r.reviewStatus != 'reviewed' && x.r.reviewStatus != 'flagged'}" th:text="#{breakglass.review.not}">Not yet reviewed</span>
+                  </th:block></div></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <aside class="side">
+        <section class="panel bg-sel" th:if="${selRow != null}" aria-labelledby="bg-sel">
+          <div class="panel-pad stack">
+            <h3 id="bg-sel"><span th:text="#{breakglass.selected}">Selected</span><th:block th:if="${selRow.caseId != null}">: <span th:text="${selRow.caseId}">C-1</span></th:block></h3>
+            <h2 th:switch="${selRow.state}">
+              <span th:case="'overdue'" th:text="#{breakglass.sel.overdue(${selRow.waitingHours})}">No reason after 27 hours</span>
+              <span th:case="'waiting'" th:text="#{breakglass.sel.waiting(${selRow.waitingHours})}">Waiting</span>
+              <span th:case="'late'" th:text="#{breakglass.sel.late(${minutes.of(selRow.minutesToReason)})}">Late</span>
+              <span th:case="*" th:text="#{breakglass.sel.given}">Reason given</span>
+            </h2>
+            <span class="sub"><th:block th:text="#{breakglass.sel.opened(${selRow.r.agentName}, ${#strings.substringAfter(selRow.r.patientRef, 'Patient/')})}">opened</th:block> <th:block th:replace="~{fragments/layout :: whenFull(${selRow.r.recordedInstant})}"></th:block></span>
+            <p class="bg-quote" th:if="${selRow.r.breakGlassReason != null}" th:text="'“' + ${selRow.r.breakGlassReason} + '”'">reason</p>
+            <ol class="bg-time">
+              <li><span class="tag tag-info" th:text="${tf.hourLabel(selRow.r.recordedInstant)}">02:14</span><span th:text="#{breakglass.t.opened}">Record opened with emergency access</span></li>
+              <li th:if="${selRow.r.reasonGivenAt != null}"><span class="tag tag-ok" th:text="${tf.hourLabel(selRow.r.reasonGivenAt)}">02:52</span><span th:text="#{breakglass.t.given}">Reason received</span></li>
+              <li th:if="${selRow.state == 'overdue'}"><span class="tag tag-bad" th:text="${tf.hourLabel(selRow.r.recordedInstant.plusSeconds(deadline * 3600))}">02:14</span><span th:text="#{breakglass.t.overdue(${deadline})}">Became overdue</span></li>
+              <li th:if="${selRow.state == 'waiting'}"><span class="tag tag-warn" th:text="${tf.hourLabel(selRow.r.recordedInstant.plusSeconds(deadline * 3600))}">02:14</span><span th:text="#{breakglass.t.due(${deadline})}">Due</span></li>
+              <li th:if="${selRow.caseId != null}"><span class="tag tag-info" th:text="${selRow.caseId}">C-1</span><span th:text="#{breakglass.t.case}">Case opened</span></li>
+            </ol>
+            <div class="notice notice-planned"><span class="tag tag-planned tag-sm" th:text="#{breakglass.confirm.tag}">To confirm · AR-09</span> <span th:text="#{breakglass.confirm}">The reason is written in the vendor’s application and sent to Chester afterwards. Linking it to this record is not yet confirmed with the vendors. This build reads two extensions on the record.</span></div>
+            <div class="row-wrap">
+              <a class="btn btn-primary" th:if="${selRow.caseId != null}" th:href="@{/reviews(case=${selRow.caseId})}" th:text="#{breakglass.case.open}">Open the case</a>
+              <form th:if="${selRow.caseId == null && canReview}" th:action="@{/break-glass/{id}/case(id=${selRow.r.id})}" method="post"><button class="btn btn-primary" type="submit" th:text="#{breakglass.case.new}">Open a case</button></form>
+              <span class="btn btn-planned" role="button" aria-disabled="true" tabindex="0"><span th:text="#{breakglass.remind}">Send a reminder</span> <span class="tag tag-planned tag-sm" th:text="#{common.planned}">Planned</span></span>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel" aria-labelledby="bg-top">
+          <div class="panel-head"><h3 id="bg-top" th:text="#{breakglass.top}">People using it most, 30 days</h3></div>
+          <ul class="panel-pad stack-sm">
+            <li class="bg-person" th:each="p : ${v.topPeople}"><span><span th:text="${p.name}">Nurse</span><span class="sub" th:text="${fac.of(p.facility)}">Kandy TH</span></span><b class="mono" th:text="${p.count}">5</b></li>
+          </ul>
+          <div class="panel-foot"><span class="tag tag-planned tag-sm" th:text="#{common.planned}">Planned</span> <span th:text="#{breakglass.top.note}">For 24 hours after a break-glass, everything this person opens will be shown on the Alerts page.</span></div>
+        </section>
+      </aside>
+    </div>
+  </th:block>
+</main>
+</body>
+</html>

@@ -14,7 +14,7 @@
   <script th:src="@{/js/console.js}" defer></script>
 </head>
 
-<!-- Same as head(title) plus one page stylesheet: <head th:replace="~{fragments/layout :: headx(#{x.title}, 'page-x.css')}"> -->
+<!-- Same as head(title) plus one page stylesheet: <head th:replace="~{fragments/layout :: headx(title-message, 'page-x.css')}"> -->
 <head th:fragment="headx(title, css)">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">

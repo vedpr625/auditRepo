@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}"
+      th:attr="data-theme=${prefs.themeAttr()},data-density=${prefs.densityAttr()}">
+<head th:replace="~{fragments/layout :: headx(#{alerts.title}, 'page-alerts.css')}"></head>
+<body>
+<th:block th:replace="~{fragments/layout :: header('alerts')}"></th:block>
+<main id="main" class="page">
+  <div class="page-head">
+    <h1 th:text="#{alerts.title}">Alerts</h1>
+    <span class="lede" th:text="#{alerts.lede}">Rules that watch the audit trail and tell a person when something looks unusual.</span>
+    <div class="actions"><span class="btn btn-planned" role="button" aria-disabled="true" tabindex="0"><span th:text="#{alerts.new}">New rule</span> <span class="tag tag-planned tag-sm" th:text="#{common.planned}">Planned</span></span></div>
+  </div>
+
+  <div class="notice notice-info" role="status" th:if="${flash != null}" th:text="#{${flash}}">Done</div>
+  <div class="notice notice-planned" th:if="${isDemoData}"><span class="tag tag-planned tag-sm" th:text="#{alerts.demo.tag}">Demo data</span> <span th:text="#{alerts.demo}">Firings below were worked out at start-up from the made-up records, using the thresholds in configuration. The engine that watches live records on a schedule is Planned.</span></div>
+  <div class="notice notice-planned" th:unless="${isDemoData}"><span class="tag tag-planned tag-sm" th:text="#{common.planned}">Planned</span> <span th:text="#{alerts.engine}">The engine that watches live records is Planned, so nothing fires yet. The thresholds below are what it will use.</span></div>
+
+  <div class="split">
+    <section class="panel grow" aria-labelledby="al-rules">
+      <div class="panel-head"><h3 id="al-rules" th:text="#{alerts.rules}">Rules</h3><span class="sub" th:text="#{alerts.rules.note}">Thresholds are set in configuration.</span></div>
+      <div class="al-rule" th:each="r : ${rules}" th:classappend="${r.planned || !r.enabled} ? 'dim'">
+        <span class="al-sw" th:classappend="${r.enabled} ? 'on' : 'off'" role="img" th:attr="aria-label=${r.enabled} ? #{alerts.on} : #{alerts.off}"></span>
+        <div class="grow">
+          <b th:text="#{'alerts.rule.' + ${r.id}}">High-volume access</b>
+          <span class="sub"><th:block th:if="${r.count != null && r.hours != null}" th:text="#{'alerts.desc.' + ${r.id}(${r.count}, ${r.hours})}">desc</th:block><th:block th:if="${r.count == null || r.hours == null}" th:text="#{'alerts.desc.' + ${r.id}(${r.hours == null ? '' : r.hours})}">desc</th:block></span>
+        </div>
+        <div class="al-meta">
+          <div class="row-wrap">
+            <span class="tag tag-planned" th:if="${r.planned}" th:text="#{common.planned}">Planned</span>
+            <span class="tag tag-off" th:if="${!r.planned && !r.enabled}" th:text="#{alerts.off}">Off</span>
+            <span class="tag tag-info" th:if="${r.enabled && r.email}" th:text="#{alerts.email}">Email</span>
+            <span class="tag tag-info" th:if="${r.enabled && r.opensCase}" th:text="#{alerts.opens}">Opens a case</span>
+          </div>
+          <span class="sub" th:if="${r.planNote != null}" th:text="#{'alerts.plan.' + ${r.planNote}}">Needs the registry</span>
+          <span class="sub" th:if="${r.planNote == null}" th:text="${counts.get(r.id) == null} ? (${r.enabled && !r.planned} ? #{alerts.fired.none} : '') : #{alerts.fired(${counts.get(r.id)})}">Fired 3 times this week</span>
+        </div>
+      </div>
+    </section>
+
+    <aside class="side">
+      <section class="panel" aria-labelledby="al-fired">
+        <div class="panel-head"><h3 id="al-fired" th:text="#{alerts.fired.title}">Fired in the last 7 days</h3><span class="tag" th:classappend="${firedTotal > 0} ? 'tag-bad' : 'tag-off'" th:text="${firedTotal}">9</span></div>
+        <p class="sub panel-pad" th:if="${#lists.isEmpty(recent)}" th:text="#{alerts.fired.empty}">Nothing has fired.</p>
+        <div class="al-fire" th:each="f : ${recent}" th:classappend="${f.markedNormal} ? 'dim'">
+          <span class="tag" th:classappend="${f.severity == 'high'} ? 'tag-bad' : (${f.severity == 'medium'} ? 'tag-warn' : 'tag-info')" th:text="#{'alerts.sev.' + ${f.severity}}">High</span>
+          <div class="grow">
+            <b th:text="#{'alerts.rule.' + ${f.ruleId}}">Rule</b>
+            <span class="sub"><th:block th:text="#{${'alerts.fire.' + f.ruleId}(${f.subject}, ${f.amount == null ? 0 : f.amount})}">Dr opened 62 records</th:block><th:block th:if="${f.facility != null && !fac.of(f.facility).isEmpty()}"> · <th:block th:text="${fac.of(f.facility)}">Kandy TH</th:block></th:block></span>
+            <span class="sub"><th:block th:replace="~{fragments/layout :: when(${f.firedAt})}"></th:block>
+              <a th:if="${f.caseId != null}" th:href="@{/reviews(case=${f.caseId})}" th:text="#{alerts.case(${f.caseId})}">case C-1</a>
+              <span class="tag tag-off tag-sm" th:if="${f.markedNormal}" th:text="#{alerts.normal}">Marked normal</span></span>
+          </div>
+          <form th:if="${canReview && !f.markedNormal}" th:action="@{/alerts/firing/{id}/normal(id=${f.id})}" method="post"><button class="btn btn-sm" type="submit" th:text="#{alerts.normal.do}">Mark normal</button></form>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="al-chan">
+        <div class="panel-head"><h3 id="al-chan" th:text="#{alerts.channels}">How people are told</h3></div>
+        <div class="panel-pad stack-sm">
+          <div class="al-chan"><span><span th:text="#{alerts.email}">Email</span>
+              <span class="sub" th:if="${#lists.isEmpty(emailTo)}" th:text="#{alerts.email.none}">No recipients set (audit.alerts.email-to)</span>
+              <span class="sub" th:unless="${#lists.isEmpty(emailTo)}" th:text="#{alerts.email.to(${#strings.listJoin(emailTo, ', ')})}">To: a@b</span></span>
+            <span class="tag tag-planned" th:text="#{alerts.email.planned}">Planned · mail server not connected</span></div>
+          <div class="al-chan"><span><span th:text="#{alerts.sms}">SMS</span> <span class="sub">AR-07, AR-40</span></span><span class="tag tag-planned" th:text="#{alerts.service}">Planned · service to choose</span></div>
+          <div class="al-chan"><span><span th:text="#{alerts.chat}">Slack or Teams</span> <span class="sub">AR-07, AR-40</span></span><span class="tag tag-planned" th:text="#{alerts.service}">Planned · service to choose</span></div>
+        </div>
+      </section>
+    </aside>
+  </div>
+</main>
+</body>
+</html>
