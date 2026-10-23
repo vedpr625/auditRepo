@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}"
+      th:attr="data-theme=${prefs.themeAttr()},data-density=${prefs.densityAttr()}">
+<head th:replace="~{fragments/layout :: headx(#{find.title}, 'page-people.css')}"></head>
+<body>
+<th:block th:replace="~{fragments/layout :: header('people')}"></th:block>
+<main id="main" class="page">
+  <div class="page-head"><h1 th:text="#{find.title}">Find anything</h1><span class="lede" th:text="#{find.lede}">People, patients</span></div>
+
+  <form class="searchbar" th:action="@{/find}" method="get" role="search">
+    <label class="sr-only" for="find-page-q" th:text="#{find.label}">Search text</label>
+    <input id="find-page-q" name="q" maxlength="100" autocomplete="off" th:value="${q}" th:placeholder="#{nav.find}">
+    <button class="btn btn-primary" type="submit" th:text="#{find.go}">Search</button>
+  </form>
+  <p class="sub" th:text="#{find.hint}">Hint</p>
+
+  <div class="notice notice-warn" role="alert" th:if="${problem != null}" th:text="#{'find.problem.' + ${problem}}">Problem</div>
+
+  <th:block th:if="${problem == null}">
+    <div class="notice notice-bad" role="alert" th:if="${chesterDown}" th:text="#{find.chester.down}">Down</div>
+    <h2 th:text="#{find.results(${total}, ${q})}">n results</h2>
+
+    <section class="panel find-section" aria-labelledby="f-people">
+      <div class="panel-head"><h3 id="f-people" th:text="#{find.section.people}">People</h3><span class="sub" th:text="${#lists.size(people)}">0</span></div>
+      <ul class="find-list">
+        <li th:each="x : ${people}">
+          <div class="grow"><b th:text="${x.name}">Name</b> <span class="sub mono" th:text="${x.ref}">ref</span></div>
+          <span class="tag tag-info" th:text="#{'people.role.' + ${x.role}}">Role</span>
+          <span class="sub" th:text="#{find.people.records(${x.events})}">n records</span>
+          <a class="btn btn-sm" th:if="${x.ref != null}" th:href="@{/(agent=${x.ref})}" th:text="#{people.row.records}">Explore</a>
+          <a class="btn btn-sm" th:if="${x.ref != null and x.kind == 'person'}" th:href="@{/reports(r='person',person=${x.ref})}" th:text="#{people.row.report}">Report</a>
+        </li>
+        <li th:if="${#lists.isEmpty(people)}"><span class="sub" th:text="#{find.none}">Nothing</span></li>
+      </ul>
+    </section>
+
+    <section class="panel find-section" aria-labelledby="f-pat">
+      <div class="panel-head"><h3 id="f-pat" th:text="#{find.section.patients}">Patients</h3><span class="tag tag-warn" th:if="${demo}" th:text="#{demo.tag}">Demo data</span></div>
+      <ul class="find-list">
+        <li th:each="x : ${patients}">
+          <div class="grow"><a class="mono" th:href="@{/patient/{id}(id=${x.id})}" th:text="${x.id}">P-1</a></div>
+          <span class="sub" th:text="${x.people < 0} ? #{find.patient.exact(${x.events})} : #{find.patient.records(${x.events})}">n records</span>
+          <a class="btn btn-sm" th:href="@{/patient/{id}(id=${x.id})}" th:text="#{people.row.open}">Open</a>
+        </li>
+        <li th:if="${#lists.isEmpty(patients)}"><span class="sub" th:text="#{find.none}">Nothing</span></li>
+      </ul>
+    </section>
+
+    <section class="panel find-section" aria-labelledby="f-sys">
+      <div class="panel-head"><h3 id="f-sys" th:text="#{find.section.systems}">Systems</h3></div>
+      <ul class="find-list">
+        <li th:each="x : ${systemHits}">
+          <div class="grow"><b th:text="${x.label}">Name</b> <span class="sub mono" th:text="${x.clientId}">id</span><span class="sub" th:if="${x.note != null}" th:text="${x.note}">note</span></div>
+          <span class="sub"><span th:text="#{find.system.last}">Last seen</span> <th:block th:replace="~{fragments/layout :: when(${x.lastSeen})}"></th:block></span>
+          <a class="btn btn-sm" th:if="${canAdmin}" th:href="@{/admin/systems/{id}(id=${x.clientId})}" th:text="#{find.system.admin}">Open</a>
+        </li>
+        <li th:if="${#lists.isEmpty(systemHits)}"><span class="sub" th:text="#{find.none}">Nothing</span></li>
+        <li th:if="${!canAdmin and !#lists.isEmpty(systemHits)}"><span class="sub" th:text="#{find.system.noadmin}">Admins only</span></li>
+      </ul>
+    </section>
+
+    <section class="panel find-section" aria-labelledby="f-cases" th:if="${canReview}">
+      <div class="panel-head"><h3 id="f-cases" th:text="#{find.section.cases}">Review decisions</h3></div>
+      <ul class="find-list">
+        <li th:each="x : ${cases}">
+          <div class="grow"><b class="mono" th:text="#{find.case.event(${x.eventId})}">Record</b> <span class="sub" th:if="${x.note != null}" th:text="${x.note}">note</span></div>
+          <span class="tag" th:classappend="${x.status == 'reviewed'} ? 'tag-ok' : 'tag-warn'" th:text="#{'reports.review.' + ${x.status}}">Reviewed</span>
+          <span class="sub" th:text="#{find.case.by(${x.reviewer})}">by someone</span>
+          <span class="sub"><th:block th:replace="~{fragments/layout :: when(${x.at})}"></th:block></span>
+          <a class="btn btn-sm" th:if="${x.patientId != null}" th:href="@{/patient/{id}(id=${x.patientId})}" th:text="#{people.row.open}">Open patient</a>
+        </li>
+        <li th:if="${#lists.isEmpty(cases)}"><span class="sub" th:text="#{find.none}">Nothing</span></li>
+      </ul>
+      <div class="panel-foot" th:text="#{find.case.note}">Note</div>
+    </section>
+    <p class="sub" th:text="#{find.scope(${scanned})}">Scope</p>
+  </th:block>
+</main>
+</body>
+</html>

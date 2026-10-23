@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<!-- one event inside a visit (patient page). Usage: <th:block th:replace="~{fragments/patient :: event(${line})}"></th:block> -->
+<li th:fragment="event(l)">
+  <div><th:block th:replace="~{fragments/layout :: when(${l.row.recordedInstant})}"></th:block></div>
+  <div><span th:text="${l.row.agentName}">Dr. N. Perera</span><span class="sub" th:text="#{'people.role.' + ${l.role}}">Practitioner</span></div>
+  <div><span th:text="#{'patient.what.' + ${l.row.action ?: 'R'}}">Viewed record</span> <span class="tag tag-btg tag-sm" th:if="${l.row.breakGlass}" th:text="#{patient.visit.btg}">Break-glass</span></div>
+  <div><span th:text="${l.row.submittedBy == null} ? '—' : ${systemNames.getOrDefault(l.row.submittedBy, l.row.submittedBy)}">HHIMS</span>
+    <span class="tag tag-bad tag-sm" th:if="${l.link == 'none'}" th:text="#{patient.link.none}">No link</span>
+    <span class="tag tag-off tag-sm" th:if="${l.link == 'unknown'}" th:text="#{patient.link.unknown}">Unknown</span></div>
+  <div><span class="tag" th:classappend="${l.row.outcomeCode == null or l.row.outcomeCode == '0'} ? 'tag-ok' : 'tag-bad'" th:text="${l.row.outcomeCode == null or l.row.outcomeCode == '0'} ? #{patient.outcome.ok} : #{patient.outcome.refused}">OK</span></div>
+</li>
+        <article class="pt-visit" th:fragment="visit(v)">
+          <div class="pt-visit-head">
+            <span class="pt-dot" th:classappend="${v.kind == 'emergency'} ? 'emergency'" aria-hidden="true"></span>
+            <div class="grow">
+              <div class="pt-visit-title"><span th:text="#{'patient.visit.' + ${v.kind}}">Visit</span><th:block th:if="${v.ward != null}"> · <span th:text="${v.ward}">Ward</span></th:block></div>
+              <span class="sub"><span th:text="${v.facilityName}">Facility</span> · <span th:text="${v.lines[0].row.purposeLabel}">Treatment</span> · <span th:text="#{patient.visit.stats(${v.events}, ${v.people}, ${v.systems})}">n events</span></span>
+              <span class="row-wrap mt-1" th:if="${v.refused > 0 or v.events > 3}">
+                <span class="tag tag-ok" th:text="#{patient.visit.ok(${v.ok})}">OK</span>
+                <span class="tag tag-bad" th:if="${v.refused > 0}" th:text="#{patient.visit.refused(${v.refused})}">refused</span>
+              </span>
+            </div>
+            <div class="pt-visit-date"><th:block th:replace="~{fragments/layout :: when(${v.end})}"></th:block>
+              <span class="mono" th:if="${v.encounter != null}" th:text="${v.encounter.replace('Encounter/', '')}">E-1</span></div>
+          </div>
+
+          <div class="pt-btg" th:each="b : ${v.breakGlass}">
+            <span class="tag tag-btg tag-sm" th:text="#{patient.visit.btg}">Break-glass</span>
+            <th:block th:text="#{patient.visit.btg.text(${b.row.agentName}, ${tf.exact(b.row.recordedInstant)})}">Name opened</th:block>
+            <th:block th:if="${b.row.breakGlassReason != null}" th:text="#{patient.visit.btg.reason(${tf.exact(b.row.reasonGivenAt)}, ${b.reasonMinutes}, ${b.row.breakGlassReason})}">Reason</th:block>
+            <th:block th:if="${b.row.breakGlassReason == null}" th:text="#{patient.visit.btg.noreason}">No reason</th:block>
+            <b th:text="#{'patient.visit.btg.review.' + ${b.row.reviewStatus ?: 'pending'}}">Reviewed.</b>
+          </div>
+
+          <ul class="pt-events">
+            <th:block th:each="l, st : ${v.lines}"><th:block th:if="${st.index < 3}"><th:block th:replace="~{fragments/patient :: event(${l})}"></th:block></th:block></th:block>
+          </ul>
+          <details class="pt-more" th:if="${#lists.size(v.lines) > 3}">
+            <summary th:text="#{patient.visit.showall(${#lists.size(v.lines)})}">Show all</summary>
+            <ul class="pt-events">
+              <th:block th:each="l, st : ${v.lines}"><th:block th:if="${st.index >= 3}"><th:block th:replace="~{fragments/patient :: event(${l})}"></th:block></th:block></th:block>
+            </ul>
+          </details>
+        </article>
+</body>
+</html>

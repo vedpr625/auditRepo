@@ -348,6 +348,11 @@ public class AuditEventService {
         return mapBundleToRows(runQuery(params, Math.max(1, Math.min(limit, 100)), 0, sort));
     }
 
+    /** One page of events matching raw Chester search parameters: {@code count} (max 100) starting at {@code offset}. Throws if Chester cannot answer. */
+    public List<AuditRow> pageWhere(java.util.Map<String, List<String>> params, int count, int offset, String sort) {
+        return mapBundleToRows(runQuery(params, Math.max(1, Math.min(count, 100)), Math.max(0, offset), sort));
+    }
+
     /** Raw Chester parameter value that selects records flagged incomplete. */
     public String incompleteTag() { return tagBaseUri + "/tags|policy-incomplete"; }
 
@@ -593,6 +598,7 @@ public class AuditEventService {
             .outcomeCode(ae.getOutcome() != null && ae.getOutcome().toCode() != null
                 ? ae.getOutcome().toCode() : "0")
             .agentName(agentName != null ? agentName : "—")
+            .agentRef(agent != null && agent.getWho() != null ? agent.getWho().getReference() : null)
             .patientRef(patientRef != null ? patientRef : "—")
             .facility(ae.getSource() != null && ae.getSource().getObserver() != null
                       && ae.getSource().getObserver().getReference() != null ? ae.getSource().getObserver().getReference() : "—")

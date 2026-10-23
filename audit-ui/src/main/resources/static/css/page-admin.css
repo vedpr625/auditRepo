@@ -1,0 +1,15 @@
+/* Admin tabs, sending system page, checklist. */
+.ad-tabs{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.ad-role{font:500 12px var(--font-mono);background:var(--info-bg);color:var(--info-fg);padding:2px 6px;border-radius:var(--radius-sm)}
+.ad-roles li{padding:5px 0}
+.ad-day{display:flex;align-items:flex-end;gap:4px;height:110px;padding:0 18px}
+.ad-day>div{flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:100%;min-width:0}
+.ad-day i{display:block;width:100%}
+.ad-day .ok{background:var(--chart-ok)}
+.ad-day .fail{background:var(--chart-fail)}
+.ad-axis{display:flex;gap:4px;padding:4px 18px 14px;font-size:11px;color:var(--ink-2)}
+.ad-axis span{flex:1;text-align:center;min-width:0;overflow:hidden}
+.ck-summary{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.ck-note{display:block;font-size:12.5px;color:var(--ink-2);margin-top:4px}
+.tag-notyet{background:var(--bad-bg);color:var(--bad-fg)}
+.ck-req .sub{margin-top:2px}

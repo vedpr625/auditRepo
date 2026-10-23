@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}"
+      th:attr="data-theme=${prefs.themeAttr()},data-density=${prefs.densityAttr()}">
+<head th:replace="~{fragments/layout :: headx(#{checklist.title}, 'page-admin.css')}"></head>
+<body>
+<th:block th:replace="~{fragments/layout :: header('admin')}"></th:block>
+<main id="main" class="page">
+  <div class="page-head"><h1 th:text="#{checklist.title}">Delivered and planned</h1><span class="lede" th:text="#{checklist.lede}">What must be delivered</span></div>
+  <p class="sub" th:text="#{checklist.how}">How</p>
+  <div class="ck-summary">
+    <span th:text="#{checklist.summary(${#lists.size(lines)})}">n requirements</span>
+    <span th:each="c : ${counts}" class="tag" th:classappend="${c.key == 'built'} ? 'tag-ok' : (${c.key == 'notyet'} ? 'tag-notyet' : (${c.key == 'planned' or c.key == 'notui' or c.key == 'task'} ? 'tag-planned' : 'tag-warn'))"><span th:text="#{'checklist.s.' + ${c.key}}">status</span> · <span th:text="${c.value}">0</span></span>
+  </div>
+  <section class="panel">
+    <div class="table-wrap"><table class="table table-cards">
+      <thead><tr><th th:text="#{checklist.col.item}">Item</th><th th:text="#{checklist.col.req}">Requirement</th><th th:text="#{checklist.col.where}">Where</th><th th:text="#{checklist.col.board}">Design</th><th th:text="#{checklist.col.build}">Build</th><th th:text="#{checklist.col.rel}">Release</th></tr></thead>
+      <tbody><tr th:each="l : ${lines}">
+        <td th:attr="data-label=#{checklist.col.item}"><div class="mono" th:text="#{'checklist.i' + ${l.item.n} + '.id'}">AR-04</div></td>
+        <td th:attr="data-label=#{checklist.col.req}"><div class="ck-req"><span th:text="#{'checklist.i' + ${l.item.n} + '.req'}">Requirement</span><span class="sub" th:if="${l.item.hasSub}" th:text="#{'checklist.i' + ${l.item.n} + '.sub'}">sub</span></div></td>
+        <td th:attr="data-label=#{checklist.col.where}"><div th:text="#{'checklist.i' + ${l.item.n} + '.where'}">Where</div></td>
+        <td th:attr="data-label=#{checklist.col.board}"><div><span class="tag tag-off tag-sm" th:text="#{'checklist.i' + ${l.item.n} + '.board'}">Designed</span></div></td>
+        <td th:attr="data-label=#{checklist.col.build}"><div>
+          <span class="tag" th:classappend="${l.status == 'built'} ? 'tag-ok' : (${l.status == 'notyet'} ? 'tag-notyet' : (${l.status == 'planned' or l.status == 'notui' or l.status == 'task'} ? 'tag-planned' : 'tag-warn'))" th:text="#{'checklist.s.' + ${l.status}}">Built</span>
+          <span class="ck-note" th:text="#{'checklist.i' + ${l.item.n} + '.note'}">Note</span>
+          <span class="ck-note" th:if="${!#lists.isEmpty(l.missing)}" th:text="#{checklist.missing(${#strings.listJoin(l.missing, ', ')})}">Missing</span></div></td>
+        <td th:attr="data-label=#{checklist.col.rel}"><div th:text="#{'checklist.i' + ${l.item.n} + '.rel'}">First</div></td>
+      </tr></tbody></table></div>
+    <div class="panel-foot" th:text="#{checklist.checked.note}">Note</div>
+  </section>
+  <p class="sub" th:text="#{checklist.foot}">Foot</p>
+</main>
+</body>
+</html>

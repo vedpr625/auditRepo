@@ -1,0 +1,30 @@
+/* Reports, and the shared small pieces used by the People, Find and Admin pages. Colours come from tokens in audit-console.css. */
+.rep-list{display:flex;flex-direction:column;gap:6px;padding:12px}
+.rep-list a{display:block;padding:9px 12px;border:1px solid transparent;border-radius:var(--radius);text-decoration:none;color:var(--ink)}
+.rep-list a b{display:block;font-weight:600}
+.rep-list a span{display:block;color:var(--ink-2);font-size:12.5px}
+.rep-list a:hover{background:var(--panel-sub)}
+.rep-list a[aria-current="page"]{background:var(--info-bg);border-color:var(--accent-ring)}
+.rep-sched{padding:4px 18px 14px;display:flex;flex-direction:column;gap:10px}
+.rep-sched li{font-size:13px}
+.rep-filters{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;padding:14px 18px;background:var(--panel-sub);border-bottom:1px solid var(--border-soft)}
+.rep-filters .field{min-width:150px}
+.rep-filters .field.wide{flex:1;min-width:220px}
+.rep-stats{display:flex;gap:26px;flex-wrap:wrap;align-items:flex-end;padding:14px 18px 6px}
+.rep-stat b{display:block;font-size:26px;font-weight:600;line-height:1.1;font-variant-numeric:tabular-nums}
+.rep-stat span{color:var(--ink-2);font-size:12.5px}
+.rep-stat.bad b{color:var(--bad-fg)} .rep-stat.warn b{color:var(--warn-fg)} .rep-stat.ok b{color:var(--ok-fg)}
+.rep-actions{display:flex;gap:8px;flex-wrap:wrap;padding:6px 18px 12px;align-items:center}
+.rep-actions .btn-planned{cursor:not-allowed}
+.tag-btg{background:var(--warn-bg);color:var(--warn-fg)}
+/* stacked bars: OK in blue, failed in red, always with the numbers beside them */
+.sbar{display:grid;grid-template-columns:minmax(110px,1fr) 3fr auto;gap:12px;align-items:center;padding:6px 0}
+.sbar .track{display:flex;height:14px;background:var(--border-soft);border-radius:4px;overflow:hidden}
+.sbar .track>i{display:block;height:100%}
+.sbar .ok{background:var(--chart-ok)}
+.sbar .fail{background:var(--chart-fail)}
+.sbar .nums{font-size:12.5px;color:var(--ink-2);font-variant-numeric:tabular-nums;white-space:nowrap}
+.chart-pad{padding:6px 18px 14px}
+.legend .ok{background:var(--chart-ok)} .legend .fail{background:var(--chart-fail)}
+.cell-reason{max-width:340px}
+@media (max-width:900px){.sbar{grid-template-columns:1fr}}
