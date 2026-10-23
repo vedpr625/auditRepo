@@ -79,6 +79,8 @@ final class Visits {
                 if (encounter == null && r.getEncounterRef() != null) encounter = r.getEncounterRef();
             }
             RegistryClient.Stay stay = stayOf.get(g.getKey());
+            // a visit that matches a registry stay carries the registry's encounter number, so the number on this page opens the same encounter in the registry
+            if (stay != null && stay.id() != null && !stay.id().isBlank()) encounter = "Encounter/" + stay.id();
             String facility = stay != null ? stay.facilityRef() : fac.entrySet().stream().max(Map.Entry.comparingByValue()).map(Map.Entry::getKey).orElse(null);
             String kind = emergency ? "emergency" : "other";
             String ward = null;

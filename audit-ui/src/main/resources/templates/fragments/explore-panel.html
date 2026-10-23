@@ -43,7 +43,7 @@
 
       <dt th:text="#{explore.panel.context}">Care context</dt>
       <dd>
-        <span th:if="${p.encounter != null}" th:text="#{explore.panel.visit(${p.encounter})}">Visit E-88213</span><span th:if="${p.encounter == null}" class="muted" th:text="#{explore.panel.novisit}">No visit</span><span th:if="${p.item.dept != null}"> · <span th:text="${p.item.dept}">OPD-3</span></span>
+        <span th:if="${p.encounter != null}" th:text="#{explore.panel.visit(${p.encounter})}">Visit E-88213</span><a class="px-enc" th:if="${p.encounter != null}" th:href="@{/encounter/{eid}(eid=${#strings.replace(p.encounter, 'Encounter/', '')},patient=${p.item.patientId})}" th:text="#{encounter.open}"> Open encounter</a><span th:if="${p.encounter == null}" class="muted" th:text="#{explore.panel.novisit}">No visit</span><span th:if="${p.item.dept != null}"> · <span th:text="${p.item.dept}">OPD-3</span></span>
         <div class="sub" th:text="#{explore.panel.purpose(${p.purpose})}">Purpose: Treatment</div>
         <div class="sub" th:if="${p.item.row.breakGlass and !p.item.noReason}" th:text="#{explore.panel.break(${p.item.row.breakGlassReason})}">Reason</div>
         <div class="sub warn-text" th:if="${p.item.noReason}" th:text="#{explore.panel.break.none}">Reason not given</div>

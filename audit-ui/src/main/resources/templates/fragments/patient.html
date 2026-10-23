@@ -23,7 +23,7 @@
       <span class="sub"><span th:text="${v.facilityName}">Facility</span> · <span th:text="${#strings.toLowerCase((v.lines.^[row.purposeCode != 'BTG'] ?: v.lines[0]).row.purposeLabel)}">treatment</span> · <span th:text="#{patient.visit.stats(${v.events}, ${v.people}, ${v.systems})}">n events</span></span>
     </div>
     <div class="pt-visit-date"><span th:text="${tf.dayRange(v.start, v.end)}">Thu 22 Oct 2026</span> · <span th:text="${tf.agoRange(v.start, v.end)}">1 day ago</span>
-      <th:block th:if="${v.encounter != null}"> · <span class="mono" th:text="${v.encounter.replace('Encounter/', '')}">E-1</span></th:block></div>
+      <th:block th:if="${v.encounter != null}"> · <a class="mono" th:href="@{/encounter/{eid}(eid=${v.encounter.replace('Encounter/', '')},patient=${patientId})}" th:text="${v.encounter.replace('Encounter/', '')}">E-1</a></th:block></div>
   </div>
 
   <div class="pt-btg" th:each="b : ${v.breakGlass}">

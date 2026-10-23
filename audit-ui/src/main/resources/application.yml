@@ -24,7 +24,7 @@ spring:
       schema-locations: classpath:schema.sql
   messages:
     # one file per screen, so screens can be built side by side: messages.properties is shared, the others belong to one screen
-    basename: messages,messages-overview,messages-reviews,messages-breakglass,messages-alerts,messages-reports,messages-people,messages-health,messages-admin,messages-access,messages-find,messages-settings
+    basename: messages,messages-overview,messages-reviews,messages-breakglass,messages-alerts,messages-reports,messages-people,messages-health,messages-admin,messages-access,messages-find,messages-settings,messages-clinical
     encoding: UTF-8
     fallback-to-system-locale: false
   thymeleaf:

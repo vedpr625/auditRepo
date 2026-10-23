@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}"
       th:attr="data-theme=${prefs.themeAttr()},data-density=${prefs.densityAttr()}">
-<head th:replace="~{fragments/layout :: headx(#{patient.title}, 'page-patient.css')}"></head>
+<head th:replace="~{fragments/layout :: headx(#{patient.title}, 'page-clinical.css')}"></head>
 <body>
 <th:block th:replace="~{fragments/layout :: header('people')}"></th:block>
 <main id="main" class="page">
@@ -34,9 +34,9 @@
     <section class="panel pt-head" aria-labelledby="p-name">
       <span class="avatar avatar-lg pt-avatar" aria-hidden="true" th:text="${initials}">KM</span>
       <div>
-        <h1 id="p-name" th:if="${state == 'shown' and info != null}" th:text="${#strings.replace(info.name, ' (demo)', '')}">Name</h1>
-        <h1 id="p-name" th:unless="${state == 'shown' and info != null}" class="mono" th:text="${patientId}">P-1</h1>
-        <span class="sub" th:if="${state == 'shown' and info != null}"><span th:text="#{patient.word}">Patient</span> <span class="mono" th:text="${patientId}">P-1</span>
+        <h1 id="p-name" th:if="${state == 'shown' and info != null and info.name != null}" th:text="${#strings.replace(info.name, ' (demo)', '')}">Name</h1>
+        <h1 id="p-name" th:unless="${state == 'shown' and info != null and info.name != null}" class="mono" th:text="${patientId}">P-1</h1>
+        <span class="sub" th:if="${state == 'shown' and info != null and info.name != null}"><span th:text="#{patient.word}">Patient</span> <span class="mono" th:text="${patientId}">P-1</span>
           <th:block th:if="${ageYears != null}"> · <span th:text="#{patient.age.years(${ageYears})}">41 years</span></th:block>
           <th:block th:if="${sexLabel != null}"> · <span th:text="${sexLabel}">Male</span></th:block>
           <th:block th:if="${nic != null}"> · <span th:text="#{patient.nic}">NIC</span> <span th:text="${nic}">ending 4821</span></th:block></span>
@@ -57,7 +57,14 @@
     <div class="notice notice-warn" th:if="${state == 'shown' and registryMissing == true}" th:text="#{patient.registry.missing}">Not in registry</div>
     <div class="notice notice-bad" role="alert" th:if="${state == 'shown' and registryDown == true}" th:text="#{patient.registry.down}">Registry not answering</div>
 
-    <div class="split">
+    <th:block th:replace="~{fragments/clinical :: tabs}"></th:block>
+
+    <th:block th:if="${tab == 'clinical'}"><th:block th:replace="~{fragments/clinical :: clinical360}"></th:block></th:block>
+    <th:block th:if="${tab == 'encounters'}"><th:block th:replace="~{fragments/clinical :: encounters}"></th:block></th:block>
+    <th:block th:if="${tab == 'access'}"><th:block th:replace="~{fragments/clinical :: accesslog}"></th:block></th:block>
+    <th:block th:if="${tab == 'consent'}"><th:block th:replace="~{fragments/clinical :: consenttab}"></th:block></th:block>
+
+    <div class="split" th:if="${tab == 'overview'}">
       <section class="panel grow" aria-labelledby="p-visits">
         <div class="panel-head"><h3 id="p-visits" th:text="#{patient.visits}">Visits and who looked</h3>
           <div class="segmented" role="group" th:attr="aria-label=#{patient.window}">
@@ -125,19 +132,7 @@
           </div>
         </section>
 
-        <section class="panel planned" aria-labelledby="p-consent">
-          <div class="panel-head"><h3 id="p-consent" th:text="#{patient.consent.head}">Consent</h3><span class="tag tag-planned" th:text="#{patient.consent.planned}">Planned · AR-08</span></div>
-          <div class="panel-pad stack-sm">
-            <span th:text="#{patient.consent.intro}">Will show whether a valid consent covered each access.</span>
-            <div class="row-wrap pt-consent-now"><span class="sub" th:text="#{patient.consent.now}">This check:</span>
-              <span class="tag" th:classappend="${decision.result.name() == 'PERMIT'} ? 'tag-ok' : (${decision.result.name() == 'UNAVAILABLE'} ? 'tag-warn' : 'tag-bad')"
-                th:text="#{'consent.result.' + ${decision.result.name()}}">Permitted</span>
-              <span class="tag tag-warn tag-sm" th:if="${demo}" th:text="#{demo.tag}">Demo data</span></div>
-            <span class="sub" th:text="#{'consent.reason.' + ${decision.reason ?: 'unknown'}}">reason</span>
-            <span class="sub mono" th:if="${decision.consentId != null}" th:text="${decision.consentId}">id</span>
-            <span class="sub" th:text="#{patient.consent.logged}">This check was recorded.</span>
-          </div>
-        </section>
+        <th:block th:replace="~{fragments/clinical :: consentSummary}"></th:block>
       </div>
     </div>
   </th:block>
