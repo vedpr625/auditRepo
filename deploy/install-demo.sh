@@ -19,9 +19,22 @@ id auditui >/dev/null 2>&1 || sudo useradd --system --home /opt/audit-ui-demo --
 sudo mkdir -p /opt/audit-ui-demo && sudo cp audit-ui/target/audit-ui-1.0.0.jar /opt/audit-ui-demo/audit-ui.jar && sudo chown -R auditui /opt/audit-ui-demo
 sed "s/APP_PORT/$APP_PORT/g; s/MGMT_PORT/$MGMT_PORT/g" deploy/audit-ui-demo.service | sudo tee /etc/systemd/system/audit-ui-demo.service >/dev/null
 sudo systemctl daemon-reload && sudo systemctl enable audit-ui-demo && sudo systemctl restart audit-ui-demo
-sed "s/DEMO_HOST/$HOST/g; s/APP_PORT/$APP_PORT/g" deploy/nginx-audit-ui-demo.conf | sudo tee /etc/nginx/sites-available/audit-ui-demo >/dev/null
+SITE=/etc/nginx/sites-available/audit-ui-demo
+if sudo grep -q "ssl_certificate" "$SITE" 2>/dev/null; then
+  # certbot has already added the HTTPS part: keep it, only make sure it points at this app's port (never rewrite the file, that would drop https)
+  sudo sed -i -E "s#proxy_pass http://127\.0\.0\.1:[0-9]+;#proxy_pass http://127.0.0.1:$APP_PORT;#" "$SITE"
+  echo "Kept the existing HTTPS settings in $SITE and set the app port to $APP_PORT"
+else
+  sed "s/DEMO_HOST/$HOST/g; s/APP_PORT/$APP_PORT/g" deploy/nginx-audit-ui-demo.conf | sudo tee "$SITE" >/dev/null
+fi
 sudo ln -sf /etc/nginx/sites-available/audit-ui-demo /etc/nginx/sites-enabled/audit-ui-demo
 sudo nginx -t && sudo systemctl reload nginx
 echo "Waiting for the app to start..."
 for i in $(seq 1 30); do sleep 2; curl -s http://127.0.0.1:$APP_PORT/login | grep -q DEMONSTRATION && { echo "OK: the DEMO answers on port $APP_PORT"; break; }; [ $i = 30 ] && { echo "The demo did not answer. See: sudo journalctl -u audit-ui-demo -n 50 --no-pager"; exit 1; }; done
-echo "Next: DNS for $HOST must point here, then:  sudo certbot --nginx -d $HOST   (if it offers to reuse an existing certificate, choose 1)"
+if ! sudo grep -q "ssl_certificate" "$SITE"; then
+  echo "Adding HTTPS for $HOST (needs DNS pointing here and port 80 open)..."
+  sudo certbot --nginx -d "$HOST" --cert-name "$HOST" --redirect --reinstall --non-interactive --agree-tos --register-unsafely-without-email \
+    && sudo nginx -t && sudo systemctl reload nginx \
+    || echo "certbot did not finish. Run by hand:  sudo certbot --nginx -d $HOST --cert-name $HOST --redirect   (if it offers to reinstall the existing certificate, choose 1)"
+fi
+echo "Check:  curl -s https://$HOST/login | grep -o 'DEMONSTRATION[^<]*'"
