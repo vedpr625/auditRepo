@@ -14,6 +14,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.Instant;
 
+import com.akhester.auditui.access.AccessRequestRepository;
+import com.akhester.auditui.access.Masking;
+import com.akhester.auditui.access.SensitivePatients;
+import com.akhester.auditui.activity.ConsoleActivity;
 import com.akhester.auditui.admin.SendingSystemRepository;
 import com.akhester.auditui.consent.ConsentClient;
 import com.akhester.auditui.people.FacilityDirectory;
@@ -55,11 +59,17 @@ public class PatientController {
     private final com.akhester.auditui.prefs.PrefsContext prefsContext;
     private final FacilityDirectory facilities;
     private final SendingSystemRepository systems;
+    private final SensitivePatients sensitive;
+    private final AccessRequestRepository requests;
+    private final ConsoleActivity activity;
+    private final Masking masking;
 
     public PatientController(AuditEventService audit, ConsentClient consent, ConsentLogRepository consentLog, RegistryClient registry,
-                             com.akhester.auditui.prefs.PrefsContext prefsContext, FacilityDirectory facilities, SendingSystemRepository systems) {
+                             com.akhester.auditui.prefs.PrefsContext prefsContext, FacilityDirectory facilities, SendingSystemRepository systems,
+                             SensitivePatients sensitive, AccessRequestRepository requests, ConsoleActivity activity, Masking masking) {
         this.audit = audit; this.consent = consent; this.consentLog = consentLog; this.registry = registry;
         this.prefsContext = prefsContext; this.facilities = facilities; this.systems = systems;
+        this.sensitive = sensitive; this.requests = requests; this.activity = activity; this.masking = masking;
     }
 
     @GetMapping("/patient")
@@ -76,6 +86,14 @@ public class PatientController {
         if (!ID.matcher(id).matches()) { model.addAttribute("state", "notfound"); return "patient"; }
         String ref = "Patient/" + id;
         model.addAttribute("patientId", id);
+        if (sensitive.restrictedFor(id)) {
+            // A restricted record: nothing about the patient is read (not Chester, not the registry), only the request is possible.
+            String u = PrefsContext.username();
+            model.addAttribute("state", "restricted");
+            model.addAttribute("pending", u != null && requests.hasPending(u, ref));
+            activity.record(ConsoleActivity.KIND_PATIENT, "Tried to open a restricted record", "Shown the restricted card, no details", id);
+            return "patient";
+        }
         String window = "90".equals(days) ? "90" : "all".equals(days) ? "all" : "30";
         model.addAttribute("window", window);
         java.time.ZoneId zone = prefsContext.forRequest(request).zone();
@@ -139,6 +157,23 @@ public class PatientController {
         model.addAttribute("total", total);
         model.addAttribute("fnames", fnames);
         model.addAttribute("canReview", Who.canReview());
+        // visits that match a registry stay come first; access that matches no stay follows, folded away
+        model.addAttribute("visitsRecorded", visits.stream().filter(Visits.Visit::recorded).toList());
+        model.addAttribute("visitsOther", visits.stream().filter(v -> !v.recorded()).toList());
+        model.addAttribute("otherEvents", visits.stream().filter(v -> !v.recorded()).mapToInt(Visits.Visit::events).sum());
+        if (info != null) {
+            model.addAttribute("ageYears", info.birthDate() == null ? null : java.time.Period.between(info.birthDate(), java.time.LocalDate.now()).getYears());
+            model.addAttribute("sexLabel", info.sex() == null ? null : info.sex().substring(0, 1).toUpperCase() + info.sex().substring(1));
+            model.addAttribute("nic", masking.nic(info.idMasked(), "ending"));
+            RegistryClient.Stay last = info.stays().stream().max(java.util.Comparator.comparing(RegistryClient.Stay::from)).orElse(null);
+            model.addAttribute("lastStay", last);
+            model.addAttribute("regUpdated", last == null ? null : (last.to() != null ? last.to() : last.from()));
+        }
+        model.addAttribute("refusedWhere", visits.stream().filter(v -> v.refused() > 0).map(v -> v.ward() != null ? v.ward() : v.facilityName()).distinct().limit(2)
+            .collect(java.util.stream.Collectors.joining(", ")));
+        boolean restrictedRecord = sensitive.isSensitive(id);   // only a privacy officer gets here
+        model.addAttribute("restrictedRecord", restrictedRecord);
+        activity.record(ConsoleActivity.KIND_PATIENT, "Opened patient " + id, restrictedRecord ? "Restricted record, opened by a privacy officer" : null, id);
         model.addAttribute("state", d.permitted() ? "shown" : "withheld");
         return "patient";
     }

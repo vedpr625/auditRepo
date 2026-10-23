@@ -73,7 +73,7 @@ class ConsoleUnitTest {
     /** Every message key a template or Java class asks for must exist in the English file. */
     @Test void everyUsedMessageKeyExistsInEnglish() throws IOException {
         Properties en = new Properties();
-        for (String f : List.of("", "-overview", "-reviews", "-breakglass", "-alerts", "-reports", "-people", "-health", "-admin")) {
+        for (String f : List.of("", "-overview", "-reviews", "-breakglass", "-alerts", "-reports", "-people", "-health", "-admin", "-access")) {
             try (InputStream in = getClass().getResourceAsStream("/messages" + f + ".properties")) {
                 if (in != null) en.load(new java.io.InputStreamReader(in, java.nio.charset.StandardCharsets.UTF_8));
             }

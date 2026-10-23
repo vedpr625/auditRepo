@@ -151,7 +151,7 @@
               <p class="sub" th:if="${sel.reopenOf != null}"><span th:text="#{reviews.reopen.of}">Reopened from</span> <a th:href="@{/reviews(case=${sel.reopenOf})}" th:text="${sel.reopenOf}">C-1</a></p>
               <p class="sub" th:if="${!#lists.isEmpty(reopenedBy)}"><span th:text="#{reviews.reopen.by}">Reopened as</span> <a th:each="r : ${reopenedBy}" th:href="@{/reviews(case=${r})}" th:text="${r}">C-2</a></p>
               <div class="rv-actions">
-                <span class="btn btn-planned" aria-disabled="true" role="button" tabindex="0"><span th:text="#{reviews.evidence}">Download evidence pack (PDF)</span> <span class="tag tag-planned tag-sm" th:text="#{common.planned}">Planned</span></span>
+                <a class="btn" th:href="@{/reviews/{id}/evidence.pdf(id=${sel.id})}" th:text="#{reviews.evidence}">Download evidence pack (PDF)</a>
                 <form th:if="${canReview}" th:action="@{/reviews/{id}/reopen(id=${sel.id})}" method="post"><button class="btn" type="submit" th:text="#{reviews.reopen}">Reopen as new case</button></form>
               </div>
             </th:block>

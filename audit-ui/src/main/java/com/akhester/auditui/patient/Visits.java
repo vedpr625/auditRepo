@@ -23,22 +23,40 @@ final class Visits {
 
     /** kind: outpatient | inpatient | emergency | other. ward is set only when a registry stay matched. */
     record Visit(String key, String kind, String ward, String facility, String facilityName, Instant start, Instant end, String encounter,
-                 int events, int people, int systems, int ok, int refused, boolean emergency, List<PatientController.Line> lines, List<PatientController.Line> breakGlass) {}
+                 int events, int people, int systems, int ok, int refused, boolean emergency, List<PatientController.Line> lines, List<PatientController.Line> breakGlass, boolean recorded) {}
 
     record Looker(String name, String role, String facilityName, int count) {}
 
     record Flags(int breakGlass, int breakGlassDecided, int breakGlassWaiting, int refused, int noLink, int unknownLink) {}
 
+    /**
+     * Visits, newest first. Records are first grouped by encounter (or by facility and day when there is none); groups that fall inside the same registry
+     * stay are then merged, so a lab record or a pharmacy record sent during the stay joins it. {@code recorded} is true for a visit that matches a stay.
+     */
     static List<Visit> group(List<PatientController.Line> lines, RegistryClient.PatientInfo info, Function<String, String> facilityName, ZoneId zone) {
-        Map<String, List<PatientController.Line>> groups = new LinkedHashMap<>();
+        // 1. a record that falls inside a registry stay (same facility, dates a day either side) belongs to that stay; the encounter it carries then
+        //    also pulls in records of other systems (lab, pharmacy) that carry the same encounter but sit at another facility
+        Map<PatientController.Line, RegistryClient.Stay> own = new java.util.IdentityHashMap<>();
+        Map<String, RegistryClient.Stay> encStay = new LinkedHashMap<>();
+        for (PatientController.Line l : lines) {
+            Instant t = l.row().getRecordedInstant();
+            RegistryClient.Stay s = info == null || t == null ? null : match(info, l.row().getFacility(), t, t);
+            if (s != null) { own.put(l, s); if (l.row().getEncounterRef() != null) encStay.putIfAbsent(l.row().getEncounterRef(), s); }
+        }
+        Map<String, List<PatientController.Line>> merged = new LinkedHashMap<>();
+        Map<String, RegistryClient.Stay> stayOf = new LinkedHashMap<>();
         for (PatientController.Line l : lines) {
             AuditRow r = l.row();
-            String key = r.getEncounterRef() != null ? r.getEncounterRef()
-                : (r.getFacility() + "@" + (r.getRecordedInstant() == null ? "?" : r.getRecordedInstant().atZone(zone).toLocalDate()));
-            groups.computeIfAbsent(key, k -> new ArrayList<>()).add(l);
+            RegistryClient.Stay s = own.get(l);
+            if (s == null && r.getEncounterRef() != null && (r.getFacility() == null || !r.getFacility().startsWith("Device/hhims"))) s = encStay.get(r.getEncounterRef());   // lab, pharmacy and similar systems join the stay; another hospital does not
+            String key = s != null ? "stay:" + s.facilityRef() + "@" + s.from()
+                : r.getEncounterRef() != null ? r.getEncounterRef() + "@" + r.getFacility()
+                : r.getFacility() + "@" + (r.getRecordedInstant() == null ? "?" : r.getRecordedInstant().atZone(zone).toLocalDate());
+            merged.computeIfAbsent(key, k -> new ArrayList<>()).add(l);
+            if (s != null) stayOf.put(key, s);
         }
         List<Visit> out = new ArrayList<>();
-        for (Map.Entry<String, List<PatientController.Line>> g : groups.entrySet()) {
+        for (Map.Entry<String, List<PatientController.Line>> g : merged.entrySet()) {
             List<PatientController.Line> ls = new ArrayList<>(g.getValue());
             ls.sort(Comparator.comparing((PatientController.Line l) -> l.row().getRecordedInstant(), Comparator.nullsFirst(Comparator.naturalOrder())).reversed());
             Instant start = null, end = null;
@@ -47,6 +65,7 @@ final class Visits {
             int ok = 0, refused = 0;
             boolean emergency = false;
             List<PatientController.Line> btg = new ArrayList<>();
+            String encounter = null;
             for (PatientController.Line l : ls) {
                 AuditRow r = l.row();
                 Instant t = r.getRecordedInstant();
@@ -57,18 +76,19 @@ final class Visits {
                 if (r.getOutcomeCode() == null || "0".equals(r.getOutcomeCode())) ok++; else refused++;
                 if (r.isEtreatOrBtg()) emergency = true;
                 if (r.isBreakGlass()) btg.add(l);
+                if (encounter == null && r.getEncounterRef() != null) encounter = r.getEncounterRef();
             }
-            String facility = fac.entrySet().stream().max(Map.Entry.comparingByValue()).map(Map.Entry::getKey).orElse(null);
+            RegistryClient.Stay stay = stayOf.get(g.getKey());
+            String facility = stay != null ? stay.facilityRef() : fac.entrySet().stream().max(Map.Entry.comparingByValue()).map(Map.Entry::getKey).orElse(null);
             String kind = emergency ? "emergency" : "other";
             String ward = null;
-            RegistryClient.Stay stay = info == null || start == null ? null : match(info, facility, start, end);
             if (stay != null) {
                 ward = stay.ward();
                 String w = ward == null ? "" : ward.toLowerCase();
                 kind = w.startsWith("opd") ? "outpatient" : (w.contains("casualty") || w.contains("emergency")) ? "emergency" : "inpatient";
             }
-            out.add(new Visit(g.getKey(), kind, ward, facility, facilityName.apply(facility), start, end, ls.get(0).row().getEncounterRef(),
-                ls.size(), who.size(), sys.size(), ok, refused, emergency, ls, btg));
+            out.add(new Visit(g.getKey(), kind, ward, facility, facilityName.apply(facility), start, end, encounter,
+                ls.size(), who.size(), sys.size(), ok, refused, emergency, ls, btg, stay != null));
         }
         out.sort(Comparator.comparing(Visit::end, Comparator.nullsFirst(Comparator.naturalOrder())).reversed());
         return out;
@@ -79,8 +99,10 @@ final class Visits {
         if (facility == null) return null;
         for (RegistryClient.Stay s : info.stays()) {
             if (!facility.equals(s.facilityRef())) continue;
-            Instant from = s.from() == null ? Instant.MIN : s.from().minus(Duration.ofDays(1));
-            Instant to = s.to() == null ? Instant.now().plus(Duration.ofDays(1)) : s.to().plus(Duration.ofDays(1));
+            // a stay lasting under a day (an outpatient visit) gets half a day either side, a longer one a day
+            Duration slack = s.to() != null && s.from() != null && Duration.between(s.from(), s.to()).compareTo(Duration.ofDays(1)) < 0 ? Duration.ofHours(12) : Duration.ofDays(1);
+            Instant from = s.from() == null ? Instant.MIN : s.from().minus(slack);
+            Instant to = s.to() == null ? Instant.now().plus(slack) : s.to().plus(slack);
             if (!start.isBefore(from) && !(end == null ? start : end).isAfter(to)) return s;
         }
         return null;

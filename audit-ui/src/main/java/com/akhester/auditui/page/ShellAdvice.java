@@ -22,7 +22,7 @@ import com.akhester.auditui.prefs.UserPrefs;
 import jakarta.servlet.http.HttpServletRequest;
 
 /** Puts what every page's header needs into the model: the person, their role, preferences and the time formatter. */
-@ControllerAdvice(basePackages = {"com.akhester.auditui.page", "com.akhester.auditui.admin", "com.akhester.auditui.health", "com.akhester.auditui.overview", "com.akhester.auditui.patient", "com.akhester.auditui.reviews", "com.akhester.auditui.breakglass", "com.akhester.auditui.alerts", "com.akhester.auditui.reports", "com.akhester.auditui.people"}, assignableTypes = {AuditController.class, MonitorController.class})
+@ControllerAdvice(basePackages = {"com.akhester.auditui.page", "com.akhester.auditui.admin", "com.akhester.auditui.health", "com.akhester.auditui.overview", "com.akhester.auditui.patient", "com.akhester.auditui.reviews", "com.akhester.auditui.breakglass", "com.akhester.auditui.alerts", "com.akhester.auditui.reports", "com.akhester.auditui.people", "com.akhester.auditui.access", "com.akhester.auditui.activity"}, assignableTypes = {AuditController.class, MonitorController.class})
 public class ShellAdvice {
 
     /** Roles worth naming in the header, most powerful first. */

@@ -118,6 +118,21 @@ public class DemoChester {
         return out(HttpStatus.OK, b);
     }
 
+    /**
+     * The console records its own activity here (who searched, opened a patient, downloaded a report, decided a case). Any signed-in person's
+     * token may write, because the console writes on that person's behalf; the real Chester will need a write role for the console (open question).
+     */
+    @org.springframework.web.bind.annotation.PostMapping(value = "/AuditEvent", consumes = {"application/fhir+json", "application/json"})
+    public ResponseEntity<String> create(@org.springframework.web.bind.annotation.RequestBody String body, @RequestHeader(value = "Authorization", required = false) String auth) {
+        Caller c = caller(auth);
+        if (!c.allowed() && c.roles().stream().allMatch(String::isBlank)) return refuse(403, "Access denied by rule: default deny");
+        AuditEvent e;
+        try { e = ctx.newJsonParser().parseResource(AuditEvent.class, body); } catch (RuntimeException ex) { return refuse(400, "Not a valid AuditEvent"); }
+        AuditEvent saved = data.append(e);
+        return ResponseEntity.status(HttpStatus.CREATED).contentType(FHIR).header("Location", "AuditEvent/" + saved.getIdElement().getIdPart() + "/_history/1")
+            .body(ctx.newJsonParser().encodeResourceToString(saved));
+    }
+
     @GetMapping("/AuditEvent/{id}")
     public ResponseEntity<String> read(@PathVariable String id, @RequestHeader(value = "Authorization", required = false) String auth) {
         Caller c = caller(auth);

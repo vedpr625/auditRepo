@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}"
+      th:attr="data-theme=${prefs.themeAttr()},data-density=${prefs.densityAttr()}">
+<head th:replace="~{fragments/layout :: headx(#{access.title}, 'page-access.css')}"></head>
+<body>
+<th:block th:replace="~{fragments/layout :: header('access')}"></th:block>
+<main id="main" class="page">
+  <div class="acc-head">
+    <h1 th:text="#{access.h1}">Who can do what, and how the console earns trust</h1>
+    <p th:text="#{access.lede}">These screens answer what a third-party auditor will ask first.</p>
+  </div>
+
+  <div class="acc-grid">
+    <!-- Roles -->
+    <section class="panel" aria-labelledby="acc-roles">
+      <div class="panel-head"><h3 id="acc-roles" th:text="#{access.roles.head}">Roles (set in Keycloak, enforced in the console)</h3><span class="acc-first" th:text="#{access.first}">First release</span></div>
+      <div class="table-wrap">
+        <table class="table acc-roles">
+          <thead><tr><th th:text="#{access.col.can}">Can</th>
+            <th th:each="r : ${roles}" th:classappend="${mine.contains(r)} ? 'you'" th:text="#{'access.role.' + ${r}}">Role</th></tr></thead>
+          <tbody>
+            <tr th:each="row : ${rows}">
+              <td><span th:text="#{'access.row.' + ${row.key}}">Row</span>
+                <span class="sub" th:if="${row.twoLines}" th:text="#{'access.row.' + ${row.key} + '.sub'}">Sub</span></td>
+              <td th:each="lv, st : ${row.levels}" th:classappend="${mine.contains(roles[st.index])} ? 'you'">
+                <span th:class="${lv == 'yes' or lv == 'second'} ? 'acc-yes' : (${lv == 'own'} ? 'acc-own' : 'acc-no')" th:if="${lv != 'planned'}" th:text="#{'access.lvl.' + ${lv}}">Yes</span>
+                <span class="tag tag-planned tag-sm" th:if="${lv == 'planned'}" th:text="#{access.lvl.planned}">Planned</span>
+              </td>
+            </tr>
+            <tr>
+              <td><span th:text="#{access.row.facility}">Facility-only view</span><span class="sub" th:text="#{access.row.facility.sub}">A facility auditor sees only their own facility</span></td>
+              <td colspan="4"><span class="tag tag-planned" th:text="#{access.facility.planned}">Demo</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="acc-foot"><span th:utext="#{access.restricted.note}">A sensitive patient shows a name-less card.</span>
+        <th:block th:if="${!#lists.isEmpty(sensitiveIds)}"><br><span class="sub" th:text="#{access.restricted.ids(${#strings.listJoin(sensitiveIds, ', ')})}">ids</span></th:block>
+        <span class="sub" th:unless="${!#lists.isEmpty(sensitiveIds)}" th:text="#{access.restricted.count(${sensitiveCount})}">2 patients are marked</span>
+        <span class="tag tag-planned tag-sm" th:text="#{access.restricted.planned}">Demo list</span></div>
+    </section>
+
+    <!-- Activity log preview -->
+    <section class="panel" aria-labelledby="acc-log">
+      <div class="panel-head"><h3 id="acc-log" th:text="#{access.log.head}">Console activity log (who watched the watchers)</h3><span class="acc-first" th:text="#{access.first}">First release</span></div>
+      <div class="panel-pad"><p class="sub" th:text="#{access.log.text}">Every search, patient page opened, report download and decision is recorded here.</p></div>
+      <div class="table-wrap" th:if="${!#lists.isEmpty(recent)}">
+        <table class="table table-plain acc-log">
+          <thead><tr><th th:text="#{activity.col.when}">When</th><th th:text="#{activity.col.who}">Who</th><th th:text="#{activity.col.what}">What</th></tr></thead>
+          <tbody>
+            <tr th:each="e : ${recent}"><td><span class="mono" th:text="${tf.clockSeconds(e.at)}">10:21:40 IST</span><span class="sub" th:text="${tf.relative(e.at)}">2 min ago</span></td><td th:text="${e.username}">name</td>
+              <td><span th:text="${e.summary}">What</span><span class="sub" th:if="${e.detail != null}" th:text="${e.detail}">detail</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="acc-foot">
+        <span th:text="#{access.log.chester}">These records are written to Chester as audit events too.</span>
+        <a th:if="${canActivity}" th:href="@{/activity}"><b th:text="#{access.log.open}">Open the full log</b></a>
+        <span class="sub" th:unless="${canActivity}" th:text="#{access.log.noaccess}">Only privacy officers and ministry auditors can open the log.</span>
+      </div>
+    </section>
+  </div>
+
+  <div class="acc-grid mt-3">
+    <section class="panel" aria-labelledby="acc-sess">
+      <div class="panel-head"><h3 id="acc-sess" th:text="#{access.session.head}">Session ends</h3><span class="acc-first" th:text="#{access.first}">First release</span></div>
+      <div class="state">
+        <div class="state-icon warn" aria-hidden="true">&#9201;</div>
+        <h2 th:text="#{access.session.title(#{access.session.minutes(2)})}">You will be signed out in 2 minutes</h2>
+        <p th:text="#{access.session.idle(${timeoutMinutes - 2 > 0 ? timeoutMinutes - 2 : 0})}">No activity.</p>
+        <div class="row" style="justify-content:center"><span class="btn btn-primary" aria-hidden="true" th:text="#{access.session.stay}">Stay signed in</span><span class="btn" aria-hidden="true" th:text="#{access.session.out}">Sign out now</span></div>
+      </div>
+      <div class="acc-foot" th:text="#{access.session.note(${timeoutMinutes})}">Sessions end after 30 minutes without activity.</div>
+    </section>
+    <section class="panel" aria-labelledby="acc-out">
+      <div class="panel-head"><h3 id="acc-out" th:text="#{access.out.head}">Signed out</h3><span class="acc-first" th:text="#{access.first}">First release</span></div>
+      <div class="state">
+        <div class="state-icon bad" aria-hidden="true">!</div>
+        <h2 th:text="#{access.out.title}">Your sign-in has expired</h2>
+        <p th:text="#{access.out.text}">Sign in again to carry on.</p>
+        <a class="btn btn-primary" th:href="@{/signed-out}" th:text="#{access.out.open}">Open this page</a>
+      </div>
+      <div class="acc-foot" th:text="#{access.out.note}">Shown when a session ends.</div>
+    </section>
+  </div>
+</main>
+</body>
+</html>

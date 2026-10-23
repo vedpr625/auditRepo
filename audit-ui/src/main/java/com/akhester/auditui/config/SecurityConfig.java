@@ -71,7 +71,7 @@ public class SecurityConfig {
         http
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/login", "/error", "/css/**", "/js/**", "/favicon.ico").permitAll()
+                .requestMatchers("/login", "/signed-out", "/error", "/css/**", "/js/**", "/fonts/**", "/favicon.ico").permitAll()
                 // only UI admins may change review status (MVC form and REST)
                 .requestMatchers(HttpMethod.POST, "/audit/review/**", "/api/v1/audit-events/*/review").hasAnyRole("ADMIN", "MINISTRY_AUDITOR", "PRIVACY_OFFICER")
                 // fake registry / consent manager: exist only in demo mode (404 otherwise), called by this app itself
@@ -88,6 +88,8 @@ public class SecurityConfig {
                 // everything else, including /api/** and Swagger, needs a login
                 .anyRequest().authenticated()
             )
+            // a request that carries an ended session goes to the "Your sign-in has expired" page
+            .sessionManagement(sm -> sm.invalidSessionUrl("/signed-out"))
             .oauth2Login(o -> o
                 .loginPage("/login")
                 .defaultSuccessUrl("/overview", true)

@@ -13,6 +13,7 @@ spring:
 audit:
   ui:
     demo: true
+    sensitive-patient-ids: ${AUDIT_UI_SENSITIVE_PATIENTS:P-00112,P-00109}   # DEMO: two made-up restricted patients
     registry-base-url: ${AUDIT_UI_DEMO_SELF:http://127.0.0.1:${server.port}}/demo/registry
     consent-base-url: ${AUDIT_UI_DEMO_SELF:http://127.0.0.1:${server.port}}/demo/consent
 chester:

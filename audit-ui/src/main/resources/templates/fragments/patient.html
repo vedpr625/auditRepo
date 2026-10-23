@@ -3,46 +3,58 @@
 <body>
 <!-- one event inside a visit (patient page). Usage: <th:block th:replace="~{fragments/patient :: event(${line})}"></th:block> -->
 <li th:fragment="event(l)">
-  <div><th:block th:replace="~{fragments/layout :: when(${l.row.recordedInstant})}"></th:block></div>
+  <div><span class="mono" th:if="${tf.showExact}" th:text="${tf.clock(l.row.recordedInstant)}">09:41 IST</span>
+    <span class="sub" th:if="${tf.showRelative}" th:text="${tf.relative(l.row.recordedInstant)}">1 day ago</span>
+    <span class="sub mono" th:if="${tf.showUtc}" th:text="${tf.utc(l.row.recordedInstant)}">UTC</span></div>
   <div><span th:text="${l.row.agentName}">Dr. N. Perera</span><span class="sub" th:text="#{'people.role.' + ${l.role}}">Practitioner</span></div>
-  <div><span th:text="#{'patient.what.' + ${l.row.action ?: 'R'}}">Viewed record</span> <span class="tag tag-btg tag-sm" th:if="${l.row.breakGlass}" th:text="#{patient.visit.btg}">Break-glass</span></div>
+  <div><span th:text="${#messages.msgOrNull('patient.what.' + (l.row.action ?: 'R') + '.' + l.row.submittedBy) ?: #messages.msg('patient.what.' + (l.row.action ?: 'R'))}">Viewed patient record</span> <span class="tag tag-btg tag-sm" th:if="${l.row.breakGlass}" th:text="#{patient.visit.btg}">Break-glass</span></div>
   <div><span th:text="${l.row.submittedBy == null} ? '—' : ${systemNames.getOrDefault(l.row.submittedBy, l.row.submittedBy)}">HHIMS</span>
     <span class="tag tag-bad tag-sm" th:if="${l.link == 'none'}" th:text="#{patient.link.none}">No link</span>
     <span class="tag tag-off tag-sm" th:if="${l.link == 'unknown'}" th:text="#{patient.link.unknown}">Unknown</span></div>
   <div><span class="tag" th:classappend="${l.row.outcomeCode == null or l.row.outcomeCode == '0'} ? 'tag-ok' : 'tag-bad'" th:text="${l.row.outcomeCode == null or l.row.outcomeCode == '0'} ? #{patient.outcome.ok} : #{patient.outcome.refused}">OK</span></div>
 </li>
-        <article class="pt-visit" th:fragment="visit(v)">
-          <div class="pt-visit-head">
-            <span class="pt-dot" th:classappend="${v.kind == 'emergency'} ? 'emergency'" aria-hidden="true"></span>
-            <div class="grow">
-              <div class="pt-visit-title"><span th:text="#{'patient.visit.' + ${v.kind}}">Visit</span><th:block th:if="${v.ward != null}"> · <span th:text="${v.ward}">Ward</span></th:block></div>
-              <span class="sub"><span th:text="${v.facilityName}">Facility</span> · <span th:text="${v.lines[0].row.purposeLabel}">Treatment</span> · <span th:text="#{patient.visit.stats(${v.events}, ${v.people}, ${v.systems})}">n events</span></span>
-              <span class="row-wrap mt-1" th:if="${v.refused > 0 or v.events > 3}">
-                <span class="tag tag-ok" th:text="#{patient.visit.ok(${v.ok})}">OK</span>
-                <span class="tag tag-bad" th:if="${v.refused > 0}" th:text="#{patient.visit.refused(${v.refused})}">refused</span>
-              </span>
-            </div>
-            <div class="pt-visit-date"><th:block th:replace="~{fragments/layout :: when(${v.end})}"></th:block>
-              <span class="mono" th:if="${v.encounter != null}" th:text="${v.encounter.replace('Encounter/', '')}">E-1</span></div>
-          </div>
 
-          <div class="pt-btg" th:each="b : ${v.breakGlass}">
-            <span class="tag tag-btg tag-sm" th:text="#{patient.visit.btg}">Break-glass</span>
-            <th:block th:text="#{patient.visit.btg.text(${b.row.agentName}, ${tf.exact(b.row.recordedInstant)})}">Name opened</th:block>
-            <th:block th:if="${b.row.breakGlassReason != null}" th:text="#{patient.visit.btg.reason(${tf.exact(b.row.reasonGivenAt)}, ${b.reasonMinutes}, ${b.row.breakGlassReason})}">Reason</th:block>
-            <th:block th:if="${b.row.breakGlassReason == null}" th:text="#{patient.visit.btg.noreason}">No reason</th:block>
-            <b th:text="#{'patient.visit.btg.review.' + ${b.row.reviewStatus ?: 'pending'}}">Reviewed.</b>
-          </div>
+<!-- one visit. open = show the first three events straight away (the newest visit); otherwise they sit behind "Show all N events". -->
+<article class="pt-visit" th:fragment="visit(v, open)">
+  <div class="pt-visit-head">
+    <span class="pt-dot" th:classappend="${v.kind == 'emergency'} ? 'emergency' : (${v.recorded} ? '' : 'other')" aria-hidden="true"></span>
+    <div class="grow">
+      <div class="pt-visit-title"><span th:text="#{'patient.visit.' + ${v.kind}}">Visit</span><th:block th:if="${v.ward != null}"> · <span th:text="${v.ward}">Ward</span></th:block></div>
+      <span class="sub"><span th:text="${v.facilityName}">Facility</span> · <span th:text="${#strings.toLowerCase((v.lines.^[row.purposeCode != 'BTG'] ?: v.lines[0]).row.purposeLabel)}">treatment</span> · <span th:text="#{patient.visit.stats(${v.events}, ${v.people}, ${v.systems})}">n events</span></span>
+    </div>
+    <div class="pt-visit-date"><span th:text="${tf.dayRange(v.start, v.end)}">Thu 22 Oct 2026</span> · <span th:text="${tf.agoRange(v.start, v.end)}">1 day ago</span>
+      <th:block th:if="${v.encounter != null}"> · <span class="mono" th:text="${v.encounter.replace('Encounter/', '')}">E-1</span></th:block></div>
+  </div>
 
-          <ul class="pt-events">
-            <th:block th:each="l, st : ${v.lines}"><th:block th:if="${st.index < 3}"><th:block th:replace="~{fragments/patient :: event(${l})}"></th:block></th:block></th:block>
-          </ul>
-          <details class="pt-more" th:if="${#lists.size(v.lines) > 3}">
-            <summary th:text="#{patient.visit.showall(${#lists.size(v.lines)})}">Show all</summary>
-            <ul class="pt-events">
-              <th:block th:each="l, st : ${v.lines}"><th:block th:if="${st.index >= 3}"><th:block th:replace="~{fragments/patient :: event(${l})}"></th:block></th:block></th:block>
-            </ul>
-          </details>
-        </article>
+  <div class="pt-btg" th:each="b : ${v.breakGlass}">
+    <span class="tag tag-btg tag-sm" th:text="#{patient.visit.btg}">Break-glass</span>
+    <th:block th:text="#{patient.visit.btg.text(${b.row.agentName}, ${tf.clock(b.row.recordedInstant)})}">Name opened</th:block>
+    <th:block th:if="${b.row.breakGlassReason != null}" th:text="#{patient.visit.btg.reason(${tf.clock(b.row.reasonGivenAt)}, ${b.reasonMinutes}, ${b.row.breakGlassReason})}">Reason</th:block>
+    <th:block th:if="${b.row.breakGlassReason == null}" th:text="#{patient.visit.btg.noreason}">No reason</th:block>
+    <b th:text="#{'patient.visit.btg.review.' + ${b.row.reviewStatus ?: 'pending'}}">Reviewed: appropriate.</b>
+  </div>
+
+  <th:block th:if="${open}">
+    <ul class="pt-events">
+      <th:block th:each="l, st : ${v.lines}"><th:block th:if="${st.index < 3}"><th:block th:replace="~{fragments/patient :: event(${l})}"></th:block></th:block></th:block>
+    </ul>
+    <details class="pt-more" th:if="${#lists.size(v.lines) > 3}">
+      <summary th:text="#{patient.visit.showall(${#lists.size(v.lines)})}">Show all</summary>
+      <ul class="pt-events">
+        <th:block th:each="l, st : ${v.lines}"><th:block th:if="${st.index >= 3}"><th:block th:replace="~{fragments/patient :: event(${l})}"></th:block></th:block></th:block>
+      </ul>
+    </details>
+  </th:block>
+  <th:block th:unless="${open}">
+    <details class="pt-more pt-more-inline">
+      <summary><span class="tag tag-ok" th:text="#{patient.visit.ok(${v.ok})}">27 OK</span>
+        <span class="tag tag-bad" th:if="${v.refused > 0}" th:text="#{patient.visit.refused(${v.refused})}">2 refused</span>
+        <span class="pt-showall" th:text="#{patient.visit.showall(${#lists.size(v.lines)})}">Show all 29 events</span></summary>
+      <ul class="pt-events">
+        <th:block th:each="l : ${v.lines}"><th:block th:replace="~{fragments/patient :: event(${l})}"></th:block></th:block>
+      </ul>
+    </details>
+  </th:block>
+</article>
 </body>
 </html>

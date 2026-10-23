@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}"
+      th:attr="data-theme=${prefs.themeAttr()},data-density=${prefs.densityAttr()}">
+<head th:replace="~{fragments/layout :: headx(#{activity.title}, 'page-access.css')}"></head>
+<body>
+<th:block th:replace="~{fragments/layout :: header('access')}"></th:block>
+<main id="main" class="page">
+  <div class="breadcrumb"><a th:href="@{/access}" th:text="#{access.title}">Access and trust</a> / <b th:text="#{activity.title}">Console activity log</b></div>
+  <div class="acc-head">
+    <h1 th:text="#{activity.h1}">Console activity log (who watched the watchers)</h1>
+    <p th:text="#{activity.lede}">Every search, patient page opened, report download, decision and rule change in this console is recorded here.</p>
+  </div>
+
+  <section class="panel" aria-labelledby="act-h">
+    <div class="panel-head"><h3 id="act-h" th:text="#{activity.head}">Activity</h3><span class="tag tag-ok" th:text="#{activity.total(${total})}">0 records</span></div>
+    <nav class="acc-kinds" th:attr="aria-label=#{activity.kinds}">
+      <a th:each="k : ${kinds}" th:href="@{/activity(kind=${k})}" th:attr="aria-current=${kind == k} ? 'true' : null" th:text="#{'activity.kind.' + ${k}}">All</a>
+    </nav>
+    <div class="table-wrap">
+      <table class="table acc-log table-cards">
+        <thead><tr><th th:text="#{activity.col.when}">When</th><th th:text="#{activity.col.who}">Who</th><th th:text="#{activity.col.what}">What</th><th th:text="#{activity.col.chester}">In Chester</th></tr></thead>
+        <tbody>
+          <tr th:each="e : ${rows}">
+            <td th:attr="data-label=#{activity.col.when}"><span class="mono" th:text="${tf.clockSeconds(e.at)}">10:21:40 IST</span><span class="sub" th:text="${tf.dayLong(e.at) + ' · ' + tf.relative(e.at)}">Thu 22 Oct 2026 · 2 min ago</span></td>
+            <td th:attr="data-label=#{activity.col.who}"><span th:text="${e.username}">Name</span><span class="sub" th:if="${e.role != null}" th:text="#{'role.' + ${e.role}}">Role</span></td>
+            <td th:attr="data-label=#{activity.col.what}" class="what"><span th:text="${e.summary}">Opened patient</span>
+              <span class="sub" th:if="${e.patientRef != null}"><a th:href="@{/patient/{id}(id=${#strings.replace(e.patientRef, 'Patient/', '')})}" class="mono" th:text="${#strings.replace(e.patientRef, 'Patient/', '')}">P-1</a></span>
+              <span class="sub" th:if="${e.detail != null}" th:text="${e.detail}">detail</span></td>
+            <td th:attr="data-label=#{activity.col.chester}">
+              <span class="acc-chester-ok" th:if="${e.chesterState == 'written'}" th:text="#{activity.chester.written(${e.chesterId})}">Written</span>
+              <span class="acc-chester-bad" th:if="${e.chesterState == 'failed'}" th:text="#{activity.chester.failed}">Not written</span>
+              <span class="sub" th:if="${e.chesterState == 'none'}" th:text="#{activity.chester.none}">Not sent</span></td>
+          </tr>
+          <tr th:if="${#lists.isEmpty(rows)}"><td colspan="4"><span class="sub" th:text="#{activity.empty}">Nothing recorded yet.</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="acc-pager" th:if="${pages > 1}">
+      <a class="btn btn-sm" th:if="${page > 1}" th:href="@{/activity(kind=${kind},page=${page - 1})}" th:text="#{activity.prev}">Newer</a><span th:unless="${page > 1}"></span>
+      <span class="sub" th:text="#{activity.page(${page}, ${pages})}">1 of 3</span>
+      <a class="btn btn-sm" th:if="${page < pages}" th:href="@{/activity(kind=${kind},page=${page + 1})}" th:text="#{activity.next}">Older</a><span th:unless="${page < pages}"></span>
+    </div>
+    <div class="acc-foot" th:text="#{activity.foot}">These records are written to Chester as audit events too.</div>
+  </section>
+
+  <section class="panel mt-3" aria-labelledby="act-req" th:if="${canSeeRequests}">
+    <div class="panel-head"><h3 id="act-req" th:text="#{activity.req.head}">Requests for restricted records</h3><span class="tag tag-planned" th:text="#{activity.req.planned}">Planned</span></div>
+    <div class="table-wrap">
+      <table class="table table-plain">
+        <thead><tr><th th:text="#{activity.col.when}">When</th><th th:text="#{activity.col.who}">Who</th><th th:text="#{activity.req.patient}">Patient</th><th th:text="#{activity.req.status}">Status</th></tr></thead>
+        <tbody>
+          <tr th:each="r : ${requests}"><td><th:block th:replace="~{fragments/layout :: when(${r.at})}"></th:block></td><td th:text="${r.user}">name</td>
+            <td><a class="mono" th:href="@{/patient/{id}(id=${#strings.replace(r.patientRef, 'Patient/', '')})}" th:text="${#strings.replace(r.patientRef, 'Patient/', '')}">P-1</a></td>
+            <td><span class="tag tag-warn" th:text="#{'activity.req.' + ${r.status}}">Pending</span></td></tr>
+          <tr th:if="${#lists.isEmpty(requests)}"><td colspan="4"><span class="sub" th:text="#{activity.req.none}">No requests.</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="acc-foot" th:text="#{activity.req.note}">Deciding on a request is Planned.</div>
+  </section>
+</main>
+</body>
+</html>
