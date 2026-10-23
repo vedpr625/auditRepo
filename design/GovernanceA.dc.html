@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Clinic direction, Access and trust</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0}
+.a{font-family:'IBM Plex Sans','Noto Sans Sinhala','Noto Sans Tamil',sans-serif;color:#1d2a2e;font-size:14px}
+.a *{box-sizing:border-box}
+.a .mono{font-family:'IBM Plex Mono',monospace;font-size:12px}
+.a button{font:inherit;color:inherit}
+.a .box{background:#fff;border:1px solid #d7d9d2;border-radius:10px;overflow:hidden}
+.a .cap{padding:11px 18px;border-bottom:1px solid #e6e7e0;font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:#4b5a5f;font-weight:600;background:#faf9f5;display:flex;justify-content:space-between;align-items:center}
+.a .sub{display:block;color:#4b5a5f;font-size:12.5px}
+.a .tag{display:inline-block;border-radius:4px;padding:2px 8px;font-size:12px;font-weight:600;white-space:nowrap}
+.a .ok{background:#e1f1e6;color:#1b5e33}.a .bad{background:#fbe3e3;color:#9b2226}.a .btg{background:#fff0cf;color:#774400}.a .info{background:#e3f0ee;color:#0b4f4f}.a .pl{background:#eceeea;color:#3d4a4f;border:1px dashed #6f7a76}
+.a th{text-align:left;font-weight:600;font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:#4b5a5f;padding:9px 12px;border-bottom:1px solid #d7d9d2;background:#faf9f5}
+.a td{padding:9px 12px;border-bottom:1px solid #eeeee8;vertical-align:top}
+.a .y{color:#1b5e33;font-weight:600}.a .n{color:#8a948f}
+.a .c{padding:26px 24px;text-align:center}
+.a .ic{width:44px;height:44px;border-radius:50%;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:20px}
+.a .btn{height:38px;padding:0 16px;border-radius:8px;font-weight:600}
+</style>
+</helmet>
+<div class="a" style="width:1360px;height:1500px;background:#f6f5f1;overflow:hidden;padding:24px 28px">
+<h1 style="margin:0 0 4px;font-size:22px;font-weight:600">Who can do what, and how the console earns trust</h1>
+<p style="margin:0 0 18px;color:#4b5a5f">These screens answer what a third-party auditor will ask first: who watches the watchers, who sees which patients, how late data is handled, and whether a decision can be changed afterwards. In the first release roles and users are managed in Keycloak. A Users section in Admin (next release) will do invite, role, disable and password reset from the console.</p>
+
+<div style="display:grid;grid-template-columns:1.15fr 1fr;gap:16px">
+
+<div class="box"><div class="cap"><span>Roles (set in Keycloak, enforced in the console)</span><span class="tag info">First release</span></div>
+<table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr><th>Can</th><th>Reviewer</th><th>Privacy officer</th><th>Auditor, read-only</th><th>Admin</th></tr></thead><tbody>
+<tr><td>Search events and open patients</td><td class="y">Yes</td><td class="y">Yes</td><td class="y">Yes</td><td class="n">No</td></tr>
+<tr><td>Open sensitive patients<span class="sub">Staff, VIPs, marked by the Ministry</span></td><td class="n">No, asks for access</td><td class="y">Yes</td><td class="n">No</td><td class="n">No</td></tr>
+<tr><td>Decide a case (appropriate, follow-up)</td><td class="y">Yes, with a second reviewer</td><td class="y">Yes</td><td class="n">No</td><td class="n">No</td></tr>
+<tr><td>Rule a policy violation</td><td class="n">No, sends on</td><td class="y">Yes</td><td class="n">No</td><td class="n">No</td></tr>
+<tr><td>Download reports</td><td class="y">Yes</td><td class="y">Yes</td><td class="y">Yes</td><td class="n">No</td></tr>
+<tr><td>Change alert rules</td><td class="n">No</td><td class="y">Yes</td><td class="n">No</td><td class="n">No</td></tr>
+<tr><td>Sending systems, registry, settings</td><td class="n">Own preferences only</td><td class="n">Own preferences only</td><td class="n">Own preferences only</td><td class="y">Yes</td></tr>
+<tr><td>Facility-only view<span class="sub">A facility auditor sees only their own facility</span></td><td colspan="4"><span class="tag pl">Planned · scope by facility claim in the login token</span></td></tr>
+</tbody></table>
+<div style="padding:10px 18px;font-size:12.5px;color:#4b5a5f;border-top:1px solid #eeeee8">A sensitive patient shows a name-less card (“Restricted record”) with a button <b>Ask the privacy officer for access</b>. The request itself is recorded.</div>
+</div>
+
+<div class="box"><div class="cap"><span>Console activity log (who watched the watchers)</span><span class="tag info">First release</span></div>
+<div style="padding:12px 18px;font-size:12.5px;color:#4b5a5f;border-bottom:1px solid #eeeee8">Every search, patient page opened, report download and decision in this console is recorded here. Reviewers see this notice on their first sign-in. Only privacy officers and read-only auditors can open this log.</div>
+<table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr><th>When</th><th>Who</th><th>What</th></tr></thead><tbody>
+<tr><td class="mono">10:21:40 IST<span class="sub" style="font-family:'IBM Plex Sans'">2 min ago</span></td><td>Anita Rathnayake</td><td>Opened patient P-10407<span class="sub">From case C-1043</span></td></tr>
+<tr><td class="mono">10:19:12 IST<span class="sub" style="font-family:'IBM Plex Sans'">4 min ago</span></td><td>Anita Rathnayake</td><td>Searched: break-glass, last 7 days</td></tr>
+<tr><td class="mono">09:58:03 IST<span class="sub" style="font-family:'IBM Plex Sans'">25 min ago</span></td><td>M. Perera</td><td>Downloaded report: Who accessed a patient (38 rows)</td></tr>
+<tr><td class="mono">09:40:51 IST<span class="sub" style="font-family:'IBM Plex Sans'">43 min ago</span></td><td>M. Perera</td><td>Asked for access to a restricted record<span class="sub">Decision pending</span></td></tr>
+<tr><td class="mono">09:12:30 IST<span class="sub" style="font-family:'IBM Plex Sans'">1 h ago</span></td><td>S. Jayawardena</td><td>Changed alert rule: high-volume access, 40 to 50<span class="sub">Privacy officer</span></td></tr>
+</tbody></table>
+<div style="padding:10px 18px;font-size:12.5px;color:#4b5a5f;border-top:1px solid #eeeee8">These records are written to Chester as audit events too, so the console is audited by the same rules as every other system.</div>
+</div>
+
+<div class="box"><div class="cap"><span>Case record, locked once closed</span><span class="tag info">First release</span></div>
+<div style="padding:16px 18px">
+<b style="font-weight:600;font-size:15px">C-1031 · Night access</b> <span class="tag ok" style="margin-left:6px">Closed: appropriate</span>
+<span class="sub" style="margin:4px 0 12px">Closed Wed 21 Oct 2026, 17:20 IST by Anita Rathnayake and M. Perera</span>
+<div style="display:grid;gap:8px;font-size:13px">
+<div style="display:flex;gap:10px"><span class="mono" style="color:#4b5a5f;width:110px">21 Oct 08:30</span>Opened by the night-access rule. 9 events attached (copied, not linked).</div>
+<div style="display:flex;gap:10px"><span class="mono" style="color:#4b5a5f;width:110px">21 Oct 14:02</span>Anita R.: appropriate. “Shift cover, confirmed by the ward.”</div>
+<div style="display:flex;gap:10px"><span class="mono" style="color:#4b5a5f;width:110px">21 Oct 17:20</span>M. Perera: appropriate. Case closed and locked.</div></div>
+<div style="margin-top:14px;padding:10px 12px;background:#f6f5f1;border-radius:8px;font-size:12.5px;color:#3d4a4f"><b style="font-weight:600">Locked.</b> After closing, nothing can be edited. A reopened case becomes a new case that points to this one. The record has a fingerprint so a later change would show.</div>
+<div style="display:flex;gap:8px;margin-top:14px"><button class="btn" style="background:#fff;border:1px solid #9aa5a2">Download evidence pack (PDF)</button><button class="btn" style="background:#fff;border:1px solid #9aa5a2">Reopen as new case</button></div>
+</div></div>
+
+<div class="box"><div class="cap"><span>Late events and gaps</span><span class="tag btg">Design to confirm with vendors</span></div>
+<div style="padding:16px 18px">
+<div style="font-size:13px;color:#3d4a4f;margin-bottom:12px">Each event has two times: <b>when it happened</b> and <b>when Chester received it</b>. Charts and rules use <b>when it happened</b>. A late event is marked, so a figure that changes afterwards is explained.</div>
+<table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr><th>System</th><th>Happened</th><th>Received</th><th>Delay</th></tr></thead><tbody>
+<tr><td>HHIMS · Galle</td><td class="mono">22 Oct 11:02</td><td class="mono">22 Oct 11:02</td><td><span class="tag ok">1 s</span></td></tr>
+<tr><td>PharmaLink</td><td class="mono">22 Oct 09:29</td><td class="mono">22 Oct 09:30</td><td><span class="tag ok">1 min</span></td></tr>
+<tr><td>Radiology PACS</td><td class="mono">21 Oct 14:10</td><td class="mono">22 Oct 06:00</td><td><span class="tag btg">16 h late</span></td></tr>
+</tbody></table>
+<div style="margin-top:14px;padding:10px 12px;background:#fff0cf;border-radius:8px;font-size:12.5px;color:#4a3300"><b style="font-weight:600">Possible gap.</b> HHIMS · Kandy sent events numbered 4102 to 4118 and then 4125. Seven are missing. <button style="border:0;background:none;color:#0b5b5b;font-weight:600;padding:0;cursor:pointer">Ask the vendor</button> <span class="tag pl" style="margin-left:6px">Planned · needs a sequence number from each system</span></div>
+</div></div>
+
+<div class="box"><div class="cap"><span>Session ends</span><span class="tag info">First release</span></div>
+<div class="c"><div class="ic" style="background:#fff0cf;color:#774400">⏱</div><b style="font-weight:600;font-size:16px">You will be signed out in 2 minutes</b><span class="sub" style="margin:6px 0 14px">No activity for 28 minutes. Anything you typed in a decision is kept.</span><button class="btn" style="background:#0b6e6e;color:#fff;border:0">Stay signed in</button> <button class="btn" style="background:#fff;border:1px solid #9aa5a2">Sign out now</button></div></div>
+
+<div class="box"><div class="cap"><span>Signed out</span><span class="tag info">First release</span></div>
+<div class="c"><div class="ic" style="background:#fbe3e3;color:#9b2226">!</div><b style="font-weight:600;font-size:16px">Your sign-in has expired</b><span class="sub" style="margin:6px 0 14px">Sign in again to go back to Reviews, case C-1043. Unsaved text in the decision box was kept on this device and will return.</span><button class="btn" style="background:#0b6e6e;color:#fff;border:0">Sign in</button></div></div>
+
+</div>
+
+<div class="box" style="margin-top:16px"><div class="cap"><span>Build requirements that are not screens</span><span class="tag info">First release</span></div>
+<table style="width:100%;border-collapse:collapse;font-size:13px"><tbody>
+<tr><td style="width:210px"><b style="font-weight:600">Safe free text</b></td><td>Reasons and decision notes are shown as plain text and never as HTML. Forms carry a CSRF token. Tests try script text and markup in every free-text field.</td></tr>
+<tr><td><b style="font-weight:600">Backup of decisions</b></td><td>The console database holds the only copy of reviewer decisions. Daily backup with a restore test. Retention follows the audit retention (AR-23).</td></tr>
+<tr><td><b style="font-weight:600">Tablet width</b></td><td>The boards are drawn for a desktop. If reviewers use tablets, tables become cards under 900 px. To confirm with the Ministry.</td></tr>
+</tbody></table></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1360,"height":1500}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

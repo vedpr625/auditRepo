@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Clinic direction, Reviews</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0}
+.a{font-family:'IBM Plex Sans','Noto Sans Sinhala','Noto Sans Tamil',sans-serif;color:#1d2a2e;font-size:14px}
+.a *{box-sizing:border-box}
+.a .mono{font-family:'IBM Plex Mono',monospace;font-size:12px}
+.a button,.a input,.a textarea{font:inherit;color:inherit}
+.a .tab{background:none;border:0;padding:14px 4px;margin-right:22px;color:#4b5a5f;border-bottom:3px solid transparent;cursor:pointer}
+.a .tab.on{color:#0b5b5b;border-bottom-color:#0b6e6e;font-weight:600}
+.a .box{background:#fff;border:1px solid #d7d9d2;border-radius:10px}
+.a .sub{display:block;color:#4b5a5f;font-size:12.5px}
+.a .tag{display:inline-block;border-radius:4px;padding:2px 8px;font-size:12px;font-weight:600}
+.a .ok{background:#e1f1e6;color:#1b5e33}.a .bad{background:#fbe3e3;color:#9b2226}.a .btg{background:#fff0cf;color:#774400}.a .info{background:#e3f0ee;color:#0b4f4f}
+.a h3{margin:0;font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:#4b5a5f;font-weight:600}
+.a .colh{display:flex;justify-content:space-between;padding:0 4px 8px;font-weight:600}
+.a .card{background:#fff;border:1px solid #d7d9d2;border-radius:8px;padding:11px 12px;margin-bottom:8px}
+.a .card.on{border-color:#0b6e6e;box-shadow:0 0 0 2px #cfe6e2}
+.a .step{display:flex;gap:12px;padding:9px 0}
+.a .step i{width:10px;height:10px;border-radius:50%;background:#0b6e6e;margin-top:5px;flex:none}
+.a .opt{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:1px solid #c9ccc3;border-radius:8px;background:#fff;width:100%;text-align:left;margin-bottom:8px}
+.a .opt.on{border-color:#0b6e6e;background:#e8f3f1;box-shadow:inset 0 0 0 1px #0b6e6e}
+.a .opt b{font-weight:600}
+</style>
+</helmet>
+<div class="a" style="width:1360px;height:1000px;background:#f6f5f1;overflow:hidden;display:flex;flex-direction:column">
+<header style="display:flex;align-items:center;gap:32px;padding:0 28px;background:#fff;border-bottom:1px solid #d7d9d2;height:54px;flex:none">
+<div style="font-weight:600;font-size:16px;display:flex;align-items:center;gap:10px"><span style="width:26px;height:26px;border-radius:6px;background:#0b6e6e;display:inline-block"></span>Audit Console</div>
+<nav aria-label="Main" style="display:flex;flex:1"><button class="tab">Overview</button><button class="tab">Explore</button><button class="tab">People and patients</button><button class="tab on" aria-current="page">Reviews <span class="tag bad" style="margin-left:4px">3</span></button><button class="tab">Break-glass</button><button class="tab">Alerts</button><button class="tab">Reports</button><button class="tab" style="margin-left:auto">Health</button><button class="tab">Settings</button><button class="tab">Admin</button></nav>
+<button style="height:34px;padding:0 14px;background:#f6f5f1;border:1px solid #c9ccc3;border-radius:6px;color:#4b5a5f">Find anything <span class="mono" style="margin-left:8px;border:1px solid #c9ccc3;border-radius:4px;padding:1px 6px;background:#fff">Ctrl K</span></button>
+<div style="text-align:right;line-height:1.25"><div style="font-weight:500">Anita Rathnayake</div><div style="font-size:12px;color:#4b5a5f">MoH reviewer</div></div>
+</header>
+
+<main style="padding:18px 28px 24px;display:flex;flex-direction:column;gap:14px;flex:1;min-height:0">
+<div style="display:flex;align-items:center;gap:14px"><h1 style="margin:0;font-size:22px;font-weight:600">Reviews</h1><span style="color:#4b5a5f">Cases that need a person to decide. Each case is closed when two reviewers agree.</span>
+<div style="margin-left:auto;display:flex;gap:8px"><button style="height:36px;padding:0 14px;background:#fff;border:1px solid #9aa5a2;border-radius:8px">Assigned to me ▾</button><button style="height:36px;padding:0 14px;background:#fff;border:1px solid #9aa5a2;border-radius:8px">New case</button></div></div>
+
+<div style="display:flex;gap:16px;flex:1;min-height:0">
+<section style="width:430px;flex:none;display:flex;gap:10px">
+<div style="flex:1"><div class="colh"><span>New</span><span class="mono">1</span></div>
+<div class="card"><span class="tag bad">27 h open</span><b style="display:block;margin-top:6px;font-weight:600">C-1046 · Break-glass without a reason</b><span class="sub">Nurse S. Silva · Kandy TH</span></div></div>
+<div style="flex:1"><div class="colh"><span>Being reviewed</span><span class="mono">1</span></div>
+<div class="card on"><span class="tag bad">27 h open</span><b style="display:block;margin-top:6px;font-weight:600">C-1043 · Repeated access</b><span class="sub">Kamal Mendis · Colombo NH</span><span class="sub" style="margin-top:6px">You · Anita R.</span></div></div>
+<div style="flex:1"><div class="colh"><span>Second opinion</span><span class="mono">1</span></div>
+<div class="card"><span class="tag info">4 h open</span><b style="display:block;margin-top:6px;font-weight:600">C-1038 · High-volume access</b><span class="sub">Dr. R. Fernando</span><span class="sub" style="margin-top:6px">Waiting for you</span></div>
+<div class="colh" style="margin-top:16px"><span>Done, 14 days</span><span class="mono">9</span></div>
+<div class="card" style="opacity:.85"><span class="tag ok">Appropriate</span><b style="display:block;margin-top:6px;font-weight:600">C-1031 · Night access</b><span class="sub">Closed 21 Oct 17:20 IST · 19 h ago</span></div></div>
+</section>
+
+<section class="box" style="flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden">
+<div style="padding:16px 22px;border-bottom:1px solid #e6e7e0;display:flex;gap:14px;align-items:flex-start">
+<div><div class="mono" style="color:#4b5a5f">C-1043 · opened Wed 21 Oct 2026, 06:12 IST (30 h ago) · due Thu 22 Oct, 06:12 IST</div><h2 style="margin:4px 0 0;font-size:19px;font-weight:600">Repeated access to one patient</h2><span class="sub" style="margin-top:2px">Rule: more than 10 views of the same patient in 2 hours · Kamal Mendis, P-10407</span></div>
+<span class="tag bad" style="margin-left:auto">Past 24 hours</span></div>
+
+<div style="display:flex;flex:1;min-height:0">
+<div style="flex:1.1;min-width:0;padding:16px 22px;border-right:1px solid #e6e7e0;overflow:hidden">
+<h3>What was found</h3>
+<div style="margin-top:8px;display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
+<div style="background:#f6f5f1;border-radius:8px;padding:9px 12px"><b style="font-size:20px;font-weight:600">14</b><span class="sub">views in 2 hours</span></div>
+<div style="background:#f6f5f1;border-radius:8px;padding:9px 12px"><b style="font-size:20px;font-weight:600">1</b><span class="sub">person</span></div>
+<div style="background:#f6f5f1;border-radius:8px;padding:9px 12px"><b style="font-size:20px;font-weight:600">0</b><span class="sub">visits open</span></div>
+<div style="background:#fff0cf;border-radius:8px;padding:9px 12px"><b style="font-size:20px;font-weight:600">Yes</b><span class="sub">no link to this patient's care (treatment claimed)</span></div></div>
+<h3 style="margin-top:18px">Events in this case</h3>
+<table style="width:100%;border-collapse:collapse;margin-top:6px;font-size:13px"><tbody>
+<tr><td class="mono" style="padding:7px 0;border-bottom:1px solid #eeeee8">04:58 IST<span class="sub" style="font-family:'IBM Plex Sans'">1 day ago</span></td><td style="border-bottom:1px solid #eeeee8">Dr. K. Wickrama</td><td style="border-bottom:1px solid #eeeee8">Viewed patient record</td><td style="border-bottom:1px solid #eeeee8">Galle TH</td></tr>
+<tr><td class="mono" style="padding:7px 0;border-bottom:1px solid #eeeee8">05:03 IST<span class="sub" style="font-family:'IBM Plex Sans'">1 day ago</span></td><td style="border-bottom:1px solid #eeeee8">Dr. K. Wickrama</td><td style="border-bottom:1px solid #eeeee8">Viewed patient record</td><td style="border-bottom:1px solid #eeeee8">Galle TH</td></tr>
+<tr><td class="mono" style="padding:7px 0;border-bottom:1px solid #eeeee8">05:11 IST<span class="sub" style="font-family:'IBM Plex Sans'">1 day ago</span></td><td style="border-bottom:1px solid #eeeee8">Dr. K. Wickrama</td><td style="border-bottom:1px solid #eeeee8">Viewed lab results</td><td style="border-bottom:1px solid #eeeee8">Galle TH</td></tr>
+<tr><td class="mono" style="padding:7px 0">… 11 more</td><td colspan="3"><button style="border:0;background:none;color:#0b5b5b;font-weight:600;padding:0;cursor:pointer">Open all 14 in Explore</button></td></tr></tbody></table>
+<h3 style="margin-top:18px">What happened so far</h3>
+<div class="step"><i></i><div>Case opened by the repeated-access rule<span class="sub">21 Oct 06:12 IST · 30 h ago</span></div></div>
+<div class="step"><i></i><div>Assigned to Anita Rathnayake<span class="sub">21 Oct 08:30 IST · 28 h ago · email sent</span></div></div>
+<div class="step"><i style="background:#b06a00"></i><div>Asked Galle TH for an explanation<span class="sub">21 Oct 09:05 IST · 27 h ago · no reply yet</span></div></div>
+</div>
+
+<div style="width:380px;flex:none;padding:16px 22px;background:#fcfcfa;overflow:hidden">
+<h3>Your decision</h3>
+<div style="margin-top:10px">
+<button class="opt on"><span style="font-size:15px">●</span><span><b>Needs follow-up</b><span class="sub">Ask the facility or vendor for an explanation</span></span></button>
+<button class="opt"><span style="font-size:15px">○</span><span><b>Appropriate</b><span class="sub">The access matches a real need</span></span></button>
+<button class="opt"><span style="font-size:15px">○</span><span><b>Policy violation</b><span class="sub">Send to the privacy officer</span></span></button>
+</div>
+<label style="display:block;margin-top:4px;font-size:12.5px;color:#4b5a5f" for="why">Why (visible to the second reviewer)</label>
+<textarea id="why" style="width:100%;height:72px;margin-top:4px;border:1px solid #9aa5a2;border-radius:8px;padding:8px 10px;resize:none">The patient was not on Dr. Wickrama's ward. Waiting on Galle TH.</textarea>
+<h3 style="margin-top:16px">Second opinion</h3>
+<div style="margin-top:8px;display:flex;gap:10px;align-items:center;padding:10px 12px;border:1px solid #d7d9d2;border-radius:8px"><span style="width:32px;height:32px;border-radius:50%;background:#e3f0ee;color:#0b4f4f;font-weight:600;display:flex;align-items:center;justify-content:center">MP</span><div><b style="font-weight:600">M. Perera</b><span class="sub">Not yet decided · asked 21 Oct 08:45 IST (27 h ago)</span></div><span class="tag info" style="margin-left:auto">Waiting</span></div>
+<div style="margin-top:8px;font-size:12.5px;color:#4b5a5f">The case closes when both of you choose the same decision. If you differ, it goes to the privacy officer.</div>
+<h3 style="margin-top:16px">Who gets told</h3>
+<div style="margin-top:6px;font-size:13px;line-height:1.7">M. Perera (second reviewer) · the facility's privacy contact when the case closes</div>
+<div style="display:flex;gap:8px;margin-top:16px"><button style="flex:1;height:42px;background:#0b6e6e;color:#fff;border:0;border-radius:8px;font-weight:600">Send for second opinion</button><button style="height:42px;padding:0 14px;background:#fff;border:1px solid #9aa5a2;border-radius:8px">Save</button></div>
+</div>
+</div>
+</section>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1360,"height":1000}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

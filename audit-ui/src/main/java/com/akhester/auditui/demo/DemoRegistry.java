@@ -25,8 +25,9 @@ import org.springframework.web.bind.annotation.RestController;
 @ConditionalOnProperty(name = "audit.ui.demo", havingValue = "true")
 public class DemoRegistry {
 
-    private static final String COL = "Device/hhims-colombo-01", KAN = "Device/hhims-kandy-01";
-    private static final Map<String, String> FACILITY = Map.of(COL, "National Hospital Colombo (demo)", KAN, "Teaching Hospital Kandy (demo)");
+    private static final String COL = "Device/hhims-colombo-01", KAN = "Device/hhims-kandy-01", GAL = "Device/hhims-galle-01", JAF = "Device/hhims-jaffna-01";
+    private static final Map<String, String> FACILITY = Map.of(COL, "National Hospital Colombo (demo)", KAN, "Teaching Hospital Kandy (demo)",
+        GAL, "Teaching Hospital Galle (demo)", JAF, "Teaching Hospital Jaffna (demo)");
 
     /** id, name, gender, birthDate, masked id, then stays as {facility, ward, days ago started, days ago ended or -1 for still admitted}. */
     private record P(String id, String name, String gender, String born, String nic, Object[][] stays) {}
@@ -50,11 +51,33 @@ public class DemoRegistry {
         new P("P-00114", "Kavitha Selvam (demo)", "female", "1983-06-06", "••••••8306V", new Object[][]{s(KAN, "Ward 4 Medical", 3, 1)}),
         new P("P-00115", "Pradeep Amarasinghe (demo)", "male", "1968-01-19", "••••••6801V", new Object[][]{s(COL, "OPD", 50, 50)}),
         new P("P-00116", "Ishara Madushani (demo)", "female", "2003-12-01", "••••••0312V", new Object[][]{s(COL, "Emergency Treatment Unit", 1, 1)}),
-        new P("P-00117", "Gamini Ratnayake (demo)", "male", "1955-07-07", "••••••5507V", new Object[][]{s(COL, "Ward 5 Cardiology", 7, 2)}));
+        new P("P-00117", "Gamini Ratnayake (demo)", "male", "1955-07-07", "••••••5507V", new Object[][]{s(COL, "Ward 5 Cardiology", 7, 2)}),
+        // patients that the Reviews, Break-glass and Reports screens talk about
+        new P("P-10407", "Kamal Mendis (demo)", "male", "1985-03-14", "••••••4821V", new Object[][]{s(COL, "OPD-3", 1, 1), s(COL, "Ward 7", 5, 3), s(KAN, "Casualty", 21, 21)}),
+        new P("P-20881", "Sunethra Karunaratne (demo)", "female", "1978-09-02", "••••••7809V", new Object[][]{s(KAN, "Casualty", 1, 1)}),
+        new P("P-30177", "Ranjith Abeysekara (demo)", "male", "1990-12-12", "••••••9012V", new Object[][]{s(COL, "Casualty", 1, 1)}),
+        new P("P-40119", "Malini Gamage (demo)", "female", "1969-05-30", "••••••6905V", new Object[][]{s(GAL, "ICU", 2, -1)}),
+        new P("P-50290", "Thevarajah Kumar (demo)", "male", "1962-11-21", "••••••6211V", new Object[][]{s(JAF, "OPD", 1, 1)}),
+        new P("P-10412", "Hasini Wijesundara (demo)", "female", "1999-02-17", "••••••9902V", new Object[][]{s(COL, "Ward 12 Medical", 8, 4)}),
+        new P("P-10418", "Sampath Liyanage (demo)", "male", "1957-08-08", "••••••5708V", new Object[][]{s(COL, "Ward 5 Cardiology", 12, 9)}),
+        new P("P-20884", "Nadeesha Rathnayake (demo)", "female", "1993-04-25", "••••••9304V", new Object[][]{s(KAN, "Obstetrics", 6, 3)}),
+        new P("P-20890", "Vimal Senanayake (demo)", "male", "1981-01-09", "••••••8101V", new Object[][]{s(KAN, "Ward 4 Medical", 9, 7)}),
+        new P("P-30181", "Shanika Jayawardena (demo)", "female", "2005-06-06", "••••••0506V", new Object[][]{s(GAL, "Paediatric Ward", 3, 1)}),
+        new P("P-30190", "Upul Tennakoon (demo)", "male", "1953-10-19", "••••••5310V", new Object[][]{s(GAL, "Ward 2 Surgical", 15, 11)}),
+        new P("P-40125", "Chathurika Silva (demo)", "female", "1988-07-27", "••••••8807V", new Object[][]{s(GAL, "OPD", 2, 2)}),
+        new P("P-50301", "Arulpragasam Selvan (demo)", "male", "1974-03-03", "••••••7403V", new Object[][]{s(JAF, "Ward 3 Medical", 4, -1)}),
+        new P("P-50310", "Sivakumari Rajan (demo)", "female", "1967-12-30", "••••••6712V", new Object[][]{s(JAF, "OPD", 10, 10)}),
+        new P("P-10430", "Buddhika Fonseka (demo)", "male", "1995-09-09", "••••••9509V", new Object[][]{s(COL, "Emergency Treatment Unit", 0, 0)}),
+        new P("P-10431", "Yamuna Dissanayake (demo)", "female", "1983-11-11", "••••••8311V", new Object[][]{s(COL, "OPD-3", 6, 6)}),
+        new P("P-10432", "Chaminda Bandara (demo)", "male", "1972-02-02", "••••••7202V", new Object[][]{s(COL, "Ward 9 Psychiatry", 10, 7)}),
+        new P("P-20895", "Pushpa Kumari (demo)", "female", "1960-06-16", "••••••6006V", new Object[][]{s(KAN, "Ward 4 Medical", 18, 14)}),
+        new P("P-30200", "Dammika Herath (demo)", "male", "1980-08-24", "••••••8008V", new Object[][]{s(GAL, "OPD", 5, 5)}),
+        new P("P-50320", "Ganeshan Murugesu (demo)", "male", "1958-01-28", "••••••5801V", new Object[][]{s(JAF, "Ward 3 Medical", 20, 16)}));
 
     /** Facility of the patient's first listed stay (used to make the demo audit records agree with the registry). */
     static String homeFacility(String id) { P p = find(id); return p == null ? COL : (String) p.stays[0][0]; }
     static String homeWard(String id) { P p = find(id); return p == null ? "OPD" : (String) p.stays[0][1]; }
+    static String patientName(String id) { P p = find(id); return p == null ? id : p.name.replace(" (demo)", ""); }
     static List<String> patientIds() { return PATIENTS.stream().map(x -> x.id).toList(); }
 
     private static P find(String id) { return PATIENTS.stream().filter(p -> p.id.equals(id)).findFirst().orElse(null); }

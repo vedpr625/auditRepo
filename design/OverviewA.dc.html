@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Clinic direction, Overview</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0}
+.a{font-family:'IBM Plex Sans','Noto Sans Sinhala','Noto Sans Tamil',sans-serif;color:#1d2a2e;font-size:14px;
+--ok:#2a78d6;--okt:#1b4f94;--bad:#d03a3a;--grid:#e3e4dd;--ink2:#4b5a5f}
+.a *{box-sizing:border-box}
+.a .mono{font-family:'IBM Plex Mono',monospace;font-size:12px}
+.a button{font:inherit;color:inherit}
+.a .tab{background:none;border:0;padding:14px 4px;margin-right:22px;color:#4b5a5f;border-bottom:3px solid transparent;cursor:pointer}
+.a .tab.on{color:#0b5b5b;border-bottom-color:#0b6e6e;font-weight:600}
+.a .box{background:#fff;border:1px solid #d7d9d2;border-radius:10px}
+.a .bh{display:flex;justify-content:space-between;align-items:baseline;padding:14px 18px 0}
+.a .bh h2{margin:0;font-size:14px;font-weight:600}
+.a .bh span{color:var(--ink2);font-size:12.5px}
+.a .sub{display:block;color:var(--ink2);font-size:12.5px}
+.a .tag{display:inline-block;border-radius:4px;padding:2px 8px;font-size:12px;font-weight:600}
+.a .ok{background:#e1f1e6;color:#1b5e33}.a .bad{background:#fbe3e3;color:#9b2226}.a .btg{background:#fff0cf;color:#774400}.a .quiet{background:#eceeea;color:#3d4a4f}
+.a .kpi{flex:1;padding:14px 16px 10px;min-width:0}
+.a .kpi small{color:var(--ink2);font-size:12.5px}
+.a .kpi b{display:block;font-size:28px;font-weight:600;line-height:1.15;margin-top:2px}
+.a .kpi .d{font-size:12.5px;font-weight:600}
+.a .col{flex:1;display:flex;flex-direction:column;justify-content:flex-end;min-width:0}
+.a .hm{display:grid;grid-template-columns:34px repeat(24,minmax(0,1fr));gap:2px;align-items:center}
+.a .hm i{display:block;height:19px;border-radius:2px}
+.a .hbar{display:grid;grid-template-columns:150px 1fr 70px;gap:10px;align-items:center;padding:6px 0}
+.a .track{height:14px;background:#eef0ec;border-radius:3px;position:relative}
+.a .track b{position:absolute;left:0;top:0;bottom:0;border-radius:3px 3px 3px 3px}
+.a .legend{display:flex;gap:14px;align-items:center;color:var(--ink2);font-size:12.5px}
+.a .legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px}
+.a th{text-align:left;font-weight:600;font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink2);padding:8px 10px;border-bottom:1px solid #d7d9d2}
+.a td{padding:9px 10px;border-bottom:1px solid #eeeee8}
+.a li.need{display:flex;gap:12px;padding:11px 0;border-bottom:1px solid #eeeee8;align-items:flex-start}
+</style>
+</helmet>
+<div class="a" style="width:1360px;height:1640px;background:#f6f5f1;overflow:hidden;display:flex;flex-direction:column">
+
+<header style="display:flex;align-items:center;gap:32px;padding:0 28px;background:#fff;border-bottom:1px solid #d7d9d2;height:54px;flex:none">
+<div style="font-weight:600;font-size:16px;display:flex;align-items:center;gap:10px"><span style="width:26px;height:26px;border-radius:6px;background:#0b6e6e;display:inline-block"></span>Audit Console</div>
+<nav aria-label="Main" style="display:flex;flex:1"><button class="tab on" aria-current="page">Overview</button><button class="tab">Explore</button><button class="tab">People and patients</button><button class="tab">Reviews <span class="tag bad" style="margin-left:4px">3</span></button><button class="tab">Break-glass</button><button class="tab">Alerts</button><button class="tab">Reports</button><button class="tab" style="margin-left:auto">Health</button><button class="tab">Settings</button><button class="tab">Admin</button></nav>
+<button style="height:34px;padding:0 14px;background:#f6f5f1;border:1px solid #c9ccc3;border-radius:6px;color:#4b5a5f">Find anything <span class="mono" style="margin-left:8px;border:1px solid #c9ccc3;border-radius:4px;padding:1px 6px;background:#fff">Ctrl K</span></button>
+<div role="group" aria-label="Language" style="display:flex;border:1px solid #c9ccc3;border-radius:6px;overflow:hidden"><button style="background:#0b6e6e;color:#fff;border:0;padding:6px 12px">EN</button><button style="background:#fff;border:0;padding:6px 12px;border-left:1px solid #c9ccc3">සිං</button><button style="background:#fff;border:0;padding:6px 12px;border-left:1px solid #c9ccc3">த</button></div>
+<div style="text-align:right;line-height:1.25"><div style="font-weight:500">Anita Rathnayake</div><div style="font-size:12px;color:#4b5a5f">MoH reviewer</div></div>
+</header>
+
+<main style="padding:20px 28px 28px;display:flex;flex-direction:column;gap:16px;flex:1;min-height:0">
+
+<div style="display:flex;align-items:center;gap:14px">
+<h1 style="margin:0;font-size:22px;font-weight:600">Overview</h1>
+<span style="color:#4b5a5f">All facilities · updated 09:42 IST (1 min ago) · times in Asia/Colombo, change in Settings</span>
+<div style="margin-left:auto;display:flex;gap:10px;align-items:center">
+<button style="height:36px;padding:0 14px;background:#fff;border:1px solid #9aa5a2;border-radius:8px">All facilities ▾</button>
+<div role="group" aria-label="Period" style="display:flex;border:1px solid #9aa5a2;border-radius:8px;overflow:hidden;background:#fff"><button style="border:0;background:#e3f0ee;padding:8px 14px;color:#0b4f4f;font-weight:600">24 hours</button><button style="border:0;background:#fff;padding:8px 14px">7 days</button><button style="border:0;background:#fff;padding:8px 14px">30 days</button><button style="border:0;background:#fff;padding:8px 14px">Custom</button></div>
+<button style="height:36px;padding:0 14px;background:#fff;border:1px solid #9aa5a2;border-radius:8px">Compare with yesterday</button>
+</div>
+</div>
+
+<div style="display:flex;gap:12px">
+<div class="box kpi"><small>Events</small><b>12,840</b><span class="d" style="color:#1b4f94">▲ 8% vs yesterday</span>
+<svg viewBox="0 0 120 26" width="100%" height="26" role="img" aria-label="Events trend, rising" style="margin-top:6px"><polyline fill="none" stroke="#2a78d6" stroke-width="2" points="0,20 12,18 24,19 36,14 48,15 60,10 72,12 84,7 96,9 108,5 120,6"></polyline></svg></div>
+<div class="box kpi"><small>Failed attempts</small><b style="color:#9b2226">37</b><span class="d" style="color:#9b2226">▲ 0.29% of events</span>
+<svg viewBox="0 0 120 26" width="100%" height="26" role="img" aria-label="Failures trend, mostly flat with a spike" style="margin-top:6px"><polyline fill="none" stroke="#d03a3a" stroke-width="2" points="0,22 12,21 24,22 36,20 48,21 60,12 72,20 84,21 96,19 108,21 120,20"></polyline></svg></div>
+<div class="box kpi"><small>Break-glass</small><b style="color:#774400">9</b><span class="d" style="color:#774400">1 reason overdue</span>
+<svg viewBox="0 0 120 26" width="100%" height="26" role="img" aria-label="Break-glass trend" style="margin-top:6px"><polyline fill="none" stroke="#b06a00" stroke-width="2" points="0,21 12,19 24,22 36,17 48,18 60,15 72,19 84,12 96,16 108,10 120,13"></polyline></svg></div>
+<div class="box kpi"><small>Reviews open</small><b>3</b><span class="d" style="color:#9b2226">1 past its 24 hours</span>
+<svg viewBox="0 0 120 26" width="100%" height="26" role="img" aria-label="Open reviews trend" style="margin-top:6px"><polyline fill="none" stroke="#0b6e6e" stroke-width="2" points="0,20 12,20 24,16 36,16 48,12 60,14 72,10 84,12 96,8 108,12 120,10"></polyline></svg></div>
+<div class="box kpi"><small>People active</small><b>214</b><span class="d" style="color:#4b5a5f">across 41 facilities</span>
+<svg viewBox="0 0 120 26" width="100%" height="26" role="img" aria-label="Active people trend" style="margin-top:6px"><polyline fill="none" stroke="#2a78d6" stroke-width="2" points="0,18 12,17 24,17 36,15 48,16 60,13 72,14 84,11 96,12 108,10 120,9"></polyline></svg></div>
+<div class="box kpi"><small>Systems reporting</small><b>5 <span style="font-size:16px;font-weight:500;color:#4b5a5f">of 6</span></b><span class="d" style="color:#774400">PACS quiet for 3 h</span>
+<div style="display:flex;gap:4px;margin-top:12px" role="img" aria-label="Five systems reporting, one quiet"><i style="flex:1;height:10px;background:#2a78d6;border-radius:2px"></i><i style="flex:1;height:10px;background:#2a78d6;border-radius:2px"></i><i style="flex:1;height:10px;background:#2a78d6;border-radius:2px"></i><i style="flex:1;height:10px;background:#2a78d6;border-radius:2px"></i><i style="flex:1;height:10px;background:#2a78d6;border-radius:2px"></i><i style="flex:1;height:10px;background:#b9bdb4;border-radius:2px"></i></div></div>
+</div>
+
+<div style="display:flex;gap:16px">
+<section class="box" style="flex:1;min-width:0;padding-bottom:12px">
+<div class="bh"><h2>Events per hour, last 24 hours</h2><div class="legend"><span><i style="background:#2a78d6"></i>OK</span><span><i style="background:#d03a3a"></i>Failed</span><button style="border:1px solid #c9ccc3;background:#fff;border-radius:6px;padding:3px 10px">Table view</button></div></div>
+<div style="display:flex;padding:8px 18px 0 18px;gap:8px">
+<div class="mono" style="width:38px;height:240px;display:flex;flex-direction:column;justify-content:space-between;color:#4b5a5f;text-align:right;padding-bottom:2px"><span>1,000</span><span>750</span><span>500</span><span>250</span><span>0</span></div>
+<div style="flex:1;position:relative;height:240px;border-bottom:1px solid #9aa5a2;background:repeating-linear-gradient(to top,transparent 0,transparent 59px,#e3e4dd 59px,#e3e4dd 60px)">
+<div style="position:absolute;inset:0;display:flex;align-items:flex-end;gap:5px;padding:0 4px">
+<sc-for list="{{hours}}" as="h" hint-placeholder-count="24">
+<div class="col" title="{{h.title}}"><div style="height:{{h.failH}}px;background:#d03a3a;border-radius:3px 3px 0 0;margin-bottom:2px"></div><div style="height:{{h.okH}}px;background:#2a78d6;border-radius:3px 3px 0 0"></div></div>
+</sc-for>
+</div></div></div>
+<div class="mono" style="display:flex;justify-content:space-between;color:#4b5a5f;padding:6px 22px 0 66px"><span>Thu 10:00 IST</span><span>16:00</span><span>22:00</span><span>04:00</span><span>09:00</span></div>
+<div style="margin:12px 18px 0;padding:9px 12px;background:#f6f5f1;border-radius:8px;font-size:13px;color:#3d4a4f">Busiest hour was <b>10:00 IST with 982 events</b>. Failures peaked at <b>10:00 IST with 14</b>, mostly refused access from one facility.</div>
+</section>
+
+<aside class="box" style="width:410px;padding:0 18px 8px">
+<div class="bh" style="padding-left:0;padding-right:0"><h2>Needs a human, riskiest first</h2><span>5 shown · 31 closed automatically</span></div>
+<ul style="list-style:none;margin:6px 0 0;padding:0">
+<li class="need"><span class="tag bad">Late</span><div><b style="font-weight:600">Review C-1043 · repeated access</b><span class="sub">Risk 92 · Kamal Mendis, 14 views in 2 hours · open 27 h</span><span class="sub" style="color:#9b2226">Why: no link to this patient's care (treatment claimed), same surname as patient. Care-link checks are planned, they need Bundle 2a</span></div></li>
+<li class="need"><span class="tag btg">BTG</span><div><b style="font-weight:600">No reason yet for emergency access</b><span class="sub">Risk 85 · Nurse S. Silva, Kandy TH · 25 h ago</span><span class="sub" style="color:#9b2226">Why: reason not given, third break-glass this week</span></div></li>
+<li class="need"><span class="tag btg">Alert</span><div><b style="font-weight:600">High-volume access</b><span class="sub">Risk 71 · Dr. R. Fernando opened 62 records in 1 hour</span><span class="sub" style="color:#774400">Why: 6 times the usual for this role</span></div></li>
+<li class="need"><span class="tag quiet">Quiet</span><div><b style="font-weight:600">Radiology PACS has sent nothing for 3 hours</b><span class="sub">Risk 55 · usually 40 events an hour at this time</span><span class="sub" style="color:#774400">Why: sending stopped, records may be missing</span></div></li>
+<li class="need" style="border-bottom:0"><span class="tag ok" style="background:#e3f0ee;color:#0b4f4f">Peer</span><div><b style="font-weight:600">C-1038 waits for your second opinion</b><span class="sub">Risk 40 · raised by M. Perera · 4 h ago</span><span class="sub" style="color:#4b5a5f">Why: first reviewer asked for a second opinion</span></div></li>
+</ul>
+<button style="margin-top:6px;width:100%;height:38px;background:#0b6e6e;color:#fff;border:0;border-radius:8px;font-weight:600">Open the review queue</button>
+</aside>
+</div>
+
+<div style="display:flex;gap:16px">
+<section class="box" style="flex:1.05;min-width:0;padding-bottom:14px">
+<div class="bh"><h2>Events by system that sent them</h2><span>failure rate at right</span></div>
+<div style="padding:8px 18px 0">
+<sc-for list="{{systems}}" as="s" hint-placeholder-count="6">
+<div class="hbar"><span>{{s.name}}<span class="sub">{{s.note}}</span></span><div class="track" title="{{s.title}}"><b style="width:{{s.w}}%;background:#2a78d6"></b></div><span class="mono" style="text-align:right">{{s.count}}<br><span style="color:{{s.rateColor}}">{{s.rate}}</span></span></div>
+</sc-for>
+</div>
+</section>
+
+<section class="box" style="flex:1.15;min-width:0;padding-bottom:14px">
+<div class="bh"><h2>When the record is opened</h2><span>events by weekday and hour, 4 weeks</span></div>
+<div class="hm" style="padding:10px 18px 0">
+<span></span><span class="mono" style="grid-column:2 / span 8">00</span><span class="mono" style="grid-column:10 / span 8">08</span><span class="mono" style="grid-column:18 / span 8">16</span>
+<sc-for list="{{heat}}" as="r" hint-placeholder-count="7">
+<span class="mono" style="color:#4b5a5f">{{r.day}}</span>
+<sc-for list="{{r.cells}}" as="c" hint-placeholder-count="24"><i title="{{c.title}}" style="background:{{c.bg}}"></i></sc-for>
+</sc-for>
+</div>
+<div class="legend" style="padding:12px 18px 0"><span>Fewer</span><span style="display:flex;gap:2px"><i style="width:22px;height:10px;background:#e8f0fb;margin:0"></i><i style="width:22px;height:10px;background:#bcd5f4;margin:0"></i><i style="width:22px;height:10px;background:#7fb0ea;margin:0"></i><i style="width:22px;height:10px;background:#2a78d6;margin:0"></i><i style="width:22px;height:10px;background:#1b4f94;margin:0"></i></span><span>More</span><span style="margin-left:auto">Night-time access to records stands out here.</span></div>
+</section>
+</div>
+
+<div style="display:flex;gap:16px">
+<section class="box" style="flex:1;min-width:0;padding-bottom:14px">
+<div class="bh"><h2>Why access was refused</h2><span>37 failed events</span></div>
+<div style="padding:8px 18px 0">
+<div class="hbar" style="grid-template-columns:150px 1fr 40px"><span>Not allowed (403)</span><div class="track"><b style="width:100%;background:#d03a3a"></b></div><span class="mono">19</span></div>
+<div class="hbar" style="grid-template-columns:150px 1fr 40px"><span>Token expired (401)</span><div class="track"><b style="width:58%;background:#d03a3a"></b></div><span class="mono">11</span></div>
+<div class="hbar" style="grid-template-columns:150px 1fr 40px"><span>Record not valid</span><div class="track"><b style="width:26%;background:#d03a3a"></b></div><span class="mono">5</span></div>
+<div class="hbar" style="grid-template-columns:150px 1fr 40px"><span>Server error</span><div class="track"><b style="width:11%;background:#d03a3a"></b></div><span class="mono">2</span></div>
+</div>
+<div style="margin:8px 18px 0;font-size:12.5px;color:#4b5a5f">Mostly one facility sending with a role it does not have. <button style="border:0;background:none;color:#0b5b5b;font-weight:600;padding:0;cursor:pointer">See these in Explore</button></div>
+</section>
+
+<section class="box" style="flex:1;min-width:0;padding-bottom:14px">
+<div class="bh"><h2>Why records were opened</h2><span>purpose of use</span></div>
+<div style="padding:8px 18px 0">
+<div class="hbar" style="grid-template-columns:150px 1fr 54px"><span>Treatment</span><div class="track"><b style="width:100%;background:#2a78d6"></b></div><span class="mono">78%</span></div>
+<div class="hbar" style="grid-template-columns:150px 1fr 54px"><span>Operations</span><div class="track"><b style="width:19%;background:#2a78d6"></b></div><span class="mono">15%</span></div>
+<div class="hbar" style="grid-template-columns:150px 1fr 54px"><span>Payment</span><div class="track"><b style="width:6%;background:#2a78d6"></b></div><span class="mono">5%</span></div>
+<div class="hbar" style="grid-template-columns:150px 1fr 54px"><span>Emergency</span><div class="track"><b style="width:1.4%;background:#b06a00"></b></div><span class="mono">0.1%</span></div>
+<div class="hbar" style="grid-template-columns:150px 1fr 54px"><span>Not stated</span><div class="track"><b style="width:3%;background:#8a948f"></b></div><span class="mono">2%</span></div>
+</div>
+</section>
+
+<section class="box" style="flex:1;min-width:0;padding-bottom:14px">
+<div class="bh"><h2>Break-glass, last 14 days</h2><div class="legend"><span><i style="background:#2a78d6"></i>Reason given</span><span><i style="background:#b06a00"></i>Overdue</span></div></div>
+<div style="display:flex;align-items:flex-end;gap:6px;height:150px;padding:14px 18px 0;border-bottom:0">
+<sc-for list="{{btg}}" as="b" hint-placeholder-count="14"><div class="col" title="{{b.title}}"><div style="height:{{b.lateH}}px;background:#b06a00;border-radius:3px 3px 0 0;margin-bottom:2px"></div><div style="height:{{b.okH}}px;background:#2a78d6;border-radius:3px 3px 0 0"></div></div></sc-for>
+</div>
+<div class="mono" style="display:flex;justify-content:space-between;color:#4b5a5f;padding:6px 18px 0"><span>9 Oct</span><span>16 Oct</span><span>22 Oct</span></div>
+<div style="margin:10px 18px 0;font-size:12.5px;color:#4b5a5f">Average time to give a reason: <b style="color:#1d2a2e">5 h 10 min</b></div>
+</section>
+</div>
+
+<div style="display:flex;gap:16px">
+<section class="box" style="flex:1.35;min-width:0;padding-bottom:6px">
+<div class="bh" style="padding-bottom:6px"><h2>Systems sending to Chester</h2><span>last 24 hours</span></div>
+<table style="width:100%;border-collapse:collapse"><thead><tr><th>System</th><th>Last event</th><th>Events</th><th>Failed</th><th>Typical for now</th><th>Status</th></tr></thead>
+<tbody>
+<tr><td>HHIMS<span class="sub">29 facilities</span></td><td class="mono">1 min ago</td><td class="mono">8,420</td><td class="mono">21</td><td class="mono">8,100</td><td><span class="tag ok">Reporting</span></td></tr>
+<tr><td>LabLink<span class="sub">Central laboratory</span></td><td class="mono">1 min ago</td><td class="mono">2,310</td><td class="mono">4</td><td class="mono">2,250</td><td><span class="tag ok">Reporting</span></td></tr>
+<tr><td>PharmaLink<span class="sub">18 pharmacies</span></td><td class="mono">3 min ago</td><td class="mono">1,540</td><td class="mono">8</td><td class="mono">1,600</td><td><span class="tag ok">Reporting</span></td></tr>
+<tr><td>e-Channel<span class="sub">Booking</span></td><td class="mono">6 min ago</td><td class="mono">410</td><td class="mono">3</td><td class="mono">380</td><td><span class="tag ok">Reporting</span></td></tr>
+<tr><td>Radiology PACS<span class="sub">12 hospitals</span></td><td class="mono">3 h ago</td><td class="mono">160</td><td class="mono">1</td><td class="mono">520</td><td><span class="tag btg">Quiet 3 h</span></td></tr>
+</tbody></table>
+</section>
+
+<section class="box" style="flex:1;min-width:0;padding-bottom:14px">
+<div class="bh"><h2>Review queue</h2><span>3 open · 14 done this month</span></div>
+<div style="padding:10px 18px 0;display:grid;gap:12px">
+<div><div style="display:flex;justify-content:space-between"><span>New</span><b class="mono">1</b></div><div class="track" style="margin-top:4px"><b style="width:33%;background:#0b6e6e"></b></div></div>
+<div><div style="display:flex;justify-content:space-between"><span>Being reviewed</span><b class="mono">1</b></div><div class="track" style="margin-top:4px"><b style="width:33%;background:#0b6e6e"></b></div></div>
+<div><div style="display:flex;justify-content:space-between"><span>Waiting for a second opinion</span><b class="mono">1</b></div><div class="track" style="margin-top:4px"><b style="width:33%;background:#0b6e6e"></b></div></div>
+<div style="padding-top:10px;border-top:1px solid #eeeee8;font-size:13px;color:#3d4a4f">Median time to decide: <b>9 h 20 min</b><br>Peer reviews that disagreed: <b>2 of 14</b></div>
+</div>
+</section>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1360,"height":1640}}'>
+class Component extends DCLogic {
+renderVals() {
+  const prof=[260,210,190,170,180,240,380,560,820,940,982,900,810,760,720,840,880,760,560,430,380,340,300,280];
+  const fails=[0,1,0,0,0,1,1,2,3,6,14,3,1,0,0,2,1,1,0,0,1,0,0,0];
+  const hours=prof.map((v,i)=>{const hh=(10+i)%24;const f=fails[i];const ok=v-f;
+    return {title:String(hh).padStart(2,'0')+':00 · '+v+' events, '+f+' failed',okH:Math.round(ok/1000*236),failH:f?Math.max(3,Math.round(f/1000*236)):0};});
+  const sys=[['HHIMS','29 facilities',8420,21],['LabLink','Central laboratory',2310,4],['PharmaLink','18 pharmacies',1540,8],['e-Channel','Booking',410,3],['Radiology PACS','12 hospitals',160,1]];
+  const systems=sys.map(s=>({name:s[0],note:s[1],w:Math.max(2,Math.round(s[2]/8420*100)),count:s[2].toLocaleString('en'),rate:(s[3]/s[2]*100).toFixed(2)+'% failed',rateColor:(s[3]/s[2]>0.004)?'#9b2226':'#4b5a5f',title:s[0]+': '+s[2]+' events, '+s[3]+' failed'}));
+  const ramp=['#e8f0fb','#bcd5f4','#7fb0ea','#2a78d6','#1b4f94'];
+  const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const heat=days.map((d,di)=>({day:d,cells:Array.from({length:24},(_,h)=>{
+    const wk=di<5?1:0.35;let base=h>=8&&h<=17?1:(h>=6&&h<8)||(h>17&&h<=20)?0.5:0.12;
+    let v=base*wk*(0.85+((di*7+h*3)%5)*0.06);if(di===3&&(h===2||h===3))v=0.62;
+    const k=Math.min(4,Math.floor(v*4.6));return {bg:ramp[k],title:d+' '+String(h).padStart(2,'0')+':00 · about '+Math.round(v*1000)+' events'};})}));
+  const bt=[[3,0],[2,0],[1,0],[4,0],[3,0],[0,0],[1,0],[2,0],[5,0],[3,1],[4,0],[2,0],[3,0],[6,1]];
+  const btg=bt.map((b,i)=>({okH:b[0]*18,lateH:b[1]*18,title:(9+i)+' Oct · '+(b[0]+b[1])+' break-glass, '+b[1]+' overdue'}));
+  return {hours,systems,heat,btg};
+}
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Clinic direction, Patient and visits</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0}
+.a{font-family:'IBM Plex Sans','Noto Sans Sinhala','Noto Sans Tamil',sans-serif;color:#1d2a2e;font-size:14px}
+.a *{box-sizing:border-box}
+.a .mono{font-family:'IBM Plex Mono',monospace;font-size:12.5px}
+.a button,.a input{font:inherit;color:inherit}
+.a .tab{background:none;border:0;padding:14px 4px;margin-right:22px;color:#4b5a5f;border-bottom:3px solid transparent;cursor:pointer}
+.a .tab.on{color:#0b5b5b;border-bottom-color:#0b6e6e;font-weight:600}
+.a .box{background:#fff;border:1px solid #d7d9d2;border-radius:10px}
+.a .sub{display:block;color:#4b5a5f;font-size:12.5px}
+.a .tag{display:inline-block;border-radius:4px;padding:2px 8px;font-size:12px;font-weight:600}
+.a .ok{background:#e1f1e6;color:#1b5e33}.a .bad{background:#fbe3e3;color:#9b2226}.a .btg{background:#fff0cf;color:#774400}
+.a h3{margin:0;font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:#4b5a5f;font-weight:600}
+.a .visit{display:flex;gap:16px;padding:14px 18px;border-bottom:1px solid #e6e7e0}
+.a .dot{width:12px;height:12px;border-radius:50%;background:#0b6e6e;margin-top:5px;flex:none;box-shadow:0 0 0 4px #e3f0ee}
+.a .acc{display:grid;grid-template-columns:96px 1.2fr 1.3fr 1fr 80px;gap:8px;padding:8px 0;border-top:1px dashed #dcddd5;align-items:start}
+</style>
+</helmet>
+<div class="a" style="width:1360px;height:960px;background:#f6f5f1;overflow:hidden;display:flex;flex-direction:column">
+<header style="display:flex;align-items:center;gap:32px;padding:0 28px;background:#fff;border-bottom:1px solid #d7d9d2;height:54px">
+<div style="font-weight:600;font-size:16px;display:flex;align-items:center;gap:10px"><span style="width:26px;height:26px;border-radius:6px;background:#0b6e6e;display:inline-block"></span>Audit Console</div>
+<nav aria-label="Main" style="display:flex;flex:1"><button class="tab">Overview</button><button class="tab">Explore</button><button class="tab on" aria-current="page">People and patients</button><button class="tab">Reviews</button><button class="tab">Break-glass</button><button class="tab">Alerts</button><button class="tab">Reports</button><button class="tab" style="margin-left:auto">Health</button><button class="tab">Settings</button><button class="tab">Admin</button></nav>
+<button style="height:34px;padding:0 14px;background:#f6f5f1;border:1px solid #c9ccc3;border-radius:6px;color:#4b5a5f">Find anything <span class="mono" style="margin-left:8px;border:1px solid #c9ccc3;border-radius:4px;padding:1px 6px;background:#fff">Ctrl K</span></button>
+<div style="text-align:right;line-height:1.25"><div style="font-weight:500">Anita Rathnayake</div><div style="font-size:12px;color:#4b5a5f">MoH reviewer</div></div>
+</header>
+
+<div style="padding:18px 28px 24px;display:flex;flex-direction:column;gap:16px;flex:1;min-height:0">
+<div style="color:#4b5a5f;font-size:13px">People and patients / Patients / <b style="color:#1d2a2e;font-weight:600">P-10407</b></div>
+
+<div class="box" style="display:flex;align-items:center;gap:28px;padding:16px 22px">
+<div style="width:52px;height:52px;border-radius:50%;background:#e3f0ee;color:#0b4f4f;font-weight:600;font-size:18px;display:flex;align-items:center;justify-content:center" aria-hidden="true">KM</div>
+<div><h1 style="margin:0;font-size:21px;font-weight:600">Kamal Mendis</h1><span class="sub" style="margin-top:2px">Patient P-10407 · 41 years · Male · NIC ending 4821</span></div>
+<div style="margin-left:auto;display:flex;gap:30px;text-align:right">
+<div><div style="font-size:22px;font-weight:600">38</div><span class="sub">events, 30 days</span></div>
+<div><div style="font-size:22px;font-weight:600">11</div><span class="sub">people</span></div>
+<div><div style="font-size:22px;font-weight:600">5</div><span class="sub">systems</span></div>
+<div><div style="font-size:22px;font-weight:600;color:#774400">1</div><span class="sub">break-glass</span></div>
+</div>
+<button style="height:40px;padding:0 18px;background:#0b6e6e;color:#fff;border:0;border-radius:8px;font-weight:600">Open a review</button>
+</div>
+
+<div style="display:flex;gap:18px;flex:1;min-height:0">
+<section class="box" style="flex:1;min-width:0;overflow:hidden">
+<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid #e6e7e0"><h3>Visits and who looked at the record</h3><div role="group" aria-label="Period" style="display:flex;border:1px solid #c9ccc3;border-radius:6px;overflow:hidden"><button style="border:0;background:#e3f0ee;padding:5px 12px;color:#0b4f4f;font-weight:600">30 days</button><button style="border:0;background:#fff;padding:5px 12px">90 days</button><button style="border:0;background:#fff;padding:5px 12px">All</button></div></div>
+
+<div class="visit"><span class="dot" aria-hidden="true"></span><div style="flex:1">
+<div style="display:flex;justify-content:space-between"><b style="font-weight:600">Outpatient visit · OPD-3</b><span class="mono" style="color:#4b5a5f">Thu 22 Oct 2026 · 1 day ago · E-88213</span></div>
+<span class="sub">Colombo National Hospital · treatment · 7 events, 4 people, 3 systems</span>
+<div style="margin-top:8px">
+<div class="acc"><span class="mono">09:41 IST<span class="sub" style="font-family:'IBM Plex Sans'">1 day ago</span></span><span>Dr. N. Perera<span class="sub">Practitioner</span></span><span>Viewed patient record</span><span>HHIMS</span><span class="tag ok" style="justify-self:start">OK</span></div>
+<div class="acc"><span class="mono">09:36 IST<span class="sub" style="font-family:'IBM Plex Sans'">1 day ago</span></span><span>lab-gateway<span class="sub">System</span></span><span>Added lab report</span><span>LabLink</span><span class="tag ok" style="justify-self:start">OK</span></div>
+<div class="acc"><span class="mono">09:29 IST<span class="sub" style="font-family:'IBM Plex Sans'">1 day ago</span></span><span>A. Jayasuriya<span class="sub">Pharmacist</span></span><span>Changed prescription</span><span>PharmaLink</span><span class="tag ok" style="justify-self:start">OK</span></div>
+</div></div></div>
+
+<div class="visit"><span class="dot" aria-hidden="true"></span><div style="flex:1">
+<div style="display:flex;justify-content:space-between"><b style="font-weight:600">Inpatient stay · Ward 7</b><span class="mono" style="color:#4b5a5f">18 to 20 Oct 2026 · 3 to 5 days ago · E-87702</span></div>
+<span class="sub">Colombo National Hospital · treatment · 29 events, 9 people, 2 systems</span>
+<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap"><span class="tag ok">27 OK</span><span class="tag bad">2 refused</span><button style="margin-left:8px;border:0;background:none;color:#0b5b5b;font-weight:600;cursor:pointer">Show all 29 events</button></div>
+</div></div>
+
+<div class="visit" style="border-bottom:0"><span class="dot" style="background:#b06a00;box-shadow:0 0 0 4px #fff0cf" aria-hidden="true"></span><div style="flex:1">
+<div style="display:flex;justify-content:space-between"><b style="font-weight:600">Emergency visit · Casualty</b><span class="mono" style="color:#4b5a5f">Fri 2 Oct 2026 · 3 weeks ago · E-86110</span></div>
+<span class="sub">Kandy Teaching Hospital · emergency treatment · 2 events, 2 people</span>
+<div style="margin-top:8px;padding:10px 12px;background:#fff7e3;border:1px solid #ecd49a;border-radius:8px;font-size:13px"><span class="tag btg">Break-glass</span> Nurse S. Silva opened the record at 02:14 IST. Reason received 02:40 IST (26 min later): "unconscious patient, history needed". <b style="font-weight:600">Reviewed: appropriate.</b></div>
+</div></div>
+</section>
+
+<aside style="width:360px;display:flex;flex-direction:column;gap:16px">
+<div class="box" style="padding:16px 18px"><h3>Who looked, 30 days</h3>
+<div style="margin-top:10px;display:grid;grid-template-columns:1fr auto;gap:9px 12px">
+<span>Dr. N. Perera<span class="sub">Colombo NH · Physician</span></span><b class="mono">9</b>
+<span>Nurse S. Silva<span class="sub">Kandy TH · Nurse</span></span><b class="mono">6</b>
+<span>A. Jayasuriya<span class="sub">Galle · Pharmacist</span></span><b class="mono">4</b>
+<span>lab-gateway<span class="sub">LabLink · System</span></span><b class="mono">12</b>
+</div><button style="margin-top:12px;border:0;background:none;color:#0b5b5b;font-weight:600;cursor:pointer;padding:0">See all 11</button></div>
+<div class="box" style="padding:16px 18px"><h3>Flags</h3>
+<ul style="margin:10px 0 0;padding:0;list-style:none;display:grid;gap:8px"><li><span class="tag btg">1</span> break-glass, reviewed</li><li><span class="tag bad">2</span> refused attempts, Ward 7</li><li><span class="tag ok">0</span> access outside scope of practice</li></ul></div>
+<div class="box" style="padding:16px 18px"><h3>From the registry</h3>
+<dl style="margin:10px 0 0;display:grid;grid-template-columns:90px 1fr;gap:6px 8px"><dt style="color:#4b5a5f">Source</dt><dd style="margin:0">Bundle 2a registry</dd><dt style="color:#4b5a5f">Facility</dt><dd style="margin:0">Colombo NH</dd><dt style="color:#4b5a5f">Updated</dt><dd style="margin:0">22 Oct 06:00 IST · 1 day ago</dd></dl>
+</div>
+<div class="box" style="padding:16px 18px;border:1.5px dashed #8a948f;background:#fbfbf8"><div style="display:flex;justify-content:space-between;align-items:center"><h3>Consent</h3><span class="tag" style="background:#eceeea;color:#3d4a4f;border:1px dashed #6f7a76">Planned · AR-08</span></div><div style="margin-top:10px;font-size:13px;color:#3d4a4f">Will show whether a valid consent covered each access, read from the NEHR (Bundle 2a). Until that service is available the status is "unknown", never "violation".</div></div>
+</aside>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1360,"height":960}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

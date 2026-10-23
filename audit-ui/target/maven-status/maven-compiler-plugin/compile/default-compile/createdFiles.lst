@@ -18,6 +18,7 @@ com/akhester/auditui/patient/PatientController.class
 com/akhester/auditui/model/AuditEventResponse$AgentDto.class
 com/akhester/auditui/model/AuditDetail$AgentInfo$AgentInfoBuilder.class
 com/akhester/auditui/model/AuditDetail$AuditDetailBuilder.class
+com/akhester/auditui/page/NavBadges.class
 com/akhester/auditui/admin/AdminController.class
 com/akhester/auditui/config/OidcChesterTokenProvider.class
 com/akhester/auditui/overview/OverviewController.class
@@ -76,6 +77,7 @@ com/akhester/auditui/demo/DemoUsers.class
 com/akhester/auditui/config/SlaPolicy.class
 com/akhester/auditui/model/AuditDetail$EntityInfo$EntityInfoBuilder.class
 com/akhester/auditui/prefs/UserPrefsRepository.class
+com/akhester/auditui/demo/DemoAuditData$Sys.class
 com/akhester/auditui/model/AuditFilter.class
 com/akhester/auditui/consent/ConsentLogRepository.class
 com/akhester/auditui/demo/DemoSecurityConfig.class

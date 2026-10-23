@@ -29,6 +29,7 @@
 /home/claude/auditrepo/audit-ui/src/main/java/com/akhester/auditui/overview/OverviewService.java
 /home/claude/auditrepo/audit-ui/src/main/java/com/akhester/auditui/page/AppSettingRepository.java
 /home/claude/auditrepo/audit-ui/src/main/java/com/akhester/auditui/page/I18nConfig.java
+/home/claude/auditrepo/audit-ui/src/main/java/com/akhester/auditui/page/NavBadges.java
 /home/claude/auditrepo/audit-ui/src/main/java/com/akhester/auditui/page/SettingsController.java
 /home/claude/auditrepo/audit-ui/src/main/java/com/akhester/auditui/page/ShellAdvice.java
 /home/claude/auditrepo/audit-ui/src/main/java/com/akhester/auditui/page/TimeFormat.java

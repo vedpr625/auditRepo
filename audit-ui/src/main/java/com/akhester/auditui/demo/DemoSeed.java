@@ -23,10 +23,13 @@ public class DemoSeed implements ApplicationRunner {
     public void run(ApplicationArguments args) {
         if (!systems.all().isEmpty()) return;
         Map<String, String[]> names = Map.of(
-            "hhims-colombo", new String[]{"Colombo hospital system", "Demo: National Hospital Colombo"},
-            "hhims-kandy", new String[]{"Kandy hospital system", "Demo: Teaching Hospital Kandy"},
-            "moh-etl", new String[]{"Ministry analytics feed", "Demo: public health reporting"},
-            "research-portal", new String[]{"Research portal", "Demo: approved research use"});
+            "hhims-audit", new String[]{"HHIMS", "Health Information Management, 4 demo hospitals"},
+            "lablink-gw", new String[]{"LabLink", "Central laboratory"},
+            "pharma-galle", new String[]{"PharmaLink", "Pharmacies"},
+            "echannel-svc", new String[]{"e-Channel", "Booking"},
+            "pacs-audit", new String[]{"Radiology PACS", "12 hospitals"},
+            "moh-etl", new String[]{"Ministry analytics feed", "Public health reporting"},
+            "research-portal", new String[]{"Research portal", "Approved research use"});
         names.forEach((id, n) -> { systems.seen(id, Instant.now(), "demo"); systems.rename(id, n[0], n[1], "demo"); });
     }
 }

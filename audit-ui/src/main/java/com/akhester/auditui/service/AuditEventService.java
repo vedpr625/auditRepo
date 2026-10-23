@@ -82,7 +82,7 @@ public class AuditEventService {
         java.util.Map<String,Long> purposeCounts
     ) {}
 
-    private static final List<String> PURPOSES = List.of("TREAT", "ETREAT", "BTG", "PUBHLTH", "HRESCH");
+    private static final List<String> PURPOSES = List.of("TREAT", "ETREAT", "BTG", "PUBHLTH", "HRESCH", "HOPERAT", "HPAYMT");
     private static final List<String> OUTCOMES = List.of("0", "4", "8", "12");
 
     /** Sidebar badges: one cheap count query per option, asked of Chester (not counted in the browser). */
@@ -597,6 +597,13 @@ public class AuditEventService {
             .facility(ae.getSource() != null && ae.getSource().getObserver() != null
                       && ae.getSource().getObserver().getReference() != null ? ae.getSource().getObserver().getReference() : "—")
             .submittedBy(tagCode(ae, "/submitting-client"))
+            .breakGlassReason(ae.getExtensionByUrl(tagBaseUri + "/StructureDefinition/break-glass-reason") != null
+                ? ae.getExtensionByUrl(tagBaseUri + "/StructureDefinition/break-glass-reason").getValue().primitiveValue() : null)
+            .reasonGivenAt(ae.getExtensionByUrl(tagBaseUri + "/StructureDefinition/reason-given-at") != null
+                ? java.time.Instant.parse(ae.getExtensionByUrl(tagBaseUri + "/StructureDefinition/reason-given-at").getValue().primitiveValue().replace("+00:00", "Z")) : null)
+            .outcomeDesc(ae.getOutcomeDesc())
+            .encounterRef(ae.getEntity().stream().filter(e -> e.getWhat() != null && e.getWhat().getReference() != null && e.getWhat().getReference().startsWith("Encounter/"))
+                .map(e -> e.getWhat().getReference()).findFirst().orElse(null))
             .incomplete(tagCode(ae, "/tags") != null && ae.getMeta().getTag().stream().anyMatch(t -> "policy-incomplete".equals(t.getCode())))
             .breakGlass(ae.getMeta() != null && ae.getMeta().getSecurity().stream().anyMatch(c -> "BTG".equals(c.getCode())))
             .eventType(ae.getType() != null ? ae.getType().getCode() : null)

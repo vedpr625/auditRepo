@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Clinic direction, Break-glass</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0}
+.a{font-family:'IBM Plex Sans','Noto Sans Sinhala','Noto Sans Tamil',sans-serif;color:#1d2a2e;font-size:14px}
+.a *{box-sizing:border-box}
+.a .mono{font-family:'IBM Plex Mono',monospace;font-size:12px}
+.a button{font:inherit;color:inherit}
+.a .tab{background:none;border:0;padding:14px 4px;margin-right:22px;color:#4b5a5f;border-bottom:3px solid transparent;cursor:pointer}
+.a .tab.on{color:#0b5b5b;border-bottom-color:#0b6e6e;font-weight:600}
+.a .box{background:#fff;border:1px solid #d7d9d2;border-radius:10px}
+.a .sub{display:block;color:#4b5a5f;font-size:12.5px}
+.a .tag{display:inline-block;border-radius:4px;padding:2px 8px;font-size:12px;font-weight:600}
+.a .ok{background:#e1f1e6;color:#1b5e33}.a .bad{background:#fbe3e3;color:#9b2226}.a .btg{background:#fff0cf;color:#774400}.a .info{background:#e3f0ee;color:#0b4f4f}
+.a h3{margin:0;font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:#4b5a5f;font-weight:600}
+.a th{text-align:left;font-weight:600;font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:#4b5a5f;padding:10px 12px;border-bottom:1px solid #d7d9d2;background:#faf9f5}
+.a td{padding:11px 12px;border-bottom:1px solid #e6e7e0;vertical-align:top}
+.a tr.sel td{background:#e8f3f1}
+.a .kpi{flex:1;padding:14px 16px}
+.a .kpi b{display:block;font-size:28px;font-weight:600;line-height:1.15}
+</style>
+</helmet>
+<div class="a" style="width:1360px;height:940px;background:#f6f5f1;overflow:hidden;display:flex;flex-direction:column">
+<header style="display:flex;align-items:center;gap:32px;padding:0 28px;background:#fff;border-bottom:1px solid #d7d9d2;height:54px;flex:none">
+<div style="font-weight:600;font-size:16px;display:flex;align-items:center;gap:10px"><span style="width:26px;height:26px;border-radius:6px;background:#0b6e6e;display:inline-block"></span>Audit Console</div>
+<nav aria-label="Main" style="display:flex;flex:1"><button class="tab">Overview</button><button class="tab">Explore</button><button class="tab">People and patients</button><button class="tab">Reviews <span class="tag bad" style="margin-left:4px">3</span></button><button class="tab on" aria-current="page">Break-glass</button><button class="tab">Alerts</button><button class="tab">Reports</button><button class="tab" style="margin-left:auto">Health</button><button class="tab">Settings</button><button class="tab">Admin</button></nav>
+<div style="text-align:right;line-height:1.25"><div style="font-weight:500">Anita Rathnayake</div><div style="font-size:12px;color:#4b5a5f">MoH reviewer</div></div>
+</header>
+<main style="padding:18px 28px 24px;display:flex;flex-direction:column;gap:14px;flex:1;min-height:0">
+<div style="display:flex;align-items:center;gap:14px"><h1 style="margin:0;font-size:22px;font-weight:600">Break-glass</h1><span style="color:#4b5a5f">Emergency access. Each one needs a written reason from the person within 24 hours.</span>
+<div style="margin-left:auto;display:flex;gap:8px"><div role="group" aria-label="Period" style="display:flex;border:1px solid #9aa5a2;border-radius:8px;overflow:hidden;background:#fff"><button style="border:0;background:#fff;padding:8px 14px">24 hours</button><button style="border:0;background:#e3f0ee;padding:8px 14px;color:#0b4f4f;font-weight:600">7 days</button><button style="border:0;background:#fff;padding:8px 14px">30 days</button></div><button style="height:36px;padding:0 14px;background:#fff;border:1px solid #9aa5a2;border-radius:8px">Download CSV</button></div></div>
+
+<div style="display:flex;gap:12px">
+<div class="box kpi"><span class="sub">Break-glass, 7 days</span><b>23</b></div>
+<div class="box kpi"><span class="sub">Waiting for a reason</span><b style="color:#774400">2</b></div>
+<div class="box kpi"><span class="sub">Reason overdue</span><b style="color:#9b2226">1</b></div>
+<div class="box kpi"><span class="sub">Average time to give a reason</span><b>5 h 10 m</b></div>
+<div class="box kpi"><span class="sub">Reviewed as appropriate</span><b>17 <span style="font-size:16px;font-weight:500;color:#4b5a5f">of 20</span></b></div>
+<div class="box kpi"><span class="sub">People using it more than twice</span><b>3</b></div>
+</div>
+
+<div style="display:flex;gap:10px;align-items:center"><div role="group" aria-label="Filter" style="display:flex;border:1px solid #9aa5a2;border-radius:8px;overflow:hidden;background:#fff"><button style="border:0;background:#e3f0ee;padding:7px 14px;color:#0b4f4f;font-weight:600">All 23</button><button style="border:0;background:#fff;padding:7px 14px">Waiting 2</button><button style="border:0;background:#fff;padding:7px 14px">Overdue 1</button><button style="border:0;background:#fff;padding:7px 14px">Repeat users 3</button><button style="border:0;background:#fff;padding:7px 14px">Not yet reviewed 3</button></div><button style="height:36px;padding:0 14px;background:#fff;border:1px solid #9aa5a2;border-radius:8px">Facility ▾</button></div>
+
+<div style="display:flex;gap:16px;flex:1;min-height:0">
+<section class="box" style="flex:1;min-width:0;overflow:hidden">
+<table style="width:100%;border-collapse:collapse"><thead><tr><th>When</th><th>Who</th><th>Patient</th><th>Reason given</th><th>Reason status</th><th>Review</th></tr></thead><tbody>
+<tr class="sel"><td class="mono">22 Oct 02:14 IST<span class="sub" style="font-family:'IBM Plex Sans'">27 h ago · Kandy TH · Casualty</span></td><td>Nurse S. Silva<span class="sub">3rd use this week</span></td><td class="mono">P-20881</td><td><span class="sub" style="color:#1d2a2e;font-size:13px">Waiting. Asked 02:14, reminder sent 14:15.</span></td><td><span class="tag bad">Overdue 27 h</span></td><td><span class="tag info">Case C-1046</span></td></tr>
+<tr><td class="mono">22 Oct 01:40 IST<span class="sub" style="font-family:'IBM Plex Sans'">28 h ago · Colombo NH · Casualty</span></td><td>Dr. A. de Silva</td><td class="mono">P-30177</td><td><span class="sub" style="color:#1d2a2e;font-size:13px">"Road accident, unconscious, no history available"</span></td><td><span class="tag ok">Given in 38 min</span></td><td><span class="tag ok">Appropriate</span></td></tr>
+<tr><td class="mono">21 Oct 23:05 IST<span class="sub" style="font-family:'IBM Plex Sans'">30 h ago · Galle TH · ICU</span></td><td>Dr. K. Wickrama</td><td class="mono">P-40119</td><td><span class="sub" style="color:#1d2a2e;font-size:13px">"Transfer from another ward, urgent drug history"</span></td><td><span class="tag ok">Given in 2 h</span></td><td><span class="tag btg">Not yet reviewed</span></td></tr>
+<tr><td class="mono">21 Oct 17:50 IST<span class="sub" style="font-family:'IBM Plex Sans'">35 h ago · Jaffna TH · OPD</span></td><td>Dr. S. Kumar</td><td class="mono">P-50290</td><td><span class="sub" style="color:#1d2a2e;font-size:13px">Waiting. Asked 17:50.</span></td><td><span class="tag btg">Waiting 16 h</span></td><td><span class="sub">Not yet</span></td></tr>
+<tr><td class="mono">20 Oct 12:20 IST<span class="sub" style="font-family:'IBM Plex Sans'">2 days ago · Colombo NH · OPD-3</span></td><td>Dr. N. Perera</td><td class="mono">P-10407</td><td><span class="sub" style="color:#1d2a2e;font-size:13px">"Patient collapsed in clinic"</span></td><td><span class="tag ok">Given in 12 min</span></td><td><span class="tag ok">Appropriate</span></td></tr>
+</tbody></table>
+</section>
+
+<aside style="width:380px;display:flex;flex-direction:column;gap:14px">
+<div class="box" style="padding:16px 18px"><h3>Selected: C-1046</h3>
+<h2 style="margin:6px 0 2px;font-size:17px;font-weight:600">No reason after 27 hours</h2>
+<span class="sub">Nurse S. Silva opened P-20881 at 02:14 IST on Thu 22 Oct 2026 (27 h ago, 20:44 UTC on 21 Oct)</span>
+<div style="margin-top:12px;display:grid;gap:8px;font-size:13px"><div style="display:flex;gap:10px"><span class="tag info">02:14 IST</span>Record opened with emergency access</div><div style="display:flex;gap:10px"><span class="tag info">02:14 IST</span>Reason requested in the app</div><div style="display:flex;gap:10px"><span class="tag btg">14:15 IST</span>Reminder sent to the nurse and Kandy TH privacy contact</div><div style="display:flex;gap:10px"><span class="tag bad">23 Oct 02:14 IST</span>Became overdue. Case C-1046 opened</div></div>
+<div style="margin-top:12px;padding:10px 12px;border:1.5px dashed #8a948f;border-radius:8px;background:#fbfbf8;font-size:12.5px;color:#3d4a4f"><span class="tag" style="background:#eceeea;color:#3d4a4f;border:1px dashed #6f7a76">To confirm · AR-09</span> The reason is written in the vendor's application and sent to Chester afterwards. Linking it to this event is not yet confirmed with the vendors.</div>
+<div style="display:flex;gap:8px;margin-top:14px"><button style="flex:1;height:38px;background:#0b6e6e;color:#fff;border:0;border-radius:8px;font-weight:600">Open the case</button><button style="flex:1;height:38px;background:#fff;border:1px solid #9aa5a2;border-radius:8px">Send a reminder</button></div></div>
+<div class="box" style="padding:16px 18px"><h3>People using it most, 30 days</h3>
+<div style="margin-top:10px;display:grid;grid-template-columns:1fr auto;gap:9px 10px"><span>Nurse S. Silva<span class="sub">Kandy TH</span></span><b class="mono">5</b><span>Dr. A. de Silva<span class="sub">Colombo NH</span></span><b class="mono">4</b><span>Dr. K. Wickrama<span class="sub">Galle TH</span></span><b class="mono">3</b></div>
+<div style="margin-top:10px;padding:9px 11px;background:#fff0cf;border-radius:8px;font-size:12.5px;color:#4a3300">For 24 hours after a break-glass, everything this person opens is shown on the Alerts page.</div></div>
+</aside>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1360,"height":940}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

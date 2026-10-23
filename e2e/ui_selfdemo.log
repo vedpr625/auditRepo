@@ -1,4 +1,4 @@
-Picked up JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/etc/ssl/certs/java/cacerts -Djavax.net.ssl.trustStoreType=JKS -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=35065 -Dhttp.nonProxyHosts=localhost|127.0.0.1|::1|127.*|0.*|::|169.254.*|api.anthropic.com|api-staging.anthropic.com|api-pr-preview.anthropic.com|mcp-proxy.anthropic.com|mcp-proxy-staging.anthropic.com|registry.npmjs.org|jsr.io|npm.jsr.io|pypi.org|files.pythonhosted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=
+Picked up JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/etc/ssl/certs/java/cacerts -Djavax.net.ssl.trustStoreType=JKS -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=41187 -Dhttp.nonProxyHosts=localhost|127.0.0.1|::1|127.*|0.*|::|169.254.*|api.anthropic.com|api-staging.anthropic.com|api-pr-preview.anthropic.com|mcp-proxy.anthropic.com|mcp-proxy-staging.anthropic.com|registry.npmjs.org|jsr.io|npm.jsr.io|pypi.org|files.pythonhosted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=
 
   .   ____          _            __ _ _
  /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
@@ -9,27 +9,32 @@ Picked up JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/etc/ssl/certs/java/cace
 
  :: Spring Boot ::                (v3.3.4)
 
-2026-10-23T13:40:31.902+05:30  INFO 7693 --- [audit-ui] [           main] c.akhester.auditui.AuditUiApplication    : Starting AuditUiApplication v1.0.0 using Java 21.0.12.1 with PID 7693 (/home/claude/auditrepo/audit-ui/target/audit-ui-1.0.0.jar started by root in /home/claude/auditrepo/audit-ui)
-2026-10-23T13:40:31.908+05:30  INFO 7693 --- [audit-ui] [           main] c.akhester.auditui.AuditUiApplication    : The following 1 profile is active: "demo"
-2026-10-23T13:40:34.263+05:30  INFO 7693 --- [audit-ui] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8081 (http)
-2026-10-23T13:40:34.280+05:30  INFO 7693 --- [audit-ui] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
-2026-10-23T13:40:34.280+05:30  INFO 7693 --- [audit-ui] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.30]
-2026-10-23T13:40:34.312+05:30  INFO 7693 --- [audit-ui] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
-2026-10-23T13:40:34.313+05:30  INFO 7693 --- [audit-ui] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 2312 ms
-2026-10-23T13:40:34.907+05:30  INFO 7693 --- [audit-ui] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
-2026-10-23T13:40:35.150+05:30  INFO 7693 --- [audit-ui] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection conn0: url=jdbc:h2:file:./data/audit-ui user=SA
-2026-10-23T13:40:35.152+05:30  INFO 7693 --- [audit-ui] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
-2026-10-23T13:40:36.278+05:30  INFO 7693 --- [audit-ui] [           main] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name demoUsers
-2026-10-23T13:40:37.245+05:30  INFO 7693 --- [audit-ui] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8081 (http) with context path '/'
-2026-10-23T13:40:37.355+05:30  INFO 7693 --- [audit-ui] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8091 (http)
-2026-10-23T13:40:37.356+05:30  INFO 7693 --- [audit-ui] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
-2026-10-23T13:40:37.356+05:30  INFO 7693 --- [audit-ui] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.30]
-2026-10-23T13:40:37.358+05:30  INFO 7693 --- [audit-ui] [           main] o.a.c.c.C.[Tomcat-1].[localhost].[/]     : Initializing Spring embedded WebApplicationContext
-2026-10-23T13:40:37.358+05:30  INFO 7693 --- [audit-ui] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 108 ms
-2026-10-23T13:40:37.383+05:30  INFO 7693 --- [audit-ui] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 2 endpoints beneath base path '/actuator'
-2026-10-23T13:40:37.446+05:30  INFO 7693 --- [audit-ui] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8091 (http) with context path '/'
-2026-10-23T13:40:37.463+05:30  INFO 7693 --- [audit-ui] [           main] c.akhester.auditui.AuditUiApplication    : Started AuditUiApplication in 6.233 seconds (process running for 6.944)
-2026-10-23T13:40:37.572+05:30  WARN 7693 --- [audit-ui] [           main] c.a.auditui.config.DatabaseWarning       : Review decisions are stored in a local H2 file (jdbc:h2:file:./data/audit-ui). Set AUDIT_UI_DB_URL to a PostgreSQL database for production.
-2026-10-23T13:40:38.611+05:30  INFO 7693 --- [audit-ui] [nio-8081-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
-2026-10-23T13:40:38.611+05:30  INFO 7693 --- [audit-ui] [nio-8081-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
-2026-10-23T13:40:38.613+05:30  INFO 7693 --- [audit-ui] [nio-8081-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 2 ms
+2026-10-23T14:12:44.774+05:30  INFO 500 --- [audit-ui] [           main] c.akhester.auditui.AuditUiApplication    : Starting AuditUiApplication v1.0.0 using Java 21.0.12.1 with PID 500 (/home/claude/auditrepo/audit-ui/target/audit-ui-1.0.0.jar started by root in /home/claude/auditrepo/audit-ui)
+2026-10-23T14:12:44.782+05:30  INFO 500 --- [audit-ui] [           main] c.akhester.auditui.AuditUiApplication    : The following 1 profile is active: "demo"
+2026-10-23T14:12:47.199+05:30  INFO 500 --- [audit-ui] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8081 (http)
+2026-10-23T14:12:47.220+05:30  INFO 500 --- [audit-ui] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-10-23T14:12:47.221+05:30  INFO 500 --- [audit-ui] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.30]
+2026-10-23T14:12:47.272+05:30  INFO 500 --- [audit-ui] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-10-23T14:12:47.274+05:30  INFO 500 --- [audit-ui] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 2386 ms
+2026-10-23T14:12:48.018+05:30  INFO 500 --- [audit-ui] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-10-23T14:12:48.285+05:30  INFO 500 --- [audit-ui] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection conn0: url=jdbc:h2:file:./data/audit-ui user=SA
+2026-10-23T14:12:48.288+05:30  INFO 500 --- [audit-ui] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-10-23T14:12:49.758+05:30  INFO 500 --- [audit-ui] [           main] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name demoUsers
+2026-10-23T14:12:50.848+05:30  INFO 500 --- [audit-ui] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8081 (http) with context path '/'
+2026-10-23T14:12:50.930+05:30  INFO 500 --- [audit-ui] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8091 (http)
+2026-10-23T14:12:50.932+05:30  INFO 500 --- [audit-ui] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-10-23T14:12:50.932+05:30  INFO 500 --- [audit-ui] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.30]
+2026-10-23T14:12:50.935+05:30  INFO 500 --- [audit-ui] [           main] o.a.c.c.C.[Tomcat-1].[localhost].[/]     : Initializing Spring embedded WebApplicationContext
+2026-10-23T14:12:50.936+05:30  INFO 500 --- [audit-ui] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 83 ms
+2026-10-23T14:12:50.959+05:30  INFO 500 --- [audit-ui] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 2 endpoints beneath base path '/actuator'
+2026-10-23T14:12:51.012+05:30  INFO 500 --- [audit-ui] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8091 (http) with context path '/'
+2026-10-23T14:12:51.030+05:30  INFO 500 --- [audit-ui] [           main] c.akhester.auditui.AuditUiApplication    : Started AuditUiApplication in 7.105 seconds (process running for 7.861)
+2026-10-23T14:12:51.250+05:30  WARN 500 --- [audit-ui] [           main] c.a.auditui.config.DatabaseWarning       : Review decisions are stored in a local H2 file (jdbc:h2:file:./data/audit-ui). Set AUDIT_UI_DB_URL to a PostgreSQL database for production.
+2026-10-23T14:12:51.297+05:30  INFO 500 --- [audit-ui] [nio-8081-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-10-23T14:12:51.297+05:30  INFO 500 --- [audit-ui] [nio-8081-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-10-23T14:12:51.300+05:30  INFO 500 --- [audit-ui] [nio-8081-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 2 ms
+2026-10-23T14:12:54.661+05:30  WARN 500 --- [audit-ui] [nio-8081-exec-4] c.a.auditui.service.AuditEventService    : Chester search failed [ForbiddenOperationException]: HTTP 403 : Access denied by rule: default deny
+2026-10-23T14:12:55.924+05:30  INFO 500 --- [audit-ui] [nio-8081-exec-8] c.a.auditui.service.AuditEventService    : AuditEvent/4218 marked as reviewed by priya.admin
+2026-10-23T14:12:56.494+05:30  INFO 500 --- [audit-ui] [0.1-8091-exec-1] o.a.c.c.C.[Tomcat-1].[localhost].[/]     : Initializing Spring DispatcherServlet 'dispatcherServletRegistration'
+2026-10-23T14:12:56.494+05:30  INFO 500 --- [audit-ui] [0.1-8091-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServletRegistration'
+2026-10-23T14:12:56.495+05:30  INFO 500 --- [audit-ui] [0.1-8091-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms

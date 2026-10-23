@@ -14,7 +14,20 @@
   <script th:src="@{/js/console.js}" defer></script>
 </head>
 
-<!-- Top bar and main navigation. active = overview | explore | health | settings | admin -->
+<!-- Same as head(title) plus one page stylesheet: <head th:replace="~{fragments/layout :: headx(#{x.title}, 'page-x.css')}"> -->
+<head th:fragment="headx(title, css)">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="_csrf" th:content="${_csrf.token}">
+  <meta name="_csrf_header" th:content="${_csrf.headerName}">
+  <title th:text="${title} + ' · ' + #{app.name}">Audit Console</title>
+  <link rel="stylesheet" th:href="@{/css/audit-console.css}">
+  <link rel="stylesheet" th:href="@{'/css/' + ${css}}">
+  <script th:src="@{/js/htmx.min.js}" defer></script>
+  <script th:src="@{/js/console.js}" defer></script>
+</head>
+
+<!-- Top bar and main navigation. active = overview | explore | people | reviews | breakglass | alerts | reports | health | settings | admin -->
 <th:block th:fragment="header(active)">
 <a class="skip-link" href="#main" th:text="#{nav.skip}">Skip to content</a>
 <header class="app-header">
@@ -22,10 +35,20 @@
   <nav class="main-nav" th:attr="aria-label=#{nav.label}">
     <a th:href="@{/overview}" th:text="#{nav.overview}" th:attr="aria-current=${active == 'overview'} ? 'page' : null">Overview</a>
     <a th:href="@{/}" th:text="#{nav.explore}" th:attr="aria-current=${active == 'explore'} ? 'page' : null">Explore</a>
+    <a th:href="@{/people}" th:text="#{nav.people}" th:attr="aria-current=${active == 'people'} ? 'page' : null">People and patients</a>
+    <a th:href="@{/reviews}" th:attr="aria-current=${active == 'reviews'} ? 'page' : null"><span th:text="#{nav.reviews}">Reviews</span> <span class="count-badge" th:if="${navReviewsOpen > 0}" th:text="${navReviewsOpen}">3</span></a>
+    <a th:href="@{/break-glass}" th:text="#{nav.breakglass}" th:attr="aria-current=${active == 'breakglass'} ? 'page' : null">Break-glass</a>
+    <a th:href="@{/alerts}" th:text="#{nav.alerts}" th:attr="aria-current=${active == 'alerts'} ? 'page' : null">Alerts</a>
+    <a th:href="@{/reports}" th:text="#{nav.reports}" th:attr="aria-current=${active == 'reports'} ? 'page' : null">Reports</a>
     <a class="push" th:href="@{/health}" th:text="#{nav.health}" th:attr="aria-current=${active == 'health'} ? 'page' : null">Health</a>
     <a th:href="@{/settings}" th:text="#{nav.settings}" th:attr="aria-current=${active == 'settings'} ? 'page' : null">Settings</a>
     <a th:if="${canAdmin}" th:href="@{/admin}" th:text="#{nav.admin}" th:attr="aria-current=${active == 'admin'} ? 'page' : null">Admin</a>
   </nav>
+  <form class="find-box" th:action="@{/find}" method="get" role="search">
+    <label class="sr-only" for="find-q" th:text="#{nav.find}">Find anything</label>
+    <input id="find-q" name="q" class="input" maxlength="100" autocomplete="off" th:placeholder="#{nav.find}">
+    <kbd aria-hidden="true">Ctrl K</kbd>
+  </form>
   <div class="header-tools">
     <div class="lang-switch" role="group" th:attr="aria-label=#{nav.language}">
       <a th:href="@{${shellPath}(lang='en')}" lang="en" th:attr="aria-current=${#locale.language == 'en'} ? 'true' : null">EN</a>

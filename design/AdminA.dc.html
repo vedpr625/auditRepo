@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Clinic direction, Admin</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0}
+.a{font-family:'IBM Plex Sans','Noto Sans Sinhala','Noto Sans Tamil',sans-serif;color:#1d2a2e;font-size:14px}
+.a *{box-sizing:border-box}
+.a .mono{font-family:'IBM Plex Mono',monospace;font-size:12px}
+.a button{font:inherit;color:inherit}
+.a .tab{background:none;border:0;padding:14px 4px;margin-right:22px;color:#4b5a5f;border-bottom:3px solid transparent;cursor:pointer}
+.a .tab.on{color:#0b5b5b;border-bottom-color:#0b6e6e;font-weight:600}
+.a .box{background:#fff;border:1px solid #d7d9d2;border-radius:10px}
+.a .sub{display:block;color:#4b5a5f;font-size:12.5px}
+.a .tag{display:inline-block;border-radius:4px;padding:2px 8px;font-size:12px;font-weight:600}
+.a .ok{background:#e1f1e6;color:#1b5e33}.a .bad{background:#fbe3e3;color:#9b2226}.a .btg{background:#fff0cf;color:#774400}.a .info{background:#e3f0ee;color:#0b4f4f}.a .off{background:#eceeea;color:#3d4a4f}
+.a h3{margin:0;font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:#4b5a5f;font-weight:600}
+.a th{text-align:left;font-weight:600;font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:#4b5a5f;padding:10px 12px;border-bottom:1px solid #d7d9d2;background:#faf9f5}
+.a td{padding:10px 12px;border-bottom:1px solid #e6e7e0;vertical-align:top}
+.a tr.sel td{background:#e8f3f1}
+.a .st button{border:0;background:#fff;padding:8px 16px;cursor:pointer}
+.a .st button.on{background:#e3f0ee;color:#0b4f4f;font-weight:600}
+</style>
+</helmet>
+<div class="a" style="width:1360px;height:1060px;background:#f6f5f1;overflow:hidden;display:flex;flex-direction:column">
+<header style="display:flex;align-items:center;gap:32px;padding:0 28px;background:#fff;border-bottom:1px solid #d7d9d2;height:54px;flex:none">
+<div style="font-weight:600;font-size:16px;display:flex;align-items:center;gap:10px"><span style="width:26px;height:26px;border-radius:6px;background:#0b6e6e;display:inline-block"></span>Audit Console</div>
+<nav aria-label="Main" style="display:flex;flex:1"><button class="tab">Overview</button><button class="tab">Explore</button><button class="tab">People and patients</button><button class="tab">Reviews</button><button class="tab">Break-glass</button><button class="tab">Alerts</button><button class="tab">Reports</button><button class="tab" style="margin-left:auto">Settings</button><button class="tab on" aria-current="page">Admin</button></nav>
+<div style="text-align:right;line-height:1.25"><div style="font-weight:500">Dilani Wijesekara</div><div style="font-size:12px;color:#4b5a5f">Administrator</div></div>
+</header>
+<main style="padding:18px 28px 24px;display:flex;flex-direction:column;gap:14px;flex:1;min-height:0">
+<div style="display:flex;align-items:center;gap:14px"><h1 style="margin:0;font-size:22px;font-weight:600">Admin</h1><span style="color:#4b5a5f">Who can use the console, which systems may send, and what changed.</span></div>
+<div class="st" role="tablist" aria-label="Admin sections" style="display:flex;border:1px solid #9aa5a2;border-radius:8px;overflow:hidden;background:#fff;width:max-content"><button class="on" role="tab" aria-selected="true">Sending systems</button><button role="tab" aria-selected="false">Facilities</button><button role="tab" aria-selected="false">Users <span class="tag" style="background:#eceeea;color:#3d4a4f;border:1px dashed #6f7a76;margin-left:4px">Planned</span></button><button role="tab" aria-selected="false">Rules</button><button role="tab" aria-selected="false">Change history</button><button role="tab" aria-selected="false">Health</button></div>
+
+<div style="display:flex;gap:16px;flex:1;min-height:0">
+<section class="box" style="flex:1;min-width:0;overflow:hidden">
+<div style="padding:14px 18px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #e6e7e0"><h3>Systems that have sent audit records</h3><a href="#keycloak" style="height:34px;padding:8px 14px;background:#fff;color:#0b5b5b;border:1px solid #9aa5a2;border-radius:8px;font-weight:600;text-decoration:none">Add or disable a client in Keycloak</a></div>
+<table style="width:100%;border-collapse:collapse"><thead><tr><th>Name shown</th><th>Client id in Keycloak</th><th>Role</th><th>Last sent</th><th>Events, 30 days</th><th>Status</th></tr></thead><tbody>
+<tr class="sel"><td><b style="font-weight:600">HHIMS</b><span class="sub">Health Information Management</span></td><td class="mono">hhims-audit</td><td><span class="tag info">AUDIT_WRITER</span></td><td class="mono">1 min ago</td><td class="mono">248,300</td><td><span class="tag ok">Active</span></td></tr>
+<tr><td><b style="font-weight:600">LabLink</b><span class="sub">Central laboratory</span></td><td class="mono">lablink-gw</td><td><span class="tag info">AUDIT_WRITER</span></td><td class="mono">1 min ago</td><td class="mono">69,400</td><td><span class="tag ok">Active</span></td></tr>
+<tr><td><b style="font-weight:600">PharmaLink</b><span class="sub">Pharmacies</span></td><td class="mono">pharma-galle</td><td><span class="tag info">AUDIT_WRITER</span></td><td class="mono">3 min ago</td><td class="mono">46,100</td><td><span class="tag btg">14 failures Tue</span></td></tr>
+<tr><td><b style="font-weight:600">Radiology PACS</b><span class="sub">12 hospitals</span></td><td class="mono">pacs-audit</td><td><span class="tag info">AUDIT_WRITER</span></td><td class="mono">3 h ago</td><td class="mono">4,800</td><td><span class="tag btg">Quiet</span></td></tr>
+<tr><td><b style="font-weight:600">e-Channel</b><span class="sub">Booking</span></td><td class="mono">echannel-svc</td><td><span class="tag info">AUDIT_WRITER</span></td><td class="mono">6 min ago</td><td class="mono">12,300</td><td><span class="tag ok">Active</span></td></tr>
+<tr><td><b style="font-weight:600">Vendor sandbox</b><span class="sub">HHIMS test</span></td><td class="mono">hhims-test</td><td><span class="tag info">AUDIT_WRITER</span></td><td class="mono">12 d ago</td><td class="mono">40</td><td><span class="tag off">Not seen for 12 d</span></td></tr>
+</tbody></table>
+<div style="padding:12px 18px;color:#4b5a5f;font-size:12.5px">In the first release users, roles and clients are managed in Keycloak. This list is built from the audit records received, so a new system appears after its first record. Only the name shown can be edited here.</div>
+</section>
+
+<aside style="width:400px;display:flex;flex-direction:column;gap:14px">
+<div class="box" style="padding:16px 18px"><h3>HHIMS</h3>
+<div style="margin-top:10px;display:grid;grid-template-columns:120px 1fr;gap:8px 10px;font-size:13px"><span style="color:#4b5a5f">Name shown</span><span>HHIMS</span><span style="color:#4b5a5f">Client id</span><span class="mono">hhims-audit</span><span style="color:#4b5a5f">Facilities</span><span>29 sending</span><span style="color:#4b5a5f">Contact</span><span>support@hhims.example</span><span style="color:#4b5a5f">Dry-run checks</span><span>Allowed ($validate)</span></div>
+<div style="display:flex;gap:8px;margin-top:14px"><button style="flex:1;height:36px;background:#fff;border:1px solid #9aa5a2;border-radius:8px">Edit name</button></div></div>
+<div class="box" style="padding:16px 18px"><h3>Roles (managed in Keycloak)</h3>
+<div style="margin-top:10px;display:grid;gap:9px;font-size:13px"><div><span class="tag info">AUDIT_WRITER</span> sends records. Cannot read them.</div><div><span class="tag info">MINISTRY_AUDITOR</span> reads everything and reviews.</div><div><span class="tag info">PRIVACY_OFFICER</span> reads everything, settles disagreements.</div><div><span class="tag info">FACILITY_AUDITOR</span> reads only its own facility.</div><div><span class="tag info">AUDIT_ADMIN</span> manages the console.</div></div>
+<div style="margin-top:10px;padding:9px 11px;background:#fff0cf;border-radius:8px;font-size:12.5px;color:#4a3300">A person cannot both send and read. Keycloak refuses that mix.</div></div>
+<div class="box" style="padding:16px 18px;border:1.5px dashed #8a948f;background:#fbfbf8"><div style="display:flex;justify-content:space-between;align-items:center"><h3>Users</h3><span class="tag" style="background:#eceeea;color:#3d4a4f;border:1px dashed #6f7a76">Planned · next release</span></div><div style="margin-top:10px;font-size:13px;color:#3d4a4f">Invite a person, set their role, disable them and send a password reset, without opening Keycloak. Done through Keycloak's Admin API using a service account limited to this realm. Every change is recorded in the console activity log. Realm settings, clients and sign-in policy stay in Keycloak.</div><div style="margin-top:10px;font-size:12.5px;color:#774400;background:#fff0cf;border-radius:8px;padding:8px 10px">The service account can create users, so its secret is stored with the same care as a database password.</div></div>
+<div class="box" style="padding:16px 18px"><h3>Recent changes</h3>
+<div style="margin-top:8px;display:grid;gap:8px;font-size:13px"><div>12 Oct · Rule "review deadline" set to 24 h <span class="sub">Admin</span></div><div>9 Oct · PACS client added <span class="sub">D. Wijesekara</span></div><div>2 Oct · Vendor sandbox disabled <span class="sub">D. Wijesekara</span></div></div></div>
+</aside>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1360,"height":1060}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

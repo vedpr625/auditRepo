@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Clinic direction, Explore</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0}
+.a{font-family:'IBM Plex Sans','Noto Sans Sinhala','Noto Sans Tamil',sans-serif;color:#1d2a2e;font-size:14px}
+.a *{box-sizing:border-box}
+.a .mono{font-family:'IBM Plex Mono',monospace;font-size:12.5px}
+.a button,.a input{font:inherit;color:inherit}
+.a .tab{background:none;border:0;padding:14px 4px;margin-right:22px;color:#4b5a5f;border-bottom:3px solid transparent;cursor:pointer}
+.a .tab.on{color:#0b5b5b;border-bottom-color:#0b6e6e;font-weight:600}
+.a .chip{display:inline-flex;align-items:center;gap:6px;background:#e3f0ee;color:#0b4f4f;border:1px solid #b9d9d4;border-radius:999px;padding:4px 6px 4px 12px;font-size:13px}
+.a .chip button{background:none;border:0;cursor:pointer;color:#0b4f4f;font-size:16px;line-height:1;padding:0 4px;min-width:24px;min-height:24px}
+.a th{text-align:left;font-weight:600;font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:#4b5a5f;padding:10px 12px;border-bottom:1px solid #d7d9d2;background:#faf9f5}
+.a td{padding:11px 12px;border-bottom:1px solid #e6e7e0;vertical-align:top}
+.a tr.sel td{background:#e8f3f1}
+.a .sub{display:block;color:#4b5a5f;font-size:12.5px}
+.a .tag{display:inline-block;border-radius:4px;padding:2px 8px;font-size:12px;font-weight:600}
+.a .ok{background:#e1f1e6;color:#1b5e33}.a .bad{background:#fbe3e3;color:#9b2226}.a .btg{background:#fff0cf;color:#774400}
+.a .bars{display:flex;align-items:flex-end;gap:4px;height:84px}
+.a .bars b{flex:1;background:#7fb8b3;border-radius:2px 2px 0 0;display:flex;flex-direction:column;justify-content:flex-start}
+.a .bars u{display:block;background:#b3363a;border-radius:2px 2px 0 0}
+.a dt{color:#4b5a5f;font-size:12px;margin-top:12px}.a dd{margin:2px 0 0}
+</style>
+</helmet>
+<div class="a" style="width:1360px;height:860px;background:#f6f5f1;overflow:hidden;display:flex;flex-direction:column">
+
+<header style="display:flex;align-items:center;gap:32px;padding:0 28px;background:#fff;border-bottom:1px solid #d7d9d2;height:54px">
+<div style="font-weight:600;font-size:16px;display:flex;align-items:center;gap:10px"><span style="width:26px;height:26px;border-radius:6px;background:#0b6e6e;display:inline-block"></span>Audit Console</div>
+<nav aria-label="Main" style="display:flex;flex:1">
+<button class="tab">Overview</button><button class="tab on" aria-current="page">Explore</button><button class="tab">People and patients</button><button class="tab">Reviews <span class="tag bad" style="margin-left:4px">3</span></button><button class="tab">Break-glass</button><button class="tab">Alerts</button><button class="tab">Reports</button><button class="tab" style="margin-left:auto">Health</button><button class="tab">Settings</button><button class="tab">Admin</button>
+</nav>
+<div role="group" aria-label="Language" style="display:flex;border:1px solid #c9ccc3;border-radius:6px;overflow:hidden">
+<button style="background:#0b6e6e;color:#fff;border:0;padding:6px 12px">EN</button><button style="background:#fff;border:0;padding:6px 12px;border-left:1px solid #c9ccc3">සිං</button><button style="background:#fff;border:0;padding:6px 12px;border-left:1px solid #c9ccc3">த</button>
+</div>
+<div style="text-align:right;line-height:1.25"><div style="font-weight:500">Anita Rathnayake</div><div style="font-size:12px;color:#4b5a5f">MoH reviewer</div></div>
+</header>
+
+<div style="padding:18px 28px 0">
+<div style="display:flex;gap:10px">
+<label style="flex:1;display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #9aa5a2;border-radius:8px;padding:0 14px;height:44px">
+<span style="color:#4b5a5f">Find</span>
+<input class="mono" aria-label="Search audit events" placeholder="patient, practitioner, system, event or any text" style="flex:1;border:0;outline:0;background:none;height:40px">
+</label>
+<button style="height:44px;padding:0 16px;background:#fff;border:1px solid #9aa5a2;border-radius:8px">Last 24 hours</button>
+<button style="height:44px;padding:0 20px;background:#0b6e6e;color:#fff;border:0;border-radius:8px;font-weight:600">Search</button>
+</div>
+<div style="display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap">
+<span class="chip">Patient: P-10407 <button aria-label="Remove patient filter">×</button></span>
+<span class="chip">Outcome: any <button aria-label="Remove outcome filter">×</button></span>
+<button style="background:none;border:1px dashed #6f8a86;color:#0b4f4f;border-radius:999px;padding:5px 14px;cursor:pointer">+ Add filter</button>
+<span style="margin-left:auto;color:#4b5a5f;font-size:13px">Group by</span>
+<div role="group" aria-label="Group by" style="display:flex;border:1px solid #c9ccc3;border-radius:6px;overflow:hidden;background:#fff">
+<button style="border:0;background:#e3f0ee;padding:6px 12px;color:#0b4f4f;font-weight:600">None</button><button style="border:0;background:#fff;padding:6px 12px">Submitted by</button><button style="border:0;background:#fff;padding:6px 12px">Actor</button><button style="border:0;background:#fff;padding:6px 12px">Patient</button><button style="border:0;background:#fff;padding:6px 12px">Event</button>
+</div>
+</div>
+</div>
+
+<div style="padding:10px 28px 0;font-size:12.5px;color:#4b5a5f;display:flex;gap:14px;align-items:center"><span>Try</span><span class="mono" style="background:#fff;border:1px solid #d7d9d2;border-radius:4px;padding:2px 8px">break-glass</span><span class="mono" style="background:#fff;border:1px solid #d7d9d2;border-radius:4px;padding:2px 8px">outcome!=ok</span><span class="mono" style="background:#fff;border:1px solid #d7d9d2;border-radius:4px;padding:2px 8px">facility=Kandy TH</span><span class="mono" style="background:#fff;border:1px solid #d7d9d2;border-radius:4px;padding:2px 8px">no link to this patient's care</span><span style="margin-left:auto">Click any value in a row to filter by it · <button style="border:0;background:none;color:#0b5b5b;font-weight:600;padding:0;cursor:pointer">Save this search</button></span></div>
+<div style="display:flex;gap:18px;padding:12px 28px 24px;flex:1;min-height:0">
+<section style="flex:1;min-width:0;display:flex;flex-direction:column;gap:14px">
+<div style="background:#fff;border:1px solid #d7d9d2;border-radius:10px;padding:14px 16px 10px">
+<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px"><b style="font-weight:600">1,284 events</b><span style="color:#4b5a5f;font-size:12.5px"><span style="display:inline-block;width:10px;height:10px;background:#7fb8b3;border-radius:2px"></span> OK &nbsp; <span style="display:inline-block;width:10px;height:10px;background:#b3363a;border-radius:2px"></span> Failed · drag to zoom</span></div>
+<div class="bars" role="img" aria-label="Events per hour over the last 24 hours, busiest between 09:00 and 11:00">
+<b style="height:22%"></b><b style="height:30%"></b><b style="height:26%"></b><b style="height:34%"></b><b style="height:41%"></b><b style="height:38%"></b><b style="height:52%"></b><b style="height:60%"></b><b style="height:74%"><u style="height:10%"></u></b><b style="height:88%"><u style="height:8%"></u></b><b style="height:95%"><u style="height:14%"></u></b><b style="height:82%"></b><b style="height:70%"></b><b style="height:64%"></b><b style="height:58%"></b><b style="height:72%"><u style="height:9%"></u></b><b style="height:80%"></b><b style="height:66%"></b><b style="height:48%"></b><b style="height:40%"></b><b style="height:36%"></b><b style="height:44%"></b><b style="height:56%"></b><b style="height:50%"></b>
+</div>
+<div class="mono" style="display:flex;justify-content:space-between;color:#4b5a5f;margin-top:6px"><span>Thu 12:00</span><span>18:00</span><span>00:00</span><span>06:00</span><span>Now</span></div>
+</div>
+
+<div style="background:#fff;border:1px solid #d7d9d2;border-radius:10px;flex:1;min-height:0;overflow:hidden">
+<table style="width:100%;border-collapse:collapse">
+<thead><tr><th>When</th><th>Submitted by</th><th>Who</th><th>Patient</th><th>What happened</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td colspan="6" style="background:#faf9f5;font-weight:600;font-size:12px;color:#4b5a5f;padding:7px 12px">Thursday 22 October, shown in IST (UTC+05:30), change in Settings · 1,284 events</td></tr>
+<tr class="sel"><td class="mono">09:41:12 IST<span class="sub" style="font-family:'IBM Plex Sans'">4 min ago</span></td><td>HHIMS<span class="sub">Colombo National Hospital</span></td><td>Dr. N. Perera<span class="sub">Practitioner</span></td><td class="mono">P-10407</td><td>Viewed patient record<span class="sub">Outpatient · OPD-3</span></td><td><span class="tag ok">OK</span></td></tr>
+<tr><td class="mono">09:38:50 IST<span class="sub" style="font-family:'IBM Plex Sans'">7 min ago</span></td><td>HHIMS<span class="sub">Kandy Teaching Hospital</span></td><td>Nurse S. Silva<span class="sub">Practitioner</span></td><td class="mono">P-20881</td><td>Emergency access<span class="sub"><span class="tag btg" style="font-size:11px">Reason not given</span> <span class="tag" style="font-size:11px;background:#eceeea;color:#3d4a4f;border:1px dashed #6f7a76">Care link unknown</span></span></td><td><span class="tag btg">Break-glass</span></td></tr>
+<tr style="background:#faf9f5"><td class="mono">09:30 to 09:34</td><td>HHIMS<span class="sub">Galle Teaching Hospital</span></td><td>Dr. K. Wickrama<span class="sub">Practitioner</span></td><td class="mono">P-40119</td><td><b style="font-weight:600">14 similar views</b> of the same patient<span class="sub"><button style="border:0;background:none;color:#0b5b5b;font-weight:600;padding:0;cursor:pointer">Show the 14</button></span></td><td><span class="tag ok">OK</span></td></tr>
+<tr><td class="mono">09:36:02 IST<span class="sub" style="font-family:'IBM Plex Sans'">9 min ago</span></td><td>LabLink<span class="sub">Central laboratory</span></td><td>lab-gateway<span class="sub">System</span></td><td class="mono">P-10407</td><td>Added lab report<span class="sub">Inpatient · Ward 7</span></td><td><span class="tag ok">OK</span></td></tr>
+<tr><td class="mono">09:31:47 IST<span class="sub" style="font-family:'IBM Plex Sans'">14 min ago</span></td><td>HHIMS<span class="sub">Colombo National Hospital</span></td><td>Dr. R. Fernando<span class="sub">Practitioner</span></td><td class="mono">P-33012</td><td>Viewed patient record<span class="sub">Access refused (403)</span></td><td><span class="tag bad">Failed</span></td></tr>
+<tr><td class="mono">09:29:19 IST<span class="sub" style="font-family:'IBM Plex Sans'">16 min ago</span></td><td>PharmaLink<span class="sub">Pharmacy, Galle</span></td><td>A. Jayasuriya<span class="sub">Pharmacist</span></td><td class="mono">P-10407</td><td>Changed prescription<span class="sub">Outpatient · Pharmacy</span></td><td><span class="tag ok">OK</span></td></tr>
+<tr><td class="mono">09:22:03 IST<span class="sub" style="font-family:'IBM Plex Sans'">23 min ago</span></td><td>HHIMS<span class="sub">Teaching Hospital, Galle</span></td><td>Dr. K. Wickrama<span class="sub">Practitioner</span></td><td class="mono">P-40119</td><td>Searched patients<span class="sub">Outpatient · OPD-1</span></td><td><span class="tag ok">OK</span></td></tr>
+</tbody></table>
+</div>
+</section>
+
+<aside aria-label="Event detail" style="width:340px;background:#fff;border:1px solid #d7d9d2;border-radius:10px;padding:18px 20px;overflow:hidden">
+<div style="display:flex;justify-content:space-between;align-items:start"><div><div style="font-size:12px;color:#4b5a5f">Event</div><h2 style="margin:2px 0 0;font-size:18px;font-weight:600">Viewed patient record</h2></div><button aria-label="Close" style="border:0;background:none;font-size:22px;cursor:pointer;min-width:32px;min-height:32px">×</button></div>
+<div style="margin-top:10px"><span class="tag ok">OK</span> <span class="mono" style="color:#4b5a5f">Thu 22 Oct 2026, 09:41:12 IST · 4 min ago · 04:11:12 UTC</span></div>
+<dl style="margin:6px 0 0">
+<dt>Who</dt><dd>Dr. N. Perera · SLMC 14872<span class="sub">Practitioner, from the registry</span></dd>
+<dt>Patient</dt><dd class="mono">P-10407<span class="sub" style="font-family:'IBM Plex Sans'">Registered in Colombo, 41 y</span></dd>
+<dt>Submitted by</dt><dd>HHIMS · Colombo National Hospital</dd>
+<dt>Care context</dt><dd>Outpatient visit E-88213 · OPD-3<span class="sub">Purpose: treatment</span></dd>
+</dl>
+<div style="margin-top:18px;padding:12px;background:#f6f5f1;border-radius:8px;font-size:13px"><b style="font-weight:600">Same patient, last 6 hours:</b> 7 events by 4 people from 3 systems.</div>
+<div style="display:flex;gap:8px;margin-top:16px"><button style="flex:1;height:40px;background:#0b6e6e;color:#fff;border:0;border-radius:8px;font-weight:600">Open a review</button><button style="flex:1;height:40px;background:#fff;border:1px solid #9aa5a2;border-radius:8px">See the full trail</button></div>
+</aside>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1360,"height":860}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

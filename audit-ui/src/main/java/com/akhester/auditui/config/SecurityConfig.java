@@ -38,6 +38,7 @@ import java.util.*;
  */
 @Configuration
 @EnableWebSecurity
+@org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 @org.springframework.context.annotation.Profile("!demo")
 public class SecurityConfig {
 
@@ -72,7 +73,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/login", "/error", "/css/**", "/js/**", "/favicon.ico").permitAll()
                 // only UI admins may change review status (MVC form and REST)
-                .requestMatchers(HttpMethod.POST, "/audit/review/**", "/api/v1/audit-events/*/review").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.POST, "/audit/review/**", "/api/v1/audit-events/*/review").hasAnyRole("ADMIN", "MINISTRY_AUDITOR", "PRIVACY_OFFICER")
                 // fake registry / consent manager: exist only in demo mode (404 otherwise), called by this app itself
                 // Only this app itself may call them (loopback, and not through a reverse proxy), so nobody can read the fake
                 // registry directly and skip the consent check.

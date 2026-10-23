@@ -22,7 +22,7 @@ import com.akhester.auditui.prefs.UserPrefs;
 import jakarta.servlet.http.HttpServletRequest;
 
 /** Puts what every page's header needs into the model: the person, their role, preferences and the time formatter. */
-@ControllerAdvice(basePackages = {"com.akhester.auditui.page", "com.akhester.auditui.admin", "com.akhester.auditui.health", "com.akhester.auditui.overview", "com.akhester.auditui.patient"}, assignableTypes = {AuditController.class, MonitorController.class})
+@ControllerAdvice(basePackages = {"com.akhester.auditui.page", "com.akhester.auditui.admin", "com.akhester.auditui.health", "com.akhester.auditui.overview", "com.akhester.auditui.patient", "com.akhester.auditui.reviews", "com.akhester.auditui.breakglass", "com.akhester.auditui.alerts", "com.akhester.auditui.reports", "com.akhester.auditui.people"}, assignableTypes = {AuditController.class, MonitorController.class})
 public class ShellAdvice {
 
     /** Roles worth naming in the header, most powerful first. */
@@ -31,12 +31,15 @@ public class ShellAdvice {
     private final PrefsContext prefsContext;
     private final MessageSource messages;
     private final boolean demo;
+    private final org.springframework.beans.factory.ObjectProvider<NavBadges> badges;
 
     public ShellAdvice(PrefsContext prefsContext, MessageSource messages,
-                       @org.springframework.beans.factory.annotation.Value("${audit.ui.demo:false}") boolean demo) {
+                       @org.springframework.beans.factory.annotation.Value("${audit.ui.demo:false}") boolean demo,
+                       org.springframework.beans.factory.ObjectProvider<NavBadges> badges) {
         this.prefsContext = prefsContext;
         this.messages = messages;
         this.demo = demo;
+        this.badges = badges;
     }
 
     /** The most powerful named role the signed-in person holds, or null. */
@@ -61,6 +64,9 @@ public class ShellAdvice {
         model.addAttribute("shellUser", a == null ? "" : a.getName());
         model.addAttribute("shellRole", roleKey == null ? "" : messages.getMessage("role." + roleKey, null, roleKey, locale));
         model.addAttribute("demo", demo);
+        int open = 0;
+        try { NavBadges b = badges.getIfAvailable(); if (b != null) open = b.reviewsOpen(); } catch (RuntimeException ignored) { /* a badge must never break a page */ }
+        model.addAttribute("navReviewsOpen", open);
         model.addAttribute("canAdmin", auth.contains("ROLE_ADMIN"));
     }
 }

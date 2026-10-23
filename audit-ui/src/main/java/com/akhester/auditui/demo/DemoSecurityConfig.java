@@ -34,6 +34,7 @@ import com.akhester.auditui.config.ChesterTokenProvider;
  */
 @Configuration
 @EnableWebSecurity
+@org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 @Profile("demo")
 public class DemoSecurityConfig {
 
@@ -74,7 +75,7 @@ public class DemoSecurityConfig {
                     boolean loop = "127.0.0.1".equals(a) || "0:0:0:0:0:0:0:1".equals(a) || "::1".equals(a);
                     return new AuthorizationDecision(loop && req.getHeader("X-Forwarded-For") == null && req.getHeader("Forwarded") == null);
                 })
-                .requestMatchers(HttpMethod.POST, "/audit/review/**", "/api/v1/audit-events/*/review").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.POST, "/audit/review/**", "/api/v1/audit-events/*/review").hasAnyRole("ADMIN", "MINISTRY_AUDITOR", "PRIVACY_OFFICER")
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.POST, "/settings/registry").hasRole("ADMIN")
                 .anyRequest().authenticated())

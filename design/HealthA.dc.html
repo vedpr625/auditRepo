@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Clinic direction, Health</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0}
+.a{font-family:'IBM Plex Sans','Noto Sans Sinhala','Noto Sans Tamil',sans-serif;color:#1d2a2e;font-size:14px}
+.a *{box-sizing:border-box}
+.a .mono{font-family:'IBM Plex Mono',monospace;font-size:12px}
+.a button{font:inherit;color:inherit}
+.a .tab{background:none;border:0;padding:14px 4px;margin-right:22px;color:#4b5a5f;border-bottom:3px solid transparent;cursor:pointer}
+.a .tab.on{color:#0b5b5b;border-bottom-color:#0b6e6e;font-weight:600}
+.a .box{background:#fff;border:1px solid #d7d9d2;border-radius:10px}
+.a .plan{border:1.5px dashed #8a948f;background:#fbfbf8}
+.a .sub{display:block;color:#4b5a5f;font-size:12.5px}
+.a .tag{display:inline-block;border-radius:4px;padding:2px 8px;font-size:12px;font-weight:600}
+.a .ok{background:#e1f1e6;color:#1b5e33}.a .bad{background:#fbe3e3;color:#9b2226}.a .btg{background:#fff0cf;color:#774400}.a .info{background:#e3f0ee;color:#0b4f4f}
+.a .pl{background:#eceeea;color:#3d4a4f;border:1px dashed #6f7a76}
+.a h3{margin:0;font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:#4b5a5f;font-weight:600}
+.a th{text-align:left;font-weight:600;font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:#4b5a5f;padding:9px 12px;border-bottom:1px solid #d7d9d2;background:#faf9f5}
+.a td{padding:9px 12px;border-bottom:1px solid #eeeee8}
+.a .kpi{flex:1;padding:14px 16px}.a .kpi b{display:block;font-size:26px;font-weight:600;line-height:1.15}
+.a .col{flex:1;display:flex;flex-direction:column;justify-content:flex-end;min-width:0}
+</style>
+</helmet>
+<div class="a" style="width:1360px;height:1180px;background:#f6f5f1;overflow:hidden;display:flex;flex-direction:column">
+<header style="display:flex;align-items:center;gap:32px;padding:0 28px;background:#fff;border-bottom:1px solid #d7d9d2;height:54px;flex:none">
+<div style="font-weight:600;font-size:16px;display:flex;align-items:center;gap:10px"><span style="width:26px;height:26px;border-radius:6px;background:#0b6e6e;display:inline-block"></span>Audit Console</div>
+<nav aria-label="Main" style="display:flex;flex:1"><button class="tab">Overview</button><button class="tab">Explore</button><button class="tab">People and patients</button><button class="tab">Reviews</button><button class="tab">Break-glass</button><button class="tab">Alerts</button><button class="tab">Reports</button><button class="tab on" aria-current="page" style="margin-left:auto">Health</button><button class="tab">Settings</button><button class="tab">Admin</button></nav>
+<div style="text-align:right;line-height:1.25"><div style="font-weight:500">Dilani Wijesekara</div><div style="font-size:12px;color:#4b5a5f">Administrator</div></div>
+</header>
+<main style="padding:18px 28px 24px;display:flex;flex-direction:column;gap:14px;flex:1;min-height:0">
+<div style="display:flex;align-items:center;gap:14px"><h1 style="margin:0;font-size:22px;font-weight:600">Health</h1><span style="color:#4b5a5f">Is the audit repository receiving, keeping and protecting records? (SOR AR-14, AR-22, AR-41)</span><span class="tag pl" style="margin-left:auto">Dashed boxes are planned, not yet built</span></div>
+
+<div style="display:flex;gap:12px">
+<div class="box kpi"><span class="sub">Receiving now</span><b>8.9 <span style="font-size:14px;font-weight:500;color:#4b5a5f">events / min</span></b></div>
+<div class="box kpi"><span class="sub">Last event</span><b>12 s <span style="font-size:14px;font-weight:500;color:#4b5a5f">ago</span></b></div>
+<div class="box kpi"><span class="sub">Chester server</span><b style="color:#1b5e33">Up</b><span class="sub">Version 8.6.5 · 41 d uptime</span></div>
+<div class="box kpi"><span class="sub">Integrity</span><b style="color:#1b5e33">7 of 7 days OK</b><span class="sub">Last check 06:00 IST · 3 h ago</span></div>
+<div class="box kpi"><span class="sub">Rejected in 24 h</span><b>37</b><span class="sub">0.29% of events</span></div>
+</div>
+
+<div style="display:flex;gap:16px">
+<section class="box" style="flex:1.2;min-width:0;padding-bottom:12px">
+<div style="display:flex;justify-content:space-between;align-items:baseline;padding:14px 18px 0"><h3>Records received per minute, last hour</h3><span class="sub">AR-14</span></div>
+<div style="display:flex;align-items:flex-end;gap:3px;height:150px;padding:14px 18px 0;border-bottom:0" role="img" aria-label="Records received per minute over the last hour, steady between 6 and 12">
+<sc-for list="{{mins}}" as="m" hint-placeholder-count="60"><div class="col" title="{{m.title}}"><div style="height:{{m.h}}px;background:#2a78d6;border-radius:2px 2px 0 0"></div></div></sc-for>
+</div>
+<div class="mono" style="display:flex;justify-content:space-between;color:#4b5a5f;padding:6px 18px 0"><span>-60 min</span><span>-30</span><span>now</span></div>
+<div style="margin:12px 18px 0;padding:9px 12px;background:#f6f5f1;border-radius:8px;font-size:13px;color:#3d4a4f">Warn if fewer than <b>2 events a minute</b> for <b>10 minutes</b> in working hours. Set in the config file.</div>
+</section>
+
+<section class="box" style="flex:1;min-width:0;padding-bottom:6px">
+<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 18px 8px"><h3>Integrity check, hash chain by day</h3><button style="height:32px;padding:0 12px;background:#0b6e6e;color:#fff;border:0;border-radius:6px;font-weight:600">Verify now</button></div>
+<table style="width:100%;border-collapse:collapse"><thead><tr><th>Day (UTC, as stored)</th><th>Events</th><th>Last hash</th><th>Result</th></tr></thead><tbody>
+<tr><td class="mono">22 Oct</td><td class="mono">9,812</td><td class="mono">a41f…09c2</td><td><span class="tag ok">Intact</span></td></tr>
+<tr><td class="mono">21 Oct</td><td class="mono">12,904</td><td class="mono">7be0…d318</td><td><span class="tag ok">Intact</span></td></tr>
+<tr><td class="mono">20 Oct</td><td class="mono">13,127</td><td class="mono">c9d2…4a71</td><td><span class="tag ok">Intact</span></td></tr>
+<tr><td class="mono">19 Oct</td><td class="mono">12,660</td><td class="mono">02ac…f5e0</td><td><span class="tag ok">Intact</span></td></tr>
+<tr><td class="mono">18 Oct</td><td class="mono">12,988</td><td class="mono">e377…18b4</td><td><span class="tag ok">Intact</span></td></tr>
+</tbody></table>
+<div style="padding:10px 18px 4px;font-size:12.5px;color:#4b5a5f">A broken day shows in red and creates an alert. Today the check runs from the existing verify function.</div>
+</section>
+</div>
+
+<div style="display:flex;gap:16px">
+<section class="box plan" style="flex:1;padding:16px 18px"><div style="display:flex;justify-content:space-between"><h3>Prometheus and Grafana</h3><span class="tag pl">Planned · AR-36, AR-37</span></div>
+<div style="margin-top:12px;display:grid;gap:10px;font-size:13px">
+<div style="display:flex;justify-content:space-between"><span>Metrics address for Prometheus<span class="sub mono">/actuator/prometheus on Chester and on this console</span></span><span class="tag pl">To build</span></div>
+<div style="display:flex;justify-content:space-between"><span>Ready-made Grafana dashboard file<span class="sub">Ingestion, failures, break-glass, review queue</span></span><span class="tag pl">To build</span></div>
+<div style="display:flex;justify-content:space-between"><span>Open in Grafana<span class="sub">Link appears when a Grafana address is set</span></span><button style="height:30px;padding:0 12px;background:#fff;border:1px dashed #6f7a76;border-radius:6px;color:#6f7a76" disabled="">Not set</button></div></div></section>
+
+<section class="box plan" style="flex:1;padding:16px 18px"><div style="display:flex;justify-content:space-between"><h3>Keeping records</h3><span class="tag pl">Planned · AR-23, AR-33</span></div>
+<div style="margin-top:12px;display:grid;grid-template-columns:160px 1fr;gap:9px 10px;font-size:13px">
+<span style="color:#4b5a5f">Oldest record</span><span>Shows the date and the 10-year target</span>
+<span style="color:#4b5a5f">Storage used</span><span>Size and growth per month</span>
+<span style="color:#4b5a5f">Last backup</span><span>Time and result, from the database</span>
+<span style="color:#4b5a5f">Restore tested</span><span>Date of the last restore test</span></div></section>
+
+<section class="box" style="flex:1;padding:16px 18px"><div style="display:flex;justify-content:space-between"><h3>Alert statistics, 7 days</h3><span class="sub">AR-14</span></div>
+<div style="margin-top:12px;display:grid;grid-template-columns:1fr auto;gap:9px 10px;font-size:13px"><span>Fired</span><b class="mono">9</b><span>Sent by email</span><b class="mono">9</b><span>Opened a case</span><b class="mono">4</b><span>Marked as normal</span><b class="mono">2</b><span>Not delivered</span><b class="mono" style="color:#9b2226">0</b></div></section>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1360,"height":1180}}'>
+class Component extends DCLogic {
+renderVals() {
+  const vals=[8,9,7,10,9,8,11,9,8,7,9,10,12,9,8,9,10,11,9,8,7,8,9,10,9,8,9,11,10,9,8,9,7,6,8,9,10,9,8,9,10,11,9,8,9,10,9,8,7,9,10,9,8,9,11,10,9,8,9,9];
+  return {mins: vals.map((v,i)=>({h:Math.round(v/14*130),title:(60-i)+' min ago · '+v+' events'}))};
+}
+}
+</script>
+</body>
+</html>

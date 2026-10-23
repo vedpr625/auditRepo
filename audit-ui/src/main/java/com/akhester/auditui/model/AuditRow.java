@@ -46,6 +46,13 @@ public class AuditRow {
     /** Purpose of event code: TREAT, ETREAT, PUBHLTH, HRESCH, BTG */
     private String purposeCode;
 
+    /** Break-glass reason text and when it was given (null when none was sent). Demo: carried in two extensions on the AuditEvent. */
+    private String breakGlassReason;
+    private Instant reasonGivenAt;
+    /** Why a failed request failed (AuditEvent.outcomeDesc), when Chester sends it. */
+    private String outcomeDesc;
+    /** Patient's Encounter reference, when the record has one. */
+    private String encounterRef;
     /** Outcome code: 0=success, 4=minor failure, 8=serious failure, 12=major failure */
     private String outcomeCode;
 
@@ -75,6 +82,7 @@ public class AuditRow {
             case "PUBHLTH" -> "tag-pubhlth";
             case "HRESCH"  -> "tag-hresch";
             case "BTG"     -> "tag-btg";
+            case "HOPERAT", "HPAYMT" -> "tag-other";
             default        -> "tag-other";
         };
     }
@@ -88,6 +96,8 @@ public class AuditRow {
             case "PUBHLTH" -> "Public Health";
             case "HRESCH"  -> "Research";
             case "BTG"     -> "Break-Glass";
+            case "HOPERAT" -> "Operations";
+            case "HPAYMT"  -> "Payment";
             default        -> purposeCode;
         };
     }

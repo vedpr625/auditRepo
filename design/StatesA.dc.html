@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Clinic direction, Screen states</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0}
+.a{font-family:'IBM Plex Sans','Noto Sans Sinhala','Noto Sans Tamil',sans-serif;color:#1d2a2e;font-size:14px}
+.a *{box-sizing:border-box}
+.a .mono{font-family:'IBM Plex Mono',monospace;font-size:12px}
+.a button{font:inherit;color:inherit}
+.a .box{background:#fff;border:1px solid #d7d9d2;border-radius:10px;overflow:hidden}
+.a .cap{padding:10px 16px;border-bottom:1px solid #e6e7e0;font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:#4b5a5f;font-weight:600;background:#faf9f5}
+.a .sub{display:block;color:#4b5a5f;font-size:12.5px}
+.a .sk{height:14px;border-radius:4px;background:linear-gradient(90deg,#eceee8,#f6f7f3,#eceee8);background-size:200% 100%}
+.a .c{padding:30px 28px;text-align:center}
+.a .ic{width:44px;height:44px;border-radius:50%;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:20px}
+.a .btn{height:38px;padding:0 16px;border-radius:8px;font-weight:600}
+</style>
+</helmet>
+<div class="a" style="width:1360px;height:760px;background:#f6f5f1;overflow:hidden;padding:24px 28px">
+<h1 style="margin:0 0 4px;font-size:22px;font-weight:600">How screens behave when something is missing or wrong</h1>
+<p style="margin:0 0 18px;color:#4b5a5f">Every list and chart uses the same five states, so a reviewer is never left looking at a blank box.</p>
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
+
+<div class="box"><div class="cap">Loading</div><div style="padding:18px 16px;display:grid;gap:12px">
+<div class="sk" style="width:90%"></div><div class="sk" style="width:70%"></div><div class="sk" style="width:84%"></div><div class="sk" style="width:60%"></div><div class="sk" style="width:76%"></div>
+<span class="sub">Rows appear as grey bars in the same places, so the page does not jump. Charts show the same.</span></div></div>
+
+<div class="box"><div class="cap">No results</div><div class="c"><div class="ic" style="background:#e3f0ee;color:#0b4f4f">0</div><b style="font-weight:600;font-size:16px">No events match these filters</b><span class="sub" style="margin:6px 0 14px">Patient P-10407, outcome failed, last 24 hours</span><button class="btn" style="background:#fff;border:1px solid #9aa5a2">Clear the outcome filter</button> <button class="btn" style="background:#fff;border:1px solid #9aa5a2">Last 7 days</button></div></div>
+
+<div class="box"><div class="cap">Nothing yet (new reviewer)</div><div class="c"><div class="ic" style="background:#e3f0ee;color:#0b4f4f">✓</div><b style="font-weight:600;font-size:16px">No reviews waiting for you</b><span class="sub" style="margin:6px 0 14px">New cases appear here and you get an email when one is assigned.</span><button class="btn" style="background:#0b6e6e;color:#fff;border:0">See closed cases</button></div></div>
+
+<div class="box"><div class="cap">Chester cannot be reached</div><div class="c"><div class="ic" style="background:#fbe3e3;color:#9b2226">!</div><b style="font-weight:600;font-size:16px">The audit repository is not answering</b><span class="sub" style="margin:6px 0 14px">Showing figures from 09:42. Review decisions made now are kept and saved when it returns.</span><button class="btn" style="background:#0b6e6e;color:#fff;border:0">Try again</button> <span class="mono" style="margin-left:8px;color:#4b5a5f">Reference 7F3A-91</span></div></div>
+
+<div class="box"><div class="cap">Not allowed</div><div class="c"><div class="ic" style="background:#fff0cf;color:#774400">🔒</div><b style="font-weight:600;font-size:16px">Your role cannot open this screen</b><span class="sub" style="margin:6px 0 14px">Facility auditors see their own facility only. Ask an administrator if you need more.</span><button class="btn" style="background:#fff;border:1px solid #9aa5a2">Back to Overview</button></div></div>
+
+<div class="box"><div class="cap">End of the list</div><div style="padding:18px 16px"><div style="display:grid;gap:8px"><div class="sk" style="width:88%;animation:none"></div><div class="sk" style="width:72%;animation:none"></div></div><div style="margin-top:16px;text-align:center;color:#4b5a5f;font-size:13px;border-top:1px dashed #c9ccc3;padding-top:12px">That is every event for these filters (1,284). Your place is kept if you open one and come back.</div></div></div>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1360,"height":760}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

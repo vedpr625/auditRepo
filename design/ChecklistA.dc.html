@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Delivery checklist against the SOR</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0}
+.a{font-family:'IBM Plex Sans',sans-serif;color:#1d2a2e;font-size:14px}
+.a *{box-sizing:border-box}
+.a .mono{font-family:'IBM Plex Mono',monospace;font-size:12px}
+.a .tag{display:inline-block;border-radius:4px;padding:2px 8px;font-size:12px;font-weight:600;white-space:nowrap}
+.a .ok{background:#e1f1e6;color:#1b5e33}.a .pl{background:#eceeea;color:#3d4a4f;border:1px dashed #6f7a76}.a .btg{background:#fff0cf;color:#774400}.a .info{background:#e3f0ee;color:#0b4f4f}.a .no{background:#e8e8f3;color:#34345a}
+.a th{text-align:left;font-weight:600;font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:#4b5a5f;padding:10px 12px;border-bottom:1px solid #d7d9d2;background:#faf9f5}
+.a td{padding:9px 12px;border-bottom:1px solid #eeeee8;vertical-align:top}
+.a .sub{display:block;color:#4b5a5f;font-size:12.5px}
+</style>
+</helmet>
+<div class="a" style="width:1360px;height:1560px;background:#f6f5f1;overflow:hidden;padding:26px 30px">
+<h1 style="margin:0;font-size:24px;font-weight:600">What must be delivered: audit repository requirements (SOR Annex 2) against the UI</h1>
+<p style="margin:6px 0 14px;color:#4b5a5f">Based on Section II of the RFP only. The status describes the <b>design</b>. Nothing here is built in the Spring Boot UI yet, except the earlier Encounter and Department filters.</p>
+<div style="display:flex;gap:10px;margin-bottom:14px"><span class="tag ok">Designed</span><span class="tag pl">Placeholder: shown in the design, still to build or decide</span><span class="tag no">Not a UI item</span></div>
+<table style="width:100%;border-collapse:collapse;background:#fff;border:1px solid #d7d9d2">
+<thead><tr><th style="width:90px">Item</th><th>Requirement</th><th>Where in the UI</th><th style="width:150px">Status</th><th style="width:200px">Release</th></tr></thead>
+<tbody>
+<tr><td class="mono">AR-04</td><td>Retrieve by date, user, patient, system, event type, clinical context</td><td>Explore, Find, Patient and visits</td><td><span class="tag ok">Designed</span></td><td>First</td></tr>
+<tr><td class="mono">AR-05</td><td>Categorise by type and severity<span class="sub">AuditEvent has no severity; only alerts carry one</span></td><td>Explore filters, Alerts</td><td><span class="tag ok">Designed</span></td><td>First</td></tr>
+<tr><td class="mono">AR-07, AR-40</td><td>Alerts by email, SMS or messaging, configurable thresholds</td><td>Alerts</td><td><span class="tag pl">Email designed. SMS and Slack placeholder</span></td><td>First: email. Next: SMS, Slack</td></tr>
+<tr><td class="mono">AR-08</td><td>Consent check</td><td>Patient and visits</td><td><span class="tag pl">Placeholder</span></td><td>Next, needs NEHR (Bundle 2a)</td></tr>
+<tr><td class="mono">AR-09</td><td>Break-glass with post-hoc justification<span class="sub">Link between the follow-up reason and the original event is not yet confirmed</span></td><td>Break-glass, Reviews</td><td><span class="tag ok">Designed</span> <span class="tag pl">Reason link to confirm</span></td><td>First</td></tr>
+<tr><td class="mono">AR-10</td><td>Provenance: source system and user</td><td>Event panel, Explore</td><td><span class="tag ok">Designed</span></td><td>First</td></tr>
+<tr><td class="mono">AR-11</td><td>Interactive dashboards</td><td>Overview</td><td><span class="tag ok">Designed</span></td><td>First</td></tr>
+<tr><td class="mono">AR-12</td><td>Customisable, scheduled reports; CSV, PDF, JSON</td><td>Reports</td><td><span class="tag ok">Designed</span> <span class="tag pl">Scheduling, JSON</span></td><td>First: reports, CSV, PDF. Next: scheduling</td></tr>
+<tr><td class="mono">AR-14</td><td>Health, ingestion rate, alert statistics, thresholds</td><td>Health</td><td><span class="tag pl">Placeholder</span></td><td>First</td></tr>
+<tr><td class="mono">AR-15</td><td>Machine-learning anomaly detection<span class="sub">Baseline rules first. Question to the Ministry not yet sent</span></td><td>Alerts</td><td><span class="tag pl">Placeholder</span></td><td>Next</td></tr>
+<tr><td class="mono">AR-16</td><td>Dynamic client registration</td><td>Keycloak setting</td><td><span class="tag no">Not a UI item</span></td><td>Deployment notes</td></tr>
+<tr><td class="mono">AR-17</td><td>Verified scope of practice</td><td>Alerts rule, Person page</td><td><span class="tag pl">Placeholder</span></td><td>Next, needs Bundle 2a</td></tr>
+<tr><td class="mono">AR-22, AR-41</td><td>Integrity, immutability, integrity checks</td><td>Health (hash-chain check)</td><td><span class="tag pl">Placeholder</span></td><td>First: reuse the existing verify function</td></tr>
+<tr><td class="mono">AR-23, AR-33</td><td>Retention 10 years, backup</td><td>Health</td><td><span class="tag pl">Placeholder</span></td><td>Next</td></tr>
+<tr><td class="mono">AR-25</td><td>Intuitive web interface, accessible<span class="sub">The earlier prototype passed an automated check. The new screens have not been checked</span></td><td>All screens</td><td><span class="tag ok">Designed</span> <span class="tag pl">Check pending</span></td><td>First</td></tr>
+<tr><td class="mono">AR-30, AR-31</td><td>Protect patient data shown in the UI<span class="sub">Who sees names and identifiers, masking</span></td><td>Settings, all screens</td><td><span class="tag pl">Placeholder</span></td><td>First</td></tr>
+<tr><td class="mono">AR-36, AR-37</td><td>Prometheus and Grafana integration</td><td>Health</td><td><span class="tag pl">Placeholder</span></td><td>First: metrics address. Next: dashboard file</td></tr>
+<tr><td class="mono">AR-43</td><td>Multilingual: English, Sinhala, Tamil</td><td>Language switch on every screen</td><td><span class="tag ok">Designed</span> <span class="tag pl">Translations by your team</span></td><td>First</td></tr>
+<tr><td class="mono">AR-44</td><td>Export logs and reports as JSON, CSV, PDF</td><td>Explore, Reports</td><td><span class="tag ok">Designed</span> <span class="tag pl">PDF, JSON</span></td><td>First</td></tr>
+<tr><td class="mono">Trust 1</td><td>The console audits itself: searches, patient pages, downloads and decisions are recorded and written to Chester<span class="sub">Added by us, not in the SOR</span></td><td>Access and trust board</td><td><span class="tag ok">Designed</span></td><td>First</td></tr>
+<tr><td class="mono">Trust 2</td><td>Roles, restricted (sensitive) patients, facility-only view</td><td>Access and trust board</td><td><span class="tag ok">Designed</span> <span class="tag pl">Facility-only view</span></td><td>First. Needs the Ministry's list of sensitive patients</td></tr>
+<tr><td class="mono">Trust 3</td><td>Late events marked; gaps detected<span class="sub">Gap detection needs a sequence number from each sending system</span></td><td>Access and trust board, Health</td><td><span class="tag ok">Late events</span> <span class="tag pl">Gaps</span></td><td>First: late events. Next: gaps</td></tr>
+<tr><td class="mono">Trust 4</td><td>Closed cases locked, evidence pack, reopen as a new case</td><td>Access and trust board</td><td><span class="tag ok">Designed</span></td><td>First</td></tr>
+<tr><td class="mono">Trust 5</td><td>Session timeout and expired sign-in</td><td>Access and trust board</td><td><span class="tag ok">Designed</span></td><td>First</td></tr>
+<tr><td class="mono">Care link</td><td>"No link to this patient's care" only for treatment claims by clinical roles; otherwise "Care link unknown"</td><td>Alerts, Explore, Overview</td><td><span class="tag pl">Placeholder</span></td><td>Next, needs Bundle 2a</td></tr>
+<tr><td class="mono">Build</td><td>Safe free text and CSRF tests; backup and restore test of the decisions database; tablet layout if needed</td><td>Not screens</td><td><span class="tag no">Build task</span></td><td>First</td></tr>
+<tr><td class="mono">Users</td><td>Invite, set role, disable and reset password from the console (Keycloak Admin API)<span class="sub">Not in the SOR. First release: users and roles stay in Keycloak</span></td><td>Admin, Users</td><td><span class="tag pl">Placeholder</span></td><td>Next</td></tr>
+<tr><td class="mono">Admin</td><td>Sending systems list with display names</td><td>Admin</td><td><span class="tag ok">Designed</span></td><td>First</td></tr>
+</tbody></table>
+<p style="margin:12px 0 0;color:#4b5a5f;font-size:13px">Not in this list because they are server work, not UI: AR-01 to AR-03, AR-06, AR-13, AR-18 to AR-21, AR-24, AR-26 to AR-29, AR-32, AR-34, AR-35, AR-38, AR-39, AR-42, AR-45.</p>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1360,"height":1260}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

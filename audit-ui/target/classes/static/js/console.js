@@ -8,3 +8,11 @@
   // htmx: when Chester or the app does not answer, show a message instead of leaving a blank box
   document.addEventListener("htmx:responseError", function (e) { e.detail.target.setAttribute("data-failed", "true"); });
 })();
+
+// Ctrl K (or Cmd K) jumps to "Find anything"
+document.addEventListener("keydown", function (e) {
+  if ((e.ctrlKey || e.metaKey) && (e.key === "k" || e.key === "K")) {
+    var f = document.getElementById("find-q");
+    if (f) { e.preventDefault(); f.focus(); f.select(); }
+  }
+});

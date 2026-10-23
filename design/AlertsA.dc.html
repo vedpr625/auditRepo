@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Clinic direction, Alerts</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0}
+.a{font-family:'IBM Plex Sans','Noto Sans Sinhala','Noto Sans Tamil',sans-serif;color:#1d2a2e;font-size:14px}
+.a *{box-sizing:border-box}
+.a .mono{font-family:'IBM Plex Mono',monospace;font-size:12px}
+.a button,.a input{font:inherit;color:inherit}
+.a .tab{background:none;border:0;padding:14px 4px;margin-right:22px;color:#4b5a5f;border-bottom:3px solid transparent;cursor:pointer}
+.a .tab.on{color:#0b5b5b;border-bottom-color:#0b6e6e;font-weight:600}
+.a .box{background:#fff;border:1px solid #d7d9d2;border-radius:10px}
+.a .sub{display:block;color:#4b5a5f;font-size:12.5px}
+.a .tag{display:inline-block;border-radius:4px;padding:2px 8px;font-size:12px;font-weight:600}
+.a .ok{background:#e1f1e6;color:#1b5e33}.a .bad{background:#fbe3e3;color:#9b2226}.a .btg{background:#fff0cf;color:#774400}.a .info{background:#e3f0ee;color:#0b4f4f}.a .off{background:#eceeea;color:#3d4a4f}
+.a h3{margin:0;font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:#4b5a5f;font-weight:600}
+.a .rule{display:grid;grid-template-columns:44px 1fr auto;gap:14px;align-items:center;padding:14px 18px;border-bottom:1px solid #eeeee8}
+.a .sw{width:40px;height:22px;border-radius:12px;background:#0b6e6e;position:relative;display:block}
+.a .sw::after{content:"";position:absolute;right:3px;top:3px;width:16px;height:16px;border-radius:50%;background:#fff}
+.a .sw.o{background:#9aa5a2}.a .sw.o::after{right:auto;left:3px}
+.a .f{display:flex;gap:10px;padding:12px 0;border-bottom:1px solid #eeeee8}
+</style>
+</helmet>
+<div class="a" style="width:1360px;height:940px;background:#f6f5f1;overflow:hidden;display:flex;flex-direction:column">
+<header style="display:flex;align-items:center;gap:32px;padding:0 28px;background:#fff;border-bottom:1px solid #d7d9d2;height:54px;flex:none">
+<div style="font-weight:600;font-size:16px;display:flex;align-items:center;gap:10px"><span style="width:26px;height:26px;border-radius:6px;background:#0b6e6e;display:inline-block"></span>Audit Console</div>
+<nav aria-label="Main" style="display:flex;flex:1"><button class="tab">Overview</button><button class="tab">Explore</button><button class="tab">People and patients</button><button class="tab">Reviews <span class="tag bad" style="margin-left:4px">3</span></button><button class="tab">Break-glass</button><button class="tab on" aria-current="page">Alerts</button><button class="tab">Reports</button><button class="tab" style="margin-left:auto">Health</button><button class="tab">Settings</button><button class="tab">Admin</button></nav>
+<div style="text-align:right;line-height:1.25"><div style="font-weight:500">Anita Rathnayake</div><div style="font-size:12px;color:#4b5a5f">MoH reviewer</div></div>
+</header>
+<main style="padding:18px 28px 24px;display:flex;flex-direction:column;gap:14px;flex:1;min-height:0">
+<div style="display:flex;align-items:center;gap:14px"><h1 style="margin:0;font-size:22px;font-weight:600">Alerts</h1><span style="color:#4b5a5f">Rules that watch the audit trail and tell a person when something looks unusual.</span>
+<button style="margin-left:auto;height:36px;padding:0 16px;background:#0b6e6e;color:#fff;border:0;border-radius:8px;font-weight:600">New rule</button></div>
+
+<div style="display:flex;gap:16px;flex:1;min-height:0">
+<section class="box" style="flex:1.25;min-width:0;overflow:hidden">
+<div style="padding:14px 18px;border-bottom:1px solid #e6e7e0"><h3>Rules</h3></div>
+<div class="rule"><span class="sw" role="img" aria-label="On"></span><div><b style="font-weight:600">High-volume access</b><span class="sub">One person opens more than <b>40</b> records in <b>1 hour</b></span></div><div style="text-align:right"><span class="tag info">Email</span> <span class="tag off">SMS off</span><span class="sub">Fired 3 times this week</span></div></div>
+<div class="rule"><span class="sw" role="img" aria-label="On"></span><div><b style="font-weight:600">Repeated failures</b><span class="sub">One client fails more than <b>10</b> times in <b>1 hour</b></span></div><div style="text-align:right"><span class="tag info">Email</span><span class="sub">Fired once</span></div></div>
+<div class="rule"><span class="sw" role="img" aria-label="On"></span><div><b style="font-weight:600">Break-glass reason overdue</b><span class="sub">No reason arrives within <b>24 hours</b></span></div><div style="text-align:right"><span class="tag info">Email</span> <span class="tag info">Opens a case</span><span class="sub">Fired once</span></div></div>
+<div class="rule"><span class="sw" role="img" aria-label="On"></span><div><b style="font-weight:600">Outside scope of practice</b><span class="sub">A role opens records outside what its registry licence allows</span></div><div style="text-align:right"><span class="tag info">Email</span> <span class="tag info">Opens a case</span><span class="sub">Needs the Bundle 2a registry</span></div></div>
+<div class="rule" style="background:#fbfbf8"><span class="sw o" role="img" aria-label="Off"></span><div><b style="font-weight:600">No link to this patient's care</b><span class="sub">Checked only when the access claims <b>treatment</b> and the role is clinical. Billing, quality, research, system and emergency access are never flagged. If the link cannot be known, the event shows a grey "Care link unknown", never a finding.</span></div><div style="text-align:right"><span class="tag" style="background:#eceeea;color:#3d4a4f;border:1px dashed #6f7a76">Planned</span><span class="sub">Needs Bundle 2a</span></div></div>
+<div class="rule"><span class="sw" role="img" aria-label="On"></span><div><b style="font-weight:600">Repeat break-glass use</b><span class="sub">The same person uses break-glass more than <b>3</b> times in <b>7 days</b></span></div><div style="text-align:right"><span class="tag info">Email</span><span class="sub">Fired 2 times this week</span></div></div>
+<div class="rule"><span class="sw o" role="img" aria-label="Off"></span><div><b style="font-weight:600">Unusual hours or place</b><span class="sub">Compared with the person's own usual pattern</span></div><div style="text-align:right"><span class="tag off">Off</span><span class="sub">Needs 30 days of history first</span></div></div>
+<div class="rule" style="border-bottom:0"><span class="sw o" role="img" aria-label="Off"></span><div><b style="font-weight:600">System has gone quiet</b><span class="sub">A sending system sends nothing for <b>2 hours</b> in working hours</span></div><div style="text-align:right"><span class="tag off">Off</span><span class="sub">Suggested for Radiology PACS</span></div></div>
+<div class="rule" style="border-top:1px solid #eeeee8;border-bottom:0;background:#fbfbf8"><span class="sw o" role="img" aria-label="Off"></span><div><b style="font-weight:600">Unusual access found by a learned model</b><span class="sub">Machine-learning detection of abnormal frequency and locations (AR-15). The Ministry has not yet confirmed whether baseline rules alone are enough.</span></div><div style="text-align:right"><span class="tag" style="background:#eceeea;color:#3d4a4f;border:1px dashed #6f7a76">Planned</span></div></div>
+</section>
+
+<aside style="width:480px;display:flex;flex-direction:column;gap:14px">
+<div class="box" style="padding:6px 18px 4px;flex:1">
+<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0 6px"><h3>Fired in the last 7 days</h3><span class="tag bad">9</span></div>
+<div class="f"><span class="tag btg">High</span><div><b style="font-weight:600">High-volume access</b><span class="sub">Dr. R. Fernando opened 62 records in 1 hour · 3 h ago · 09:12 IST</span></div></div>
+<div class="f"><span class="tag bad">High</span><div><b style="font-weight:600">Break-glass reason overdue</b><span class="sub">Nurse S. Silva, Kandy TH · 27 h ago · 02:14 IST · case C-1046</span></div></div>
+<div class="f"><span class="tag btg">Medium</span><div><b style="font-weight:600">Repeat break-glass use</b><span class="sub">Nurse S. Silva used it 3 times in 7 days · 20 h ago · 14:00 IST</span></div></div>
+<div class="f"><span class="tag btg">Medium</span><div><b style="font-weight:600">Repeated failures</b><span class="sub">Client pharma-galle failed 14 times · 3 days ago · Tue 20 Oct 16:20 IST</span></div></div>
+<div class="f" style="border-bottom:0"><span class="tag info">Low</span><div><b style="font-weight:600">High-volume access</b><span class="sub">Lab gateway, 48 records in 1 hour · 4 days ago · Mon 19 Oct 11:00 IST · marked normal</span></div></div>
+</div>
+<div class="box" style="padding:16px 18px"><h3>How people are told</h3>
+<div style="margin-top:10px;display:grid;gap:8px;font-size:13px"><div style="display:flex;justify-content:space-between"><span>Email</span><span class="tag ok">Ready</span></div><div style="display:flex;justify-content:space-between"><span>SMS <span class="sub">AR-07, AR-40</span></span><span class="tag" style="background:#eceeea;color:#3d4a4f;border:1px dashed #6f7a76">Planned · service to choose</span></div><div style="display:flex;justify-content:space-between"><span>Slack or Teams <span class="sub">AR-07, AR-40</span></span><span class="tag" style="background:#eceeea;color:#3d4a4f;border:1px dashed #6f7a76">Planned · service to choose</span></div></div></div>
+</aside>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1360,"height":940}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

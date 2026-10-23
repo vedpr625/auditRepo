@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Clinic direction, Reports</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0}
+.a{font-family:'IBM Plex Sans','Noto Sans Sinhala','Noto Sans Tamil',sans-serif;color:#1d2a2e;font-size:14px}
+.a *{box-sizing:border-box}
+.a .mono{font-family:'IBM Plex Mono',monospace;font-size:12px}
+.a button,.a input,.a select{font:inherit;color:inherit}
+.a .tab{background:none;border:0;padding:14px 4px;margin-right:22px;color:#4b5a5f;border-bottom:3px solid transparent;cursor:pointer}
+.a .tab.on{color:#0b5b5b;border-bottom-color:#0b6e6e;font-weight:600}
+.a .box{background:#fff;border:1px solid #d7d9d2;border-radius:10px}
+.a .sub{display:block;color:#4b5a5f;font-size:12.5px}
+.a .tag{display:inline-block;border-radius:4px;padding:2px 8px;font-size:12px;font-weight:600}
+.a .ok{background:#e1f1e6;color:#1b5e33}.a .bad{background:#fbe3e3;color:#9b2226}.a .btg{background:#fff0cf;color:#774400}.a .info{background:#e3f0ee;color:#0b4f4f}
+.a h3{margin:0;font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:#4b5a5f;font-weight:600}
+.a th{text-align:left;font-weight:600;font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:#4b5a5f;padding:10px 12px;border-bottom:1px solid #d7d9d2;background:#faf9f5}
+.a td{padding:10px 12px;border-bottom:1px solid #e6e7e0}
+.a .rt{display:block;width:100%;text-align:left;padding:11px 14px;border:1px solid transparent;border-radius:8px;background:none;margin-bottom:2px}
+.a .rt.on{background:#e8f3f1;border-color:#0b6e6e}
+.a .fld{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:#4b5a5f}
+.a .fld span{height:38px;border:1px solid #9aa5a2;border-radius:8px;background:#fff;padding:9px 12px;color:#1d2a2e;font-size:14px}
+</style>
+</helmet>
+<div class="a" style="width:1360px;height:940px;background:#f6f5f1;overflow:hidden;display:flex;flex-direction:column">
+<header style="display:flex;align-items:center;gap:32px;padding:0 28px;background:#fff;border-bottom:1px solid #d7d9d2;height:54px;flex:none">
+<div style="font-weight:600;font-size:16px;display:flex;align-items:center;gap:10px"><span style="width:26px;height:26px;border-radius:6px;background:#0b6e6e;display:inline-block"></span>Audit Console</div>
+<nav aria-label="Main" style="display:flex;flex:1"><button class="tab">Overview</button><button class="tab">Explore</button><button class="tab">People and patients</button><button class="tab">Reviews <span class="tag bad" style="margin-left:4px">3</span></button><button class="tab">Break-glass</button><button class="tab">Alerts</button><button class="tab on" aria-current="page">Reports</button><button class="tab" style="margin-left:auto">Health</button><button class="tab">Settings</button><button class="tab">Admin</button></nav>
+<div style="text-align:right;line-height:1.25"><div style="font-weight:500">Anita Rathnayake</div><div style="font-size:12px;color:#4b5a5f">MoH reviewer</div></div>
+</header>
+<main style="padding:18px 28px 24px;display:flex;flex-direction:column;gap:14px;flex:1;min-height:0">
+<div style="display:flex;align-items:center;gap:14px"><h1 style="margin:0;font-size:22px;font-weight:600">Reports</h1><span style="color:#4b5a5f">Ready-made reports for audits and the privacy officer. Download them or send them on a schedule.</span></div>
+
+<div style="display:flex;gap:16px;flex:1;min-height:0">
+<aside class="box" style="width:300px;padding:12px;flex:none">
+<div style="padding:4px 6px 8px"><h3>Choose a report</h3></div>
+<button class="rt on"><b style="font-weight:600">Who accessed a patient</b><span class="sub">For a patient asking who saw their record</span></button>
+<button class="rt"><b style="font-weight:600">What a person accessed</b><span class="sub">All records opened by one practitioner</span></button>
+<button class="rt"><b style="font-weight:600">Facility activity</b><span class="sub">Volume, failures and break-glass by facility</span></button>
+<button class="rt"><b style="font-weight:600">Break-glass</b><span class="sub">Every emergency access with reason and review</span></button>
+<button class="rt"><b style="font-weight:600">Failed access</b><span class="sub">Refused and invalid requests by system</span></button>
+<button class="rt"><b style="font-weight:600">Review decisions</b><span class="sub">Cases, decisions and time taken</span></button>
+<button class="rt"><b style="font-weight:600">System health</b><span class="sub">Which systems sent what, and gaps</span></button>
+<div style="margin:14px 6px 6px"><h3>Scheduled</h3></div>
+<div style="padding:6px 8px;font-size:13px">Break-glass · every Monday 08:00<span class="sub">To the privacy officer</span></div>
+<div style="padding:6px 8px;font-size:13px">Facility activity · 1st of the month<span class="sub">To MoH directors</span></div>
+</aside>
+
+<section class="box" style="flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden">
+<div style="padding:16px 22px;border-bottom:1px solid #e6e7e0"><h2 style="margin:0;font-size:18px;font-weight:600">Who accessed a patient</h2><span class="sub" style="margin-top:2px">Lists everyone who opened or changed this patient's record, with the reason and the system used.</span></div>
+<div style="padding:14px 22px;display:flex;gap:12px;align-items:flex-end;border-bottom:1px solid #e6e7e0;background:#fcfcfa;flex-wrap:wrap">
+<label class="fld" style="width:230px">Patient<span>P-10407 · Kamal Mendis</span></label>
+<label class="fld" style="width:200px">From<span>1 Oct 2026</span></label>
+<label class="fld" style="width:200px">To<span>22 Oct 2026</span></label>
+<label class="fld" style="width:200px">Include<span>Reads and changes</span></label>
+<button style="height:38px;padding:0 18px;background:#0b6e6e;color:#fff;border:0;border-radius:8px;font-weight:600">Show report</button>
+</div>
+<div style="padding:14px 22px 6px;display:flex;gap:26px;align-items:center">
+<div><b style="font-size:22px;font-weight:600">38</b><span class="sub">events</span></div><div><b style="font-size:22px;font-weight:600">11</b><span class="sub">people</span></div><div><b style="font-size:22px;font-weight:600">3</b><span class="sub">facilities</span></div><div><b style="font-size:22px;font-weight:600;color:#774400">1</b><span class="sub">break-glass</span></div>
+<div style="margin-left:auto;display:flex;gap:8px"><button style="height:36px;padding:0 14px;background:#fff;border:1px solid #9aa5a2;border-radius:8px">CSV</button><button style="height:36px;padding:0 14px;background:#fbfbf8;border:1.5px dashed #6f7a76;border-radius:8px">JSON <span class="tag" style="background:#eceeea;color:#3d4a4f;margin-left:4px">Planned</span></button><button style="height:36px;padding:0 14px;background:#fff;border:1px solid #9aa5a2;border-radius:8px">PDF</button><button style="height:36px;padding:0 14px;background:#fff;border:1px solid #9aa5a2;border-radius:8px">Schedule this <span class="tag" style="background:#eceeea;color:#3d4a4f;border:1px dashed #6f7a76;margin-left:6px">Planned</span></button></div></div>
+<div style="flex:1;overflow:hidden;padding:0 22px">
+<table style="width:100%;border-collapse:collapse"><thead><tr><th>When (IST)</th><th>Person</th><th>Role</th><th>Facility</th><th>What</th><th>Purpose</th><th>System</th></tr></thead><tbody>
+<tr><td class="mono">22 Oct 09:41 IST<span class="sub" style="font-family:'IBM Plex Sans'">1 day ago</span></td><td>Dr. N. Perera</td><td>Physician</td><td>Colombo NH</td><td>Viewed record</td><td>Treatment</td><td>HHIMS</td></tr>
+<tr><td class="mono">22 Oct 09:36 IST<span class="sub" style="font-family:'IBM Plex Sans'">1 day ago</span></td><td>lab-gateway</td><td>System</td><td>Central lab</td><td>Added lab report</td><td>Treatment</td><td>LabLink</td></tr>
+<tr><td class="mono">22 Oct 09:29 IST<span class="sub" style="font-family:'IBM Plex Sans'">1 day ago</span></td><td>A. Jayasuriya</td><td>Pharmacist</td><td>Galle</td><td>Changed prescription</td><td>Treatment</td><td>PharmaLink</td></tr>
+<tr><td class="mono">20 Oct 14:02 IST<span class="sub" style="font-family:'IBM Plex Sans'">3 days ago</span></td><td>Dr. P. Gunasekara</td><td>Physician</td><td>Colombo NH</td><td>Viewed record</td><td>Treatment</td><td>HHIMS</td></tr>
+<tr><td class="mono">2 Oct 02:14 IST<span class="sub" style="font-family:'IBM Plex Sans'">3 weeks ago</span></td><td>Nurse S. Silva</td><td>Nurse</td><td>Kandy TH</td><td>Emergency access <span class="tag btg">Break-glass</span></td><td>Emergency</td><td>HHIMS</td></tr>
+</tbody></table>
+<div style="padding:10px 0;color:#4b5a5f;font-size:12.5px">Showing 5 of 38. The download has all of them.</div>
+</div>
+<div style="padding:10px 22px;border-top:1px solid #e6e7e0;font-size:12.5px;color:#4b5a5f;background:#fcfcfa">Generated Fri 23 Oct 2026, 12:36 IST (07:06 UTC) by Anita Rathnayake. Times follow your Settings; the downloaded CSV carries both the local time and the UTC time in separate columns. Each report download is itself recorded in the audit trail.</div>
+</section>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1360,"height":940}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
