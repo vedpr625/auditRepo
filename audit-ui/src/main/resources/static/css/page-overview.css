@@ -116,3 +116,9 @@
   .ov-y{min-width:36px}
 }
 .ov-heat>.ov-h0,.ov-heat>.ov-hh{grid-row:1}
+
+/* original design: plain bold panel titles, no tinted header bar, stronger heat colours */
+.ov .panel-head{background:transparent;border-bottom:0;padding-top:16px}
+.ov .panel-head h3{font-size:15px;text-transform:none;letter-spacing:0;font-weight:600;color:var(--ink)}
+:root{--heat-0:#dfe9f8;--heat-1:#9fc2ee;--heat-2:#5b97e0}
+:root[data-theme="dark"]{--heat-0:#1d2b3d}

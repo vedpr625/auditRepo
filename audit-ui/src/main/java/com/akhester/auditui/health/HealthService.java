@@ -30,6 +30,13 @@ public class HealthService {
 
     private static final int MINUTE_SCAN_MAX = 3000;
 
+    /** One sending system: its latest event with happened and received times, and how many of its events in 7 days were late. */
+    public record SystemDelay(String client, Instant happened, Instant received, long delaySeconds, int events, int late, long worstSeconds) {
+        public boolean isLatestLate() { return delaySeconds > AuditRow.LATE_AFTER_SECONDS; }
+    }
+    public record Late(Instant at, List<SystemDelay> systems, int events, int late, boolean truncated) {}
+    private volatile Late lateCache;
+
     private final AuditEventService audit;
     private volatile LastCheck lastCheck;
 
@@ -77,6 +84,54 @@ public class HealthService {
         int f24 = audit.countWhere(f);
         return new Live(now, mins, total, sum10 / 10.0, newest.isEmpty() ? null : newest.get(0).getRecordedInstant(), e24, f24, audit.chesterInfo(),
             oldestRows.isEmpty() ? null : oldestRows.get(0).getRecordedInstant(), max, truncated);
+    }
+
+    /** Happened versus received for the last seven days, per sending system. Kept for 60 seconds. */
+    public Late late() {
+        Late c = lateCache;
+        if (c != null && Duration.between(c.at(), Instant.now()).getSeconds() < 60) return c;
+        Instant now = Instant.now();
+        Instant from = now.minus(7, ChronoUnit.DAYS).truncatedTo(ChronoUnit.SECONDS);
+        Map<String, AuditRow> latest = new LinkedHashMap<>();
+        Map<String, int[]> counts = new LinkedHashMap<>();
+        Map<String, Long> worst = new LinkedHashMap<>();
+        Set<String> seen = new HashSet<>();
+        Instant cursor = null;
+        int got = 0, late = 0;
+        boolean truncated = false;
+        while (true) {
+            List<String> d = new ArrayList<>(List.of("ge" + from));
+            if (cursor != null) d.add("le" + cursor);
+            Map<String, List<String>> p = new LinkedHashMap<>();
+            p.put("date", d);
+            List<AuditRow> page = audit.recentWhere(p, 100, "-date");
+            int added = 0;
+            for (AuditRow r : page) {
+                if (r.getId() == null || !seen.add(r.getId()) || r.getRecordedInstant() == null) continue;
+                added++; got++;
+                if (r.getDelaySeconds() < 0) continue;
+                String k = r.getSubmittedBy() == null ? "?" : r.getSubmittedBy();
+                latest.putIfAbsent(k, r);
+                int[] n = counts.computeIfAbsent(k, x -> new int[2]);
+                n[0]++;
+                if (r.isLate()) { n[1]++; late++; }
+                worst.merge(k, r.getDelaySeconds(), Math::max);
+            }
+            if (page.size() < 100) break;
+            if (got >= MINUTE_SCAN_MAX) { truncated = true; break; }
+            Instant oldest = page.get(page.size() - 1).getRecordedInstant();
+            if (oldest == null) break;
+            cursor = added == 0 ? oldest.truncatedTo(ChronoUnit.SECONDS).minusSeconds(1) : oldest.truncatedTo(ChronoUnit.SECONDS);
+        }
+        List<SystemDelay> out = new ArrayList<>();
+        for (Map.Entry<String, AuditRow> e : latest.entrySet()) {
+            AuditRow r = e.getValue();
+            int[] n = counts.get(e.getKey());
+            out.add(new SystemDelay(e.getKey(), r.getRecordedInstant(), r.getReceivedInstant(), r.getDelaySeconds(), n[0], n[1], worst.getOrDefault(e.getKey(), 0L)));
+        }
+        out.sort((a, b) -> Long.compare(b.worstSeconds(), a.worstSeconds()));
+        lateCache = new Late(now, out, got, late, truncated);
+        return lateCache;
     }
 
     /** The last seven UTC days (the day a record is stored under), newest first, with the result of the last check if there was one. */

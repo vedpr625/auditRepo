@@ -53,24 +53,10 @@
     <div class="split rv-split">
       <!-- Case list -->
       <section class="rv-list" th:attr="aria-label=#{reviews.list}">
-        <th:block th:each="g : ${ {'new','review','second','done'} }">
-          <th:block th:with="items=${g == 'new' ? colNew : (g == 'review' ? colReview : (g == 'second' ? colSecond : colDone))}">
-            <div class="rv-colh"><h3 th:text="#{'reviews.col.' + ${g}}">New</h3><span class="mono" th:text="${#lists.size(items)}">0</span></div>
-            <p class="sub rv-empty" th:if="${#lists.isEmpty(items)}" th:text="#{reviews.col.empty}">None</p>
-            <a class="rv-card" th:each="x : ${items}" th:href="@{/reviews(case=${x.c.id},scope=${scope},kind=${kind},q=${q})}"
-               th:classappend="${(sel != null && sel.id == x.c.id) ? 'on' : ''} + ${x.c.closed ? ' done' : ''}" th:attr="aria-current=${sel != null && sel.id == x.c.id} ? 'true' : null">
-              <span class="tag" th:classappend="'tag-' + ${x.tone}" th:if="${!x.c.closed}" th:text="#{reviews.open.hours(${x.openHours})}">27 h open</span>
-              <span class="tag" th:classappend="${x.c.outcome == 'appropriate'} ? 'tag-ok' : (${x.c.outcome == 'violation'} ? 'tag-bad' : 'tag-warn')" th:if="${x.c.closed}" th:text="#{'reviews.outcome.' + ${x.c.outcome}}">Appropriate</span>
-              <b><span class="mono" th:text="${x.c.id}">C-1043</span> · <span th:text="${x.c.title}">Title</span></b>
-              <span class="sub"><th:block th:text="${x.c.subject}">Person</th:block><th:block th:if="${x.c.facility != null}"> · <th:block th:text="${T(com.akhester.auditui.reviews.Labels).facility(x.c.facility)}">Facility</th:block></th:block></span>
-              <span class="sub" th:if="${x.c.status == 'review'}" th:text="${x.c.assignee == me} ? #{reviews.you} : ${x.c.assignee}">You</span>
-              <span class="sub" th:if="${x.c.status == 'second'}" th:text="${x.c.secondReviewer == me} ? #{reviews.waiting.you} : #{reviews.waiting.for(${x.c.secondReviewer})}">Waiting</span>
-              <span class="sub" th:if="${x.c.status == 'escalated'}" th:text="#{reviews.with.officer}">With the privacy officer</span>
-              <span class="sub" th:if="${x.c.status == 'new'}" th:text="#{reviews.unassigned}">Not assigned</span>
-              <span class="sub" th:if="${x.c.closed}"><th:block th:replace="~{fragments/layout :: when(${x.c.closedAt})}"></th:block></span>
-            </a>
-          </th:block>
-        </th:block>
+        <div class="rv-col"><th:block th:replace="~{fragments/reviews :: col('new', ${colNew})}"></th:block></div>
+        <div class="rv-col"><th:block th:replace="~{fragments/reviews :: col('review', ${colReview})}"></th:block></div>
+        <div class="rv-col"><th:block th:replace="~{fragments/reviews :: col('second', ${colSecond})}"></th:block>
+          <div class="rv-done"><th:block th:replace="~{fragments/reviews :: col('done', ${colDone})}"></th:block></div></div>
       </section>
 
       <!-- Case detail -->

@@ -171,3 +171,15 @@ CREATE TABLE IF NOT EXISTS admin_change_log (
   what       VARCHAR(500) NOT NULL,
   demo       BOOLEAN NOT NULL DEFAULT FALSE
 );
+-- DEMONSTRATION ONLY: made-up user list for the Admin Users tab. It does not decide who can sign in.
+CREATE TABLE IF NOT EXISTS demo_user (
+  username     VARCHAR(100) PRIMARY KEY,
+  display_name VARCHAR(200) NOT NULL,
+  email        VARCHAR(255) NOT NULL,
+  role         VARCHAR(40)  NOT NULL,
+  enabled      BOOLEAN NOT NULL DEFAULT TRUE,
+  invited      BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at   TIMESTAMP WITH TIME ZONE NOT NULL,
+  pw_reset_at  TIMESTAMP WITH TIME ZONE,
+  pw_hash      VARCHAR(64)
+);

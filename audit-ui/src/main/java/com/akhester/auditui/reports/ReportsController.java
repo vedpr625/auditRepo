@@ -24,12 +24,18 @@ import jakarta.servlet.http.HttpServletRequest;
 @Controller
 public class ReportsController {
 
-    private static final int SHOWN = 25;
+    private static final int SHOWN = 10;
 
     private final ReportService reports;
     private final ReportSchedules schedules;
     private final PrefsContext prefsContext;
     private final PeopleIndex people;
+    @org.springframework.beans.factory.annotation.Value("${audit.ui.demo:false}")
+    private boolean demo;
+    private String demoPatient = null;
+
+    @jakarta.annotation.PostConstruct
+    void init() { demoPatient = demo ? "P-10407" : null; }
 
     public ReportsController(ReportService reports, ReportSchedules schedules, PrefsContext prefsContext, PeopleIndex people) {
         this.reports = reports; this.schedules = schedules; this.prefsContext = prefsContext; this.people = people;
@@ -41,6 +47,7 @@ public class ReportsController {
                        HttpServletRequest request, Model model) {
         ZoneId zone = prefsContext.forRequest(request).zone();
         ReportService.Key key = ReportService.Key.of(r);
+        if (key == ReportService.Key.PATIENT && (patient == null || patient.isBlank()) && from == null && to == null) patient = demoPatient;
         boolean reviewer = Who.canReview();
         if (key == ReportService.Key.REVIEWS && !reviewer) key = ReportService.Key.PATIENT;
         model.addAttribute("key", key.id());
@@ -75,6 +82,7 @@ public class ReportsController {
         model.addAttribute("barMax", Math.max(1, max));
         model.addAttribute("headings", reports.headings(res, request.getLocale()));
         model.addAttribute("csvHref", "/reports/download?" + query(p) + "&format=csv");
+        model.addAttribute("pdfHref", "/reports/download?" + query(p) + "&format=pdf");
         model.addAttribute("jsonHref", "/reports/download?" + query(p) + "&format=json");
         return "reports";
     }
@@ -85,6 +93,28 @@ public class ReportsController {
         if (p.person() != null) b.append("&person=").append(enc(p.person()));
         b.append("&from=").append(p.from()).append("&to=").append(p.to()).append("&include=").append(p.include());
         return b.toString();
+    }
+
+    private byte[] pdf(ReportService.Result res, ReportService.Params p, ZoneId zone, String user, Instant now, Locale locale) {
+        java.time.format.DateTimeFormatter f = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm xxx");
+        List<String> headers = new ArrayList<>();
+        if (res.hasWhen()) headers.add(reports.text("reports.col.when", locale));
+        headers.addAll(reports.headings(res, locale));
+        List<List<String>> rows = new ArrayList<>();
+        for (ReportService.Row row : res.rows()) {
+            List<String> c = new ArrayList<>();
+            if (res.hasWhen()) c.add(row.when() == null ? "" : f.format(row.when().atZone(zone)));
+            c.addAll(row.cells());
+            rows.add(c);
+        }
+        List<String> meta = new ArrayList<>();
+        meta.add(reports.text("reports.r." + p.key().id() + ".title", locale) + " - " + p.from() + " to " + p.to() + (p.patient() != null ? " - patient " + p.patient() : "") + (p.person() != null ? " - " + p.person() : ""));
+        StringBuilder st = new StringBuilder();
+        for (ReportService.Stat s : res.stats()) st.append(s.value()).append(' ').append(reports.text("reports.stat." + s.label(), locale)).append("   ");
+        if (st.length() > 0) meta.add(st.toString().strip());
+        meta.add("Rows in this file: " + res.rows().size() + " of " + res.total() + (res.truncated() ? " (capped; the CSV carries the same cap)" : "") + ". Times in " + zone.getId() + ".");
+        String footer = "Generated " + f.format(now.atZone(zone)) + " by " + user + ". Each report download is recorded in the console log.";
+        return ReportPdf.table(reports.text("reports.r." + p.key().id() + ".title", locale), meta.subList(1, meta.size()), headers, rows, footer);
     }
 
     private static String enc(String s) { return java.net.URLEncoder.encode(s, StandardCharsets.UTF_8); }
@@ -102,24 +132,25 @@ public class ReportsController {
             return ResponseEntity.badRequest().header("X-Report-Error", e.getMessage()).build();
         }
         boolean json = "json".equals(format);
-        if (!json && !"csv".equals(format)) return ResponseEntity.badRequest().build();
+        boolean pdf = "pdf".equals(format);
+        if (!json && !pdf && !"csv".equals(format)) return ResponseEntity.badRequest().build();
         ReportService.Result res = reports.run(p, zone, locale);
         if (res.needsInput()) return ResponseEntity.badRequest().header("X-Report-Error", "input").build();
         if ("forbidden".equals(res.error())) return ResponseEntity.status(403).build();
         if (res.error() != null) return ResponseEntity.status(502).header("X-Report-Error", res.error()).build();
         Instant now = Instant.now();
         String user = PrefsContext.username();
-        byte[] body = json ? ReportFile.json(res, p, zone, user, now)
+        byte[] body = pdf ? pdf(res, p, zone, user, now, locale) : json ? ReportFile.json(res, p, zone, user, now)
             : ReportFile.csv(res, reports.headings(res, locale), zone, reports.text("reports.col.when", locale), reports.text("reports.col.whenutc", locale));
         try { schedules.logDownload(user, p.key().id(), format, query(p), res.rows().size()); } catch (RuntimeException ignored) { /* the file is still the answer; a log failure must not hide it */ }
-        String name = "report-" + p.key().id() + "-" + java.time.LocalDate.ofInstant(now, zone) + (json ? ".json" : ".csv");
+        String name = "report-" + p.key().id() + "-" + java.time.LocalDate.ofInstant(now, zone) + (pdf ? ".pdf" : json ? ".json" : ".csv");
         return ResponseEntity.ok()
             .header("Content-Disposition", "attachment; filename=\"" + name + "\"")
             .header("X-Report-Rows", String.valueOf(res.rows().size()))
             .header("X-Report-Total", String.valueOf(res.total()))
             .header("X-Report-Truncated", String.valueOf(res.truncated()))
             .header("Cache-Control", "no-store")
-            .contentType(json ? MediaType.APPLICATION_JSON : MediaType.parseMediaType("text/csv;charset=UTF-8"))
+            .contentType(pdf ? MediaType.APPLICATION_PDF : json ? MediaType.APPLICATION_JSON : MediaType.parseMediaType("text/csv;charset=UTF-8"))
             .body(body);
     }
 }

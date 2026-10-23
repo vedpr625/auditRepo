@@ -49,7 +49,21 @@
     </section>
   </div>
 
-  <section class="panel planned" aria-labelledby="h-alerts">
+  <section class="panel" aria-labelledby="h-late">
+    <div class="panel-head"><h3 id="h-late" th:text="#{health.late.head}">Late events and gaps</h3><span class="tag tag-planned" th:text="#{health.late.tag2}">Gaps: Planned · needs sequence numbers</span></div>
+    <div hx-get="/health/late" hx-trigger="load" hx-swap="innerHTML" aria-live="polite"><th:block th:replace="~{fragments/states :: loading(3)}"></th:block></div>
+  </section>
+
+  <section class="panel" aria-labelledby="h-alerts" th:if="${alFired != null && alFired > 0}">
+    <div class="panel-head"><h3 th:text="#{health.alerts}">Alert statistics, 7 days</h3><span class="sub">AR-14</span></div>
+    <dl class="hl-stats panel-pad">
+      <dt th:text="#{health.alerts.fired}">Fired</dt><dd th:text="${alFired}">9</dd>
+      <dt th:text="#{health.alerts.email}">Sent by email</dt><dd><span class="tag tag-planned tag-sm" th:text="#{health.alerts.mail.none}">Mail not connected</span></dd>
+      <dt th:text="#{health.alerts.case}">Opened a case</dt><dd th:text="${alCases}">4</dd>
+      <dt th:text="#{health.alerts.normal}">Marked as normal</dt><dd th:text="${alNormal}">2</dd>
+    </dl>
+  </section>
+  <section class="panel planned" aria-labelledby="h-alerts" th:unless="${alFired != null && alFired > 0}">
     <div class="panel-head"><h3 id="h-alerts" th:text="#{health.alerts}">Alert statistics, 7 days</h3><span class="tag tag-planned" th:text="#{health.alerts.tag}">Planned until Alerts is connected</span></div>
     <div class="panel-pad"><p class="muted" th:text="#{health.alerts.text}">Alerts fired, sent by email, turned into cases, marked as normal and not delivered will be counted here once the Alerts screen keeps real alerts.</p></div>
   </section>

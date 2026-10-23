@@ -68,9 +68,8 @@
           <div class="rep-actions no-print">
             <a class="btn btn-sm" th:href="@{${csvHref}}" th:text="#{reports.csv}">CSV</a>
             <a class="btn btn-sm" th:href="@{${jsonHref}}" th:text="#{reports.json}">JSON</a>
-            <button class="btn btn-sm btn-planned" type="button" disabled th:title="#{reports.pdf.note}"><span th:text="#{reports.pdf}">PDF</span> <span class="tag tag-planned tag-sm" th:text="#{common.planned}">Planned</span></button>
+            <a class="btn btn-sm" th:href="@{${pdfHref}}" th:text="#{reports.pdf}">PDF</a>
             <button class="btn btn-sm btn-planned" type="button" disabled th:title="#{reports.schedule.note}"><span th:text="#{reports.schedule}">Schedule this</span> <span class="tag tag-planned tag-sm" th:text="#{common.planned}">Planned</span></button>
-            <span class="sub" th:text="#{reports.pdf.note}">Planned</span>
           </div>
 
           <div class="chart-pad" th:if="${!#lists.isEmpty(res.bars)}">

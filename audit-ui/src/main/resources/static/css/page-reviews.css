@@ -54,3 +54,17 @@
   .rv-main{border-inline-end:0;border-bottom:1px solid var(--border-soft)}
   .rv-side{width:100%}
 }
+
+/* Board: three columns side by side, Done under the third (original design) */
+.rv-list{width:480px;flex-direction:row;align-items:flex-start;gap:10px}
+.rv-col{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px}
+.rv-done{margin-top:14px;display:flex;flex-direction:column;gap:8px}
+.rv-colh{padding:2px 4px 0}
+.rv-colh h3{font-size:13px;text-transform:none;letter-spacing:0;color:var(--ink);font-weight:600}
+.rv-card{padding:10px 11px;font-size:13px;overflow-wrap:anywhere}
+.rv-card.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.rv-card.done{opacity:.85}
+.rv-card b{margin-top:4px}
+.rv-empty{font-size:12px}
+@media (max-width:1100px){.rv-list{width:100%}}
+.rv-more{padding:2px 4px;font-size:12.5px}

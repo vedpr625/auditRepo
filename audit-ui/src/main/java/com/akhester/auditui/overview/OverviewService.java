@@ -494,7 +494,7 @@ public class OverviewService {
                 List<Cell> cells = new ArrayList<>();
                 for (int h = 0; h < 24; h++) {
                     int v = c[d][h];
-                    int level = v == 0 ? 0 : Math.min(4, 1 + (int) (v * 4.0 / (max + 0.001)));
+                    int level = v == 0 ? 0 : Math.min(4, 1 + (int) (Math.sqrt(v / (max + 0.001)) * 4.0));
                     if (v == 0) level = 0;
                     cells.add(new Cell(level, m("overview.heat.cell", dn, String.format("%02d", h), n(v))));
                 }

@@ -32,6 +32,9 @@ public class AuditRow {
     /** Raw Instant — used for SLA calculations */
     private Instant recordedInstant;
 
+    /** When Chester received the event (meta.lastUpdated), or null when unknown. The demo sets it to a made-up received time. */
+    private Instant receivedInstant;
+
     /** Patient reference, e.g. "Patient/P-00123" */
     private String patientRef;
 
@@ -74,6 +77,18 @@ public class AuditRow {
     private long ageHours;
 
     // ── Derived helpers (used by Thymeleaf) ──────────────────────────────────
+
+    /** An event counts as late when Chester received it more than this many seconds after it happened. */
+    public static final long LATE_AFTER_SECONDS = 600;
+
+    /** Seconds between "happened" (recorded) and "received", or -1 when either is unknown. */
+    public long getDelaySeconds() {
+        if (recordedInstant == null || receivedInstant == null) return -1;
+        return Math.max(0, ChronoUnit.SECONDS.between(recordedInstant, receivedInstant));
+    }
+
+    /** True when the event reached Chester late, so a figure that changes afterwards can be explained. */
+    public boolean isLate() { return getDelaySeconds() > LATE_AFTER_SECONDS; }
 
     /** CSS classes for the purpose tag chip */
     public String getPurposeTagCss() {

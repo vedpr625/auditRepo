@@ -106,5 +106,32 @@
   <div class="panel-foot" th:text="#{health.integrity.help2}">A broken day shows in red. The check runs Chester’s own verify function for each day, one after another.</div>
 </div>
 
+<div th:fragment="late">
+  <div class="notice notice-bad" role="alert" th:if="${failed}" th:text="#{health.late.failed}">Chester did not answer.</div>
+  <th:block th:if="${late != null}">
+    <div class="panel-pad stack-sm">
+      <p th:utext="#{health.late.intro}">Each event has two times.</p>
+      <div class="hl-late-sum">
+        <span class="tag" th:classappend="${late.late > 0} ? 'tag-warn' : 'tag-ok'" th:text="#{health.late.count(${late.late}, ${late.events})}">3 late of 400</span>
+      </div>
+    </div>
+    <div class="table-wrap"><table class="table table-plain">
+      <thead><tr><th th:text="#{health.late.system}">System</th><th th:text="#{health.late.happened}">Happened</th><th th:text="#{health.late.received}">Received</th><th th:text="#{health.late.delay}">Delay</th><th class="num" th:text="#{health.late.worst}">Worst, 7 days</th></tr></thead>
+      <tbody><tr th:each="s : ${late.systems}">
+        <td><b th:text="${names.get(s.client) ?: s.client}">HHIMS</b></td>
+        <td><th:block th:replace="~{fragments/layout :: when(${s.happened})}"></th:block></td>
+        <td><th:block th:replace="~{fragments/layout :: when(${s.received})}"></th:block></td>
+        <td><span class="tag tag-sm" th:classappend="${s.latestLate} ? 'tag-warn' : 'tag-ok'">
+          <th:block th:if="${s.delaySeconds < 60}" th:text="#{health.late.s(${s.delaySeconds})}">1 s</th:block><th:block th:if="${s.delaySeconds >= 60 and s.delaySeconds < 3600}" th:text="#{health.late.min(${s.delaySeconds / 60})}">1 min</th:block><th:block th:if="${s.delaySeconds >= 3600}" th:text="#{health.late.h(${s.delaySeconds / 3600})}">2 h</th:block>
+          <th:block th:if="${s.latestLate}" th:text="#{health.late.tag}">late</th:block></span></td>
+        <td class="num"><span th:class="${s.late > 0} ? 'hl-worst' : ''">
+          <th:block th:if="${s.worstSeconds < 60}" th:text="#{health.late.s(${s.worstSeconds})}">3 s</th:block><th:block th:if="${s.worstSeconds >= 60 and s.worstSeconds < 3600}" th:text="#{health.late.min(${s.worstSeconds / 60})}">3 min</th:block><th:block th:if="${s.worstSeconds >= 3600}" th:text="#{health.late.h(${s.worstSeconds / 3600})}">3 h</th:block></span>
+          <span class="sub" th:if="${s.late > 0}" th:text="#{health.late.n(${s.late})}">2 late</span></td>
+      </tr></tbody>
+    </table></div>
+  </th:block>
+  <div class="notice notice-warn hl-gap"><b th:text="#{health.gap.title}">Gaps</b> <span th:text="#{health.gap.text}">Gaps cannot be found yet.</span> <span class="tag tag-planned tag-sm" th:text="#{health.gap.tag}">Planned</span></div>
+</div>
+
 </body>
 </html>

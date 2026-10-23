@@ -79,6 +79,11 @@ public class DemoAuditData {
         // a burst of failures from one system on one day (the Admin screen shows "14 failures Tue")
         for (int i = 0; i < 14; i++) ordinaryFor(SYSTEMS[2], now.minus(3, ChronoUnit.DAYS).minusSeconds(rnd.nextInt(20000)), pats, true);
         stories(pats);
+        // a steady trickle in the last hour (about 9 a minute) so the Health "receiving now" tile and chart look like a live system
+        for (int m = 60; m >= 1; m--) {
+            int n = poisson(8.9);
+            for (int i = 0; i < n; i++) ordinary(now.minusSeconds(m * 60L - rnd.nextInt(60)), pats);
+        }
         events.sort(Comparator.comparing((AuditEvent e) -> e.getRecorded()));
         buildChain();
     }
@@ -209,7 +214,16 @@ public class DemoAuditData {
             int enc = 80000 + Math.abs((pid + at.truncatedTo(ChronoUnit.DAYS)).hashCode()) % 9000;
             e.addEntity().setWhat(new Reference("Encounter/E-" + enc)).setType(new Coding("http://terminology.hl7.org/CodeSystem/audit-entity-type", "2", "System Object"));
         }
+        e.getMeta().setLastUpdated(Date.from(received(next - 1, at)));
         events.add(e);
+    }
+
+    /** Made-up "received by Chester" time: nearly all within seconds, a few minutes late, and about 1 in 70 hours late (a delay that would end in the future is made seconds instead). */
+    private Instant received(int id, Instant at) {
+        int h = (int) ((id * 2654435761L) % 1000);
+        long delay = h < 930 ? 1 + h % 3 : h < 985 ? 60 + (h * 7L) % 480 : 3600L * (3 + h % 14);
+        Instant r = at.truncatedTo(ChronoUnit.SECONDS).plusSeconds(delay);
+        return r.isAfter(now) ? at.truncatedTo(ChronoUnit.SECONDS).plusSeconds(1 + h % 3) : r;
     }
 
     private void buildChain() {

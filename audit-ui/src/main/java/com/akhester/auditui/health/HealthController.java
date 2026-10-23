@@ -36,6 +36,8 @@ public class HealthController {
     private final PrefsContext prefsContext;
     private final HealthService health;
     private final org.springframework.context.MessageSource messages;
+    private final com.akhester.auditui.admin.SendingSystemRepository sendingSystems;
+    private final com.akhester.auditui.alerts.AlertFiringRepository firings;
 
     @Value("${spring.datasource.url}")
     private String dbUrl;
@@ -46,7 +48,9 @@ public class HealthController {
     @Value("${management.server.address:}")
     private String metricsAddress;
 
-    public HealthController(AuditEventService audit, JdbcTemplate jdbc, AppSettingRepository settings, PrefsContext prefsContext, HealthService health, org.springframework.context.MessageSource messages) {
+    public HealthController(AuditEventService audit, JdbcTemplate jdbc, AppSettingRepository settings, PrefsContext prefsContext, HealthService health, org.springframework.context.MessageSource messages,
+                            com.akhester.auditui.admin.SendingSystemRepository sendingSystems, com.akhester.auditui.alerts.AlertFiringRepository firings) {
+        this.sendingSystems = sendingSystems; this.firings = firings;
         this.messages = messages;
         this.health = health;
         this.audit = audit;
@@ -63,6 +67,7 @@ public class HealthController {
         model.addAttribute("registryUrl", settings.get(AppSettingRepository.REGISTRY_BASE_URL).orElse(null));
         model.addAttribute("metricsPort", metricsPort);
         model.addAttribute("metricsAddress", metricsAddress.isBlank() ? "localhost" : metricsAddress);
+        alertStats(model);
         return "health";
     }
 
@@ -75,6 +80,27 @@ public class HealthController {
         model.addAttribute("dbUp", dbUp);
         model.addAttribute("dbKind", dbUrl.startsWith("jdbc:h2:") ? "h2" : dbUrl.startsWith("jdbc:postgresql:") ? "postgresql" : "other");
         return "fragments/health :: systems";
+    }
+
+    /** Late events: happened versus received, per sending system, and the planned gaps check. */
+    @GetMapping("/health/late")
+    public String late(Model model) {
+        try {
+            model.addAttribute("late", health.late());
+            model.addAttribute("names", sendingSystems.names());
+        } catch (RuntimeException e) { model.addAttribute("failed", true); }
+        return "fragments/health :: late";
+    }
+
+    /** Alert counts for the last seven days, from the demo firings kept by the Alerts screen. */
+    private void alertStats(Model model) {
+        try {
+            Instant from = Instant.now().minus(7, java.time.temporal.ChronoUnit.DAYS);
+            var f = firings.since(from, 500);
+            model.addAttribute("alFired", f.size());
+            model.addAttribute("alCases", f.stream().filter(x -> x.caseId() != null).count());
+            model.addAttribute("alNormal", f.stream().filter(x -> x.markedNormal()).count());
+        } catch (RuntimeException e) { /* the card falls back to its planned text */ }
     }
 
     /** Live figures: tiles and the per-minute chart. Refreshed every 30 seconds. */

@@ -594,6 +594,7 @@ public class AuditEventService {
             .id(id)
             .recorded(recorded != null ? DISPLAY_FMT.format(recorded) : "—")
             .recordedInstant(recorded)
+            .receivedInstant(ae.getMeta() != null && ae.getMeta().getLastUpdated() != null ? ae.getMeta().getLastUpdated().toInstant() : null)
             .purposeCode(purposeCode)
             .outcomeCode(ae.getOutcome() != null && ae.getOutcome().toCode() != null
                 ? ae.getOutcome().toCode() : "0")

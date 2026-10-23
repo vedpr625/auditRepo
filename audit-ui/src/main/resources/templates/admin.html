@@ -10,12 +10,15 @@
 
   <div class="notice notice-info" role="status" th:if="${flash == 'saved'}" th:text="#{admin.saved}">Saved.</div>
   <div class="notice notice-info" role="status" th:if="${flash == 'discovered'}" th:text="#{admin.discovered(${flashCount})}">Found.</div>
+  <div class="notice notice-info" role="status" th:if="${flash != null && #strings.startsWith(flash, 'users.') && flash != 'users.reset' && flash != 'users.invalid' && flash != 'users.exists' && flash != 'users.self'}" th:text="#{'admin.' + ${flash}}">Done</div>
+  <div class="notice notice-bad" role="alert" th:if="${flash == 'users.invalid' || flash == 'users.exists' || flash == 'users.self'}" th:text="#{'admin.' + ${flash}}">Not done</div>
+  <div class="notice notice-warn" role="status" th:if="${flash == 'users.reset'}"><b th:text="#{admin.users.reset.done(${flashUser})}">Reset</b> <span class="mono ad-temp" th:text="${flashTemp}">abcd</span> <span th:text="#{admin.users.reset.once}">Shown once.</span></div>
   <div class="notice notice-bad" role="alert" th:if="${flash == 'failed'}" th:text="#{admin.failed}">Failed.</div>
 
   <nav class="ad-tabs" th:attr="aria-label=#{admin.tab.label}">
     <div class="segmented">
       <a th:each="t : ${tabs}" th:href="@{/admin(tab=${t})}" th:attr="aria-current=${t == tab} ? 'true' : null"><span th:text="#{'admin.tab.' + ${t}}">Tab</span>
-        <span class="tag tag-planned tag-sm" th:if="${t == 'users'}" th:text="#{common.planned}">Planned</span></a>
+        <span class="tag tag-planned tag-sm" th:if="${t == 'users' && !demoMode}" th:text="#{common.planned}">Planned</span><span class="tag tag-warn tag-sm" th:if="${t == 'users' && demoMode}" th:text="#{demo.tag}">Demo</span></a>
       <a th:href="@{/health}" th:text="#{nav.health}">Health</a>
     </div>
   </nav>
@@ -47,6 +50,16 @@
       <div class="panel-foot" th:text="#{admin.systems.foot}">Foot</div>
     </section>
     <div class="side">
+      <section class="panel ad-sel-card" aria-labelledby="a-selsys" th:if="${!#lists.isEmpty(rows)}" th:with="f=${rows[0]}">
+        <div class="panel-head"><h3 id="a-selsys" th:text="${f.system.label}">HHIMS</h3></div>
+        <dl class="ad-kv panel-pad">
+          <dt th:text="#{admin.col.system}">Name shown</dt><dd th:text="${f.system.label}">HHIMS</dd>
+          <dt th:text="#{admin.col.client}">Client id</dt><dd class="mono" th:text="${f.system.clientId}">hhims-audit</dd>
+          <dt th:text="#{admin.col.events30}">Records</dt><dd th:text="${#numbers.formatInteger(f.stats.events30, 1, 'COMMA')}">0</dd>
+          <dt th:text="#{admin.col.lastsent}">Last sent</dt><dd><th:block th:replace="~{fragments/layout :: when(${f.stats.last})}"></th:block></dd>
+        </dl>
+        <div class="panel-pad"><a class="btn btn-block" th:href="@{/admin/systems/{id}(id=${f.system.clientId})}" th:text="#{admin.system.edit}">Edit name</a></div>
+      </section>
       <section class="panel" aria-labelledby="a-roles">
         <div class="panel-head"><h3 id="a-roles" th:text="#{admin.roles.head}">Roles</h3></div>
         <ul class="ad-roles panel-pad">
@@ -55,6 +68,12 @@
         <div class="panel-foot" th:text="#{admin.roles.note}">Note</div>
       </section>
       <div class="notice notice-info" th:text="#{admin.keycloak.note}">Clients are managed in Keycloak.</div>
+      <section class="panel" aria-labelledby="a-rec" th:if="${!#lists.isEmpty(recent)}">
+        <div class="panel-head"><h3 id="a-rec" th:text="#{admin.recent}">Recent changes</h3><a class="btn btn-sm btn-ghost" th:href="@{/admin(tab='history')}" th:text="#{admin.tab.history}">Change history</a></div>
+        <ul class="panel-pad stack-sm">
+          <li th:each="c : ${recent}"><span th:text="${c.what}">What</span> <span class="tag tag-warn tag-sm" th:if="${c.demo}" th:text="#{admin.history.demo}">Demo</span><span class="sub"><th:block th:text="${c.who}">who</th:block> · <th:block th:replace="~{fragments/layout :: when(${c.at})}"></th:block></span></li>
+        </ul>
+      </section>
     </div>
   </div>
 
@@ -80,30 +99,52 @@
     <div class="panel-foot row"><span class="grow" th:text="#{admin.fac.foot}">Foot</span><button class="btn btn-sm btn-planned" type="button" disabled><span th:text="#{admin.fac.add}">Add facility</span> <span class="tag tag-planned tag-sm" th:text="#{common.planned}">Planned</span></button></div>
   </section>
 
-  <!-- Users (planned) -->
-  <div class="split" th:if="${tab == 'users'}">
-    <section class="panel planned grow" aria-labelledby="a-users">
-      <div class="panel-head"><h3 id="a-users" th:text="#{admin.users.head}">Users</h3><span class="tag tag-planned" th:text="#{admin.users.planned}">Planned</span></div>
+  <!-- Users: working demo list in demo builds, planned notice otherwise -->
+  <div class="split" th:if="${tab == 'users' && demoMode}">
+    <section class="panel grow" aria-labelledby="a-users">
+      <div class="panel-head"><h3 id="a-users" th:text="#{admin.users.head}">Users</h3><span class="tag tag-warn" th:text="#{demo.tag}">Demo data</span></div>
+      <div class="table-wrap"><table class="table table-cards">
+        <thead><tr><th th:text="#{admin.col.user}">User</th><th th:text="#{admin.col.role}">Role</th><th th:text="#{admin.col.status}">Status</th><th th:text="#{admin.users.col.actions}">Actions</th></tr></thead>
+        <tbody><tr th:each="u : ${userRows}" th:classappend="${!u.enabled} ? 'ad-off'">
+          <td th:attr="data-label=#{admin.col.user}"><div><b th:text="${u.displayName}">Name</b><span class="sub mono" th:text="${u.username}">user</span><span class="sub" th:text="${u.email}">mail</span></div></td>
+          <td th:attr="data-label=#{admin.col.role}"><div>
+            <form class="ad-inline" th:action="@{/admin/users/role}" method="post"><input type="hidden" name="username" th:value="${u.username}">
+              <label class="sr-only" th:for="'r-' + ${u.username}" th:text="#{admin.col.role}">Role</label>
+              <select class="select ad-sel" th:id="'r-' + ${u.username}" name="role"><option th:each="r : ${userRoles}" th:value="${r}" th:text="${r}" th:selected="${r == u.role}">ROLE</option></select>
+              <button class="btn btn-sm" type="submit" th:text="#{admin.users.setrole}">Set role</button></form></div></td>
+          <td th:attr="data-label=#{admin.col.status}"><div>
+            <span class="tag tag-ok" th:if="${u.enabled && !u.invited}" th:text="#{admin.status.active}">Active</span>
+            <span class="tag tag-info" th:if="${u.enabled && u.invited}" th:text="#{admin.users.invited}">Invited</span>
+            <span class="tag tag-off" th:if="${!u.enabled}" th:text="#{admin.users.disabledtag}">Disabled</span>
+            <span class="sub" th:if="${u.pwResetAt != null}"><th:block th:text="#{admin.users.resetat}">Password reset</th:block> <th:block th:replace="~{fragments/layout :: when(${u.pwResetAt})}"></th:block></span></div></td>
+          <td th:attr="data-label=#{admin.users.col.actions}"><div class="row-wrap">
+            <form th:action="@{/admin/users/enabled}" method="post"><input type="hidden" name="username" th:value="${u.username}"><input type="hidden" name="enabled" th:value="${!u.enabled}">
+              <button class="btn btn-sm" type="submit" th:text="${u.enabled} ? #{admin.users.disable} : #{admin.users.enable}">Disable</button></form>
+            <form th:action="@{/admin/users/reset}" method="post"><input type="hidden" name="username" th:value="${u.username}"><button class="btn btn-sm" type="submit" th:text="#{admin.users.reset}">Send password reset</button></form></div></td>
+        </tr></tbody></table></div>
+      <div class="panel-foot" th:text="#{admin.users.demo.note2}">Note</div>
+    </section>
+    <div class="side">
+      <section class="panel" aria-labelledby="a-inv">
+        <div class="panel-head"><h3 id="a-inv" th:text="#{admin.users.invite}">Invite a person</h3><span class="tag tag-warn" th:text="#{demo.tag}">Demo data</span></div>
+        <form class="panel-pad stack" th:action="@{/admin/users/invite}" method="post">
+          <label class="field"><span th:text="#{admin.users.f.name}">Name</span><input class="input" name="name" maxlength="200" required></label>
+          <label class="field"><span th:text="#{admin.users.f.username}">Sign-in name</span><input class="input mono" name="username" maxlength="39" pattern="[a-z0-9][a-z0-9._\-]{1,38}" required></label>
+          <label class="field"><span th:text="#{admin.users.f.email}">Email</span><input class="input" type="email" name="email" maxlength="255" required></label>
+          <label class="field"><span th:text="#{admin.col.role}">Role</span><select class="select" name="role"><option th:each="r : ${userRoles}" th:value="${r}" th:text="${r}" th:selected="${r == 'FACILITY_AUDITOR'}">ROLE</option></select></label>
+          <button class="btn btn-primary" type="submit" th:text="#{admin.users.invite.do}">Invite</button>
+        </form>
+        <div class="panel-foot" th:text="#{admin.users.demo.warn}">Not real</div>
+      </section>
+    </div>
+  </div>
+  <div class="split" th:if="${tab == 'users' && !demoMode}">
+    <section class="panel planned grow" aria-labelledby="a-users2">
+      <div class="panel-head"><h3 id="a-users2" th:text="#{admin.users.head}">Users</h3><span class="tag tag-planned" th:text="#{admin.users.planned}">Planned</span></div>
       <div class="panel-pad stack-sm">
         <p th:text="#{admin.users.text2}">Plan</p>
         <div class="notice notice-warn" th:text="#{admin.users.warn}">Warning</div>
-        <div class="row-wrap">
-          <button class="btn btn-planned" type="button" disabled th:text="#{admin.users.invite}">Invite</button>
-          <button class="btn btn-planned" type="button" disabled th:text="#{admin.users.disable}">Disable</button>
-          <button class="btn btn-planned" type="button" disabled th:text="#{admin.users.reset}">Reset</button>
-        </div>
       </div>
-      <th:block th:if="${!#lists.isEmpty(demoUsers)}">
-        <div class="panel-head"><h3 th:text="#{admin.users.demo}">Demo accounts</h3><span class="tag tag-warn" th:text="#{demo.tag}">Demo data</span></div>
-        <div class="table-wrap"><table class="table table-cards">
-          <thead><tr><th th:text="#{admin.col.user}">User</th><th th:text="#{admin.col.title}">Role</th><th th:text="#{admin.col.scope}">Sees</th></tr></thead>
-          <tbody><tr th:each="u : ${demoUsers}">
-            <td th:attr="data-label=#{admin.col.user}"><div class="mono" th:text="${u.username}">user</div></td>
-            <td th:attr="data-label=#{admin.col.title}"><div><span class="ad-role" th:text="${u.role}">ROLE</span></div></td>
-            <td th:attr="data-label=#{admin.col.scope}"><div th:text="${u.can}">can</div></td>
-          </tr></tbody></table></div>
-        <div class="panel-foot" th:text="#{admin.users.demo.note}">Note</div>
-      </th:block>
     </section>
   </div>
 

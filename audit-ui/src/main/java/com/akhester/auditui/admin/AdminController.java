@@ -46,15 +46,16 @@ public class AdminController {
     private final FacilityDirectory facilities;
     private final PeopleIndex people;
     private final AdminChangeLog changes;
+    private final DemoUserRepository demoUsers;
     private final boolean demo;
     private final String warnHours, overdueHours, noRecord, cacheSeconds, zone, sessionTimeout;
 
-    public AdminController(SendingSystemRepository systems, AuditEventService audit, SystemStats stats, FacilityDirectory facilities, PeopleIndex people, AdminChangeLog changes,
+    public AdminController(SendingSystemRepository systems, AuditEventService audit, SystemStats stats, FacilityDirectory facilities, PeopleIndex people, AdminChangeLog changes, DemoUserRepository demoUsers,
                            @Value("${audit.ui.demo:false}") boolean demo,
                            @Value("${audit.sla.warning-hours:6}") String warnHours, @Value("${audit.sla.overdue-hours:24}") String overdueHours,
                            @Value("${audit.ui.consent-no-record:deny}") String noRecord, @Value("${audit.ui.overview-cache-seconds:60}") String cacheSeconds,
                            @Value("${audit.ui.default-time-zone:Asia/Colombo}") String zone, @Value("${server.servlet.session.timeout:30m}") String sessionTimeout) {
-        this.systems = systems; this.audit = audit; this.stats = stats; this.facilities = facilities; this.people = people; this.changes = changes;
+        this.systems = systems; this.audit = audit; this.stats = stats; this.facilities = facilities; this.people = people; this.changes = changes; this.demoUsers = demoUsers;
         this.demo = demo; this.warnHours = warnHours; this.overdueHours = overdueHours; this.noRecord = noRecord; this.cacheSeconds = cacheSeconds; this.zone = zone; this.sessionTimeout = sessionTimeout;
     }
 
@@ -84,11 +85,16 @@ public class AdminController {
                 } catch (RuntimeException e) { model.addAttribute("chesterDown", true); }
                 model.addAttribute("facRows", rows);
             }
-            case "users" -> model.addAttribute("demoUsers", demo ? DemoUsers.ALL : List.of());
+            case "users" -> {
+                model.addAttribute("demoUsers", demo ? DemoUsers.ALL : List.of());
+                model.addAttribute("userRows", demo ? demoUsers.all() : List.of());
+                model.addAttribute("userRoles", DemoUserRepository.ROLES);
+            }
             case "rules" -> model.addAttribute("rules", rules());
             default -> model.addAttribute("changes", changes.recent(50));
         }
         model.addAttribute("demoMode", demo);
+        if (!"history".equals(t)) model.addAttribute("recent", changes.recent(4));
         return "admin";
     }
 
@@ -153,5 +159,63 @@ public class AdminController {
         } catch (RuntimeException ignored) { /* the rename is done; the history line is a bonus */ }
         ra.addFlashAttribute("flash", "saved");
         return "redirect:/admin/systems/" + java.net.URLEncoder.encode(clientId, java.nio.charset.StandardCharsets.UTF_8);
+    }
+
+    // ── Users tab (demo): a made-up list kept in a demo table. Every change is written to the change history, marked Demo. ──
+    private static final Pattern USERNAME = Pattern.compile("[a-z0-9][a-z0-9._-]{1,38}");
+    private static final Pattern EMAIL = Pattern.compile("[^@\\s]{1,100}@[^@\\s]{1,150}");
+
+    private String demoChange(String what) {
+        try { changes.add(PrefsContext.username(), what, true, Instant.now()); } catch (RuntimeException ignored) { /* the change is done; the history line is a bonus */ }
+        return what;
+    }
+
+    @PostMapping("/admin/users/invite")
+    public String invite(@RequestParam String username, @RequestParam String name, @RequestParam String email, @RequestParam String role, RedirectAttributes ra) {
+        if (!demo) return "redirect:/admin?tab=users";
+        String u = username.strip().toLowerCase(java.util.Locale.ROOT);
+        String n = name.strip().replaceAll("\\p{Cntrl}", "");
+        String e = email.strip();
+        if (!USERNAME.matcher(u).matches() || n.isEmpty() || n.length() > 200 || !EMAIL.matcher(e).matches() || !DemoUserRepository.ROLES.contains(role)) { ra.addFlashAttribute("flash", "users.invalid"); return "redirect:/admin?tab=users"; }
+        if (demoUsers.find(u) != null) { ra.addFlashAttribute("flash", "users.exists"); return "redirect:/admin?tab=users"; }
+        demoUsers.add(u, n, e, role, true, Instant.now());
+        demoChange("Invited " + u + " as " + role + " (demo)");
+        ra.addFlashAttribute("flash", "users.invited");
+        return "redirect:/admin?tab=users";
+    }
+
+    @PostMapping("/admin/users/role")
+    public String role(@RequestParam String username, @RequestParam String role, RedirectAttributes ra) {
+        DemoUserRepository.User old = demo ? demoUsers.find(username) : null;
+        if (old == null || !DemoUserRepository.ROLES.contains(role)) { ra.addFlashAttribute("flash", "users.invalid"); return "redirect:/admin?tab=users"; }
+        if (!old.role().equals(role)) {
+            demoUsers.setRole(username, role);
+            demoChange("Role of " + username + " changed from " + old.role() + " to " + role + " (demo)");
+        }
+        ra.addFlashAttribute("flash", "users.role");
+        return "redirect:/admin?tab=users";
+    }
+
+    @PostMapping("/admin/users/enabled")
+    public String enabled(@RequestParam String username, @RequestParam boolean enabled, RedirectAttributes ra) {
+        DemoUserRepository.User old = demo ? demoUsers.find(username) : null;
+        if (old == null) { ra.addFlashAttribute("flash", "users.invalid"); return "redirect:/admin?tab=users"; }
+        if (username.equals(PrefsContext.username()) && !enabled) { ra.addFlashAttribute("flash", "users.self"); return "redirect:/admin?tab=users"; }
+        demoUsers.setEnabled(username, enabled);
+        demoChange((enabled ? "Enabled " : "Disabled ") + username + " (demo)");
+        ra.addFlashAttribute("flash", enabled ? "users.enabled" : "users.disabled");
+        return "redirect:/admin?tab=users";
+    }
+
+    @PostMapping("/admin/users/reset")
+    public String reset(@RequestParam String username, RedirectAttributes ra) {
+        DemoUserRepository.User old = demo ? demoUsers.find(username) : null;
+        String temp = old == null ? null : demoUsers.resetPassword(username, Instant.now());
+        if (temp == null) { ra.addFlashAttribute("flash", "users.invalid"); return "redirect:/admin?tab=users"; }
+        demoChange("Password reset for " + username + " (demo; one-time password shown once, only its hash is kept)");
+        ra.addFlashAttribute("flash", "users.reset");
+        ra.addFlashAttribute("flashUser", username);
+        ra.addFlashAttribute("flashTemp", temp);
+        return "redirect:/admin?tab=users";
     }
 }

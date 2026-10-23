@@ -28,3 +28,14 @@
 .legend .ok{background:var(--chart-ok)} .legend .fail{background:var(--chart-fail)}
 .cell-reason{max-width:340px}
 @media (max-width:900px){.sbar{grid-template-columns:1fr}}
+
+/* closer to the board */
+.split>.side{width:300px}
+.rep-list a{padding:10px 14px}
+.rep-list a[aria-current="page"]{background:var(--accent-wash);border-color:var(--accent-line)}
+.rep-stat b{font-size:24px}
+.rep-stat span{display:block}
+.rep-filters{background:var(--panel-tint)}
+.rep-filters .btn-primary{margin-inline-start:0}
+.table thead th{text-transform:uppercase;letter-spacing:.04em;font-size:11.5px}
+@media (max-width:1100px){.split>.side{width:100%}}

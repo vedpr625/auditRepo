@@ -11,3 +11,16 @@
 .al-fire.dim{opacity:.7}
 .al-chan{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
 @media (max-width:900px){.al-rule{flex-wrap:wrap}.al-meta{align-items:flex-start;text-align:start;max-width:none}}
+
+/* closer to the board: wider firings column, readable cards */
+.split>.side{width:480px}
+.al-rule{padding:14px 18px}
+.al-rule b{font-size:15px}
+.al-rule.dim{background:var(--panel-tint)}
+.al-fire{flex-wrap:wrap;padding:14px 18px}
+.al-fire>.tag:first-child{width:56px;text-align:center;padding:6px 0;font-size:12px;border-radius:4px}
+.al-fire>.grow{flex:1;min-width:0}
+.al-fire>form{flex-basis:100%;padding-inline-start:66px;margin-top:-4px}
+.al-sw.on{background:var(--accent)}
+.page-head .btn-planned{border-color:var(--accent-line);color:var(--accent);font-weight:600;background:var(--accent-wash)}
+@media (max-width:1100px){.split>.side{width:100%}}
