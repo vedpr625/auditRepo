@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}"
-      th:attr="data-theme=${prefs.themeAttr()},data-density=${prefs.densityAttr()}">
+      th:attr="data-theme=${prefs.themeAttr()},data-density=${prefs.densityAttr()},data-accent=${prefs.accentAttr()}">
 <head th:replace="~{fragments/layout :: headx(#{admin.title}, 'page-admin.css')}"></head>
 <body>
 <th:block th:replace="~{fragments/layout :: header('admin')}"></th:block>
@@ -8,17 +8,17 @@
   <div class="page-head"><h1 th:text="#{admin.title}">Admin</h1><span class="lede" th:text="#{admin.lede2}">Who can use the console</span>
     <span class="actions"><a class="btn btn-sm" th:href="@{/checklist}" th:text="#{admin.checklist}">Delivered and planned</a></span></div>
 
-  <div class="notice notice-info" role="status" th:if="${flash == 'saved'}" th:text="#{admin.saved}">Saved.</div>
-  <div class="notice notice-info" role="status" th:if="${flash == 'discovered'}" th:text="#{admin.discovered(${flashCount})}">Found.</div>
-  <div class="notice notice-info" role="status" th:if="${flash != null && #strings.startsWith(flash, 'users.') && flash != 'users.reset' && flash != 'users.invalid' && flash != 'users.exists' && flash != 'users.self'}" th:text="#{'admin.' + ${flash}}">Done</div>
-  <div class="notice notice-bad" role="alert" th:if="${flash == 'users.invalid' || flash == 'users.exists' || flash == 'users.self'}" th:text="#{'admin.' + ${flash}}">Not done</div>
+  <div data-flash class="notice notice-info" role="status" th:if="${flash == 'saved'}" th:text="#{admin.saved}">Saved.</div>
+  <div data-flash class="notice notice-info" role="status" th:if="${flash == 'discovered'}" th:text="#{admin.discovered(${flashCount})}">Found.</div>
+  <div data-flash class="notice notice-info" role="status" th:if="${flash != null && #strings.startsWith(flash, 'users.') && flash != 'users.reset' && flash != 'users.invalid' && flash != 'users.exists' && flash != 'users.self'}" th:text="#{'admin.' + ${flash}}">Done</div>
+  <div data-flash class="notice notice-bad" role="alert" th:if="${flash == 'users.invalid' || flash == 'users.exists' || flash == 'users.self'}" th:text="#{'admin.' + ${flash}}">Not done</div>
   <div class="notice notice-warn" role="status" th:if="${flash == 'users.reset'}"><b th:text="#{admin.users.reset.done(${flashUser})}">Reset</b> <span class="mono ad-temp" th:text="${flashTemp}">abcd</span> <span th:text="#{admin.users.reset.once}">Shown once.</span></div>
-  <div class="notice notice-bad" role="alert" th:if="${flash == 'failed'}" th:text="#{admin.failed}">Failed.</div>
+  <div data-flash class="notice notice-bad" role="alert" th:if="${flash == 'failed'}" th:text="#{admin.failed}">Failed.</div>
 
   <nav class="ad-tabs" th:attr="aria-label=#{admin.tab.label}">
     <div class="segmented">
       <a th:each="t : ${tabs}" th:href="@{/admin(tab=${t})}" th:attr="aria-current=${t == tab} ? 'true' : null"><span th:text="#{'admin.tab.' + ${t}}">Tab</span>
-        <span class="tag tag-planned tag-sm" th:if="${t == 'users' && !demoMode}" th:text="#{common.planned}">Planned</span><span class="tag tag-warn tag-sm" th:if="${t == 'users' && demoMode}" th:text="#{demo.tag}">Demo</span></a>
+        <span class="tag tag-planned tag-sm" th:if="${t == 'users' && !demoMode}" th:text="#{common.planned}">Planned</span><span class="tag tag-planned tag-sm" th:if="${t == 'users' && demoMode}" th:text="#{demo.tag}">Sample</span></a>
       <a th:href="@{/health}" th:text="#{nav.health}">Health</a>
     </div>
   </nav>
@@ -28,7 +28,7 @@
     <section class="panel grow" aria-labelledby="a-sys">
       <div class="panel-head"><h3 id="a-sys" th:text="#{admin.systems.head}">Systems that have sent audit records</h3>
         <form th:action="@{/admin/systems/discover}" method="post"><button class="btn btn-sm" type="submit" th:text="#{admin.discover}">Look for new ones</button></form></div>
-      <div th:if="${#lists.isEmpty(rows)}" class="state"><h2 th:text="#{admin.empty.title}">None yet</h2><p th:text="#{admin.empty.text}">Press the button.</p></div>
+      <th:block th:if="${#lists.isEmpty(rows)}"><th:block th:replace="~{fragments/states :: empty('0', #{admin.empty.title}, #{admin.empty.text}, null, null)}"></th:block></th:block>
       <div class="table-wrap" th:unless="${#lists.isEmpty(rows)}">
         <table class="table table-cards">
           <thead><tr><th th:text="#{admin.col.system}">Name</th><th th:text="#{admin.col.client}">Client</th><th th:text="#{admin.col.role}">Role</th><th th:text="#{admin.col.lastsent}">Last sent</th><th class="num" th:text="#{admin.col.events30}">Records</th><th th:text="#{admin.col.status}">Status</th></tr></thead>
@@ -79,7 +79,7 @@
 
   <!-- Facilities -->
   <section class="panel" th:if="${tab == 'facilities'}" aria-labelledby="a-fac">
-    <div class="panel-head"><h3 id="a-fac" th:text="#{admin.fac.head}">Facilities</h3><span class="tag tag-warn" th:if="${demo}" th:text="#{admin.fac.demo}">Demo names</span></div>
+    <div class="panel-head"><h3 id="a-fac" th:text="#{admin.fac.head}">Facilities</h3></div>
     <div class="panel-pad" th:if="${chesterDown}"><div class="notice notice-bad" role="alert" th:text="#{people.chester.down}">Down</div></div>
     <div class="table-wrap">
       <table class="table table-cards">
@@ -102,7 +102,7 @@
   <!-- Users: working demo list in demo builds, planned notice otherwise -->
   <div class="split" th:if="${tab == 'users' && demoMode}">
     <section class="panel grow" aria-labelledby="a-users">
-      <div class="panel-head"><h3 id="a-users" th:text="#{admin.users.head}">Users</h3><span class="tag tag-warn" th:text="#{demo.tag}">Demo data</span></div>
+      <div class="panel-head"><h3 id="a-users" th:text="#{admin.users.head}">Users</h3><span class="tag tag-planned" th:text="#{demo.tag}">Sample data</span></div>
       <div class="table-wrap"><table class="table table-cards">
         <thead><tr><th th:text="#{admin.col.user}">User</th><th th:text="#{admin.col.role}">Role</th><th th:text="#{admin.col.status}">Status</th><th th:text="#{admin.users.col.actions}">Actions</th></tr></thead>
         <tbody><tr th:each="u : ${userRows}" th:classappend="${!u.enabled} ? 'ad-off'">
@@ -126,7 +126,7 @@
     </section>
     <div class="side">
       <section class="panel" aria-labelledby="a-inv">
-        <div class="panel-head"><h3 id="a-inv" th:text="#{admin.users.invite}">Invite a person</h3><span class="tag tag-warn" th:text="#{demo.tag}">Demo data</span></div>
+        <div class="panel-head"><h3 id="a-inv" th:text="#{admin.users.invite}">Invite a person</h3><span class="tag tag-planned" th:text="#{demo.tag}">Sample data</span></div>
         <form class="panel-pad stack" th:action="@{/admin/users/invite}" method="post">
           <label class="field"><span th:text="#{admin.users.f.name}">Name</span><input class="input" name="name" maxlength="200" required></label>
           <label class="field"><span th:text="#{admin.users.f.username}">Sign-in name</span><input class="input mono" name="username" maxlength="39" pattern="[a-z0-9][a-z0-9._\-]{1,38}" required></label>
@@ -166,7 +166,7 @@
   <section class="panel" th:if="${tab == 'history'}" aria-labelledby="a-hist">
     <div class="panel-head"><h3 id="a-hist" th:text="#{admin.history.head}">Change history</h3></div>
     <div class="panel-pad"><span class="sub" th:text="#{admin.history.text}">Text</span></div>
-    <div class="state" th:if="${#lists.isEmpty(changes)}"><h2 th:text="#{admin.history.empty}">None</h2></div>
+    <th:block th:if="${#lists.isEmpty(changes)}"><th:block th:replace="~{fragments/states :: empty('0', #{admin.history.empty}, null, null, null)}"></th:block></th:block>
     <div class="table-wrap" th:unless="${#lists.isEmpty(changes)}"><table class="table table-cards">
       <thead><tr><th th:text="#{admin.col.when}">When</th><th th:text="#{admin.col.who}">Who</th><th th:text="#{admin.col.what}">What</th></tr></thead>
       <tbody><tr th:each="c : ${changes}">

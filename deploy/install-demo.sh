@@ -2,7 +2,7 @@
 # Run on the Ubuntu Lightsail server as a user with sudo, from the repository folder:
 #   bash deploy/install-demo.sh DEMO_HOST [APP_PORT] [MGMT_PORT]        (defaults: 8085 and 8095)
 # Installs Java 21 + nginx + certbot, builds the jar, installs the service. Safe to re-run.
-# It refuses to continue if a port is already in use, and does NOT touch other nginx sites, the old UI, Chester or SonarQube.
+# It refuses to continue if a port is already in use, and does NOT touch other nginx sites, the old UI, the audit repository or SonarQube.
 set -euo pipefail
 HOST="${1:?usage: install-demo.sh demo.example.org [app-port] [metrics-port]}"
 APP_PORT="${2:-8085}"; MGMT_PORT="${3:-8095}"
@@ -30,11 +30,11 @@ fi
 sudo ln -sf /etc/nginx/sites-available/audit-ui-demo /etc/nginx/sites-enabled/audit-ui-demo
 sudo nginx -t && sudo systemctl reload nginx
 echo "Waiting for the app to start..."
-for i in $(seq 1 30); do sleep 2; curl -s http://127.0.0.1:$APP_PORT/login | grep -q DEMONSTRATION && { echo "OK: the DEMO answers on port $APP_PORT"; break; }; [ $i = 30 ] && { echo "The demo did not answer. See: sudo journalctl -u audit-ui-demo -n 50 --no-pager"; exit 1; }; done
+for i in $(seq 1 30); do sleep 2; curl -s http://127.0.0.1:$APP_PORT/login | grep -q 'Sign in' && { echo "OK: the app answers on port $APP_PORT"; break; }; [ $i = 30 ] && { echo "The demo did not answer. See: sudo journalctl -u audit-ui-demo -n 50 --no-pager"; exit 1; }; done
 if ! sudo grep -q "ssl_certificate" "$SITE"; then
   echo "Adding HTTPS for $HOST (needs DNS pointing here and port 80 open)..."
   sudo certbot --nginx -d "$HOST" --cert-name "$HOST" --redirect --reinstall --non-interactive --agree-tos --register-unsafely-without-email \
     && sudo nginx -t && sudo systemctl reload nginx \
     || echo "certbot did not finish. Run by hand:  sudo certbot --nginx -d $HOST --cert-name $HOST --redirect   (if it offers to reinstall the existing certificate, choose 1)"
 fi
-echo "Check:  curl -s https://$HOST/login | grep -o 'DEMONSTRATION[^<]*'"
+echo "Check:  curl -s https://$HOST/login | grep -o 'Sign in'"

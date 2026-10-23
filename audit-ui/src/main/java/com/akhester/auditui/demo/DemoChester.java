@@ -94,7 +94,7 @@ public class DemoChester {
     public ResponseEntity<String> metadata() {
         CapabilityStatement cs = new CapabilityStatement();
         cs.setStatus(Enumerations.PublicationStatus.ACTIVE).setKind(CapabilityStatement.CapabilityStatementKind.INSTANCE).setFhirVersion(Enumerations.FHIRVersion._4_0_1);
-        cs.getSoftware().setName("Demo stand-in for Chester (made-up records)");
+        cs.getSoftware().setName("Stand-in audit repository (sample records)");
         return out(HttpStatus.OK, cs);
     }
 

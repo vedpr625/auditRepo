@@ -1,24 +1,21 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}"
-      th:attr="data-theme=${prefs.themeAttr()},data-density=${prefs.densityAttr()}">
+      th:attr="data-theme=${prefs.themeAttr()},data-density=${prefs.densityAttr()},data-accent=${prefs.accentAttr()}">
 <head th:replace="~{fragments/layout :: headx(#{set.title}, 'page-settings.css')}"></head>
 <body>
 <th:block th:replace="~{fragments/layout :: header('settings')}"></th:block>
 <main id="main" class="page set">
-  <div class="set-head">
-    <h1 th:text="#{set.title}">Settings</h1>
-    <p class="muted" th:text="#{set.lede}">Your own preferences, and the rules that apply to everyone.</p>
-  </div>
+  <div class="page-head"><h1 th:text="#{set.title}">Settings</h1><span class="lede" th:text="#{set.lede}">Your own preferences, and the rules that apply to everyone.</span></div>
 
-  <div th:if="${flash == 'saved'}" class="notice notice-info" role="status" th:text="#{set.flash.saved}">Saved.</div>
-  <div th:if="${flash == 'savedRemoved'}" class="notice notice-info" role="status" th:text="#{set.flash.removed}">Removed.</div>
-  <div th:if="${flash == 'invalid'}" class="notice notice-bad" role="alert" th:text="#{set.flash.invalid}">Not saved.</div>
-  <div th:if="${flash == 'rulesSaved'}" class="notice notice-info" role="status" th:text="#{set.flash.rules}">Rules saved.</div>
-  <div th:if="${flash == 'rulesSame'}" class="notice notice-info" role="status" th:text="#{set.flash.rulessame}">Nothing changed.</div>
-  <div th:if="${flash == 'rulesInvalid'}" class="notice notice-bad" role="alert" th:text="#{set.flash.rulesinvalid}">Not saved.</div>
-  <div th:if="${flash == 'registrySaved'}" class="notice notice-info" role="status" th:text="#{settings.registry.saved}">Saved.</div>
-  <div th:if="${flash == 'registryCleared'}" class="notice notice-info" role="status" th:text="#{settings.registry.cleared}">Cleared.</div>
-  <div th:if="${flash == 'registryInvalid'}" class="notice notice-bad" role="alert" th:text="#{settings.registry.invalid}">Not a valid address.</div>
+  <div th:if="${flash == 'saved'}" data-flash class="notice notice-info" role="status" th:text="#{set.flash.saved}">Saved.</div>
+  <div th:if="${flash == 'savedRemoved'}" data-flash class="notice notice-info" role="status" th:text="#{set.flash.removed}">Removed.</div>
+  <div th:if="${flash == 'invalid'}" data-flash class="notice notice-bad" role="alert" th:text="#{set.flash.invalid}">Not saved.</div>
+  <div th:if="${flash == 'rulesSaved'}" data-flash class="notice notice-info" role="status" th:text="#{set.flash.rules}">Rules saved.</div>
+  <div th:if="${flash == 'rulesSame'}" data-flash class="notice notice-info" role="status" th:text="#{set.flash.rulessame}">Nothing changed.</div>
+  <div th:if="${flash == 'rulesInvalid'}" data-flash class="notice notice-bad" role="alert" th:text="#{set.flash.rulesinvalid}">Not saved.</div>
+  <div th:if="${flash == 'registrySaved'}" data-flash class="notice notice-info" role="status" th:text="#{settings.registry.saved}">Saved.</div>
+  <div th:if="${flash == 'registryCleared'}" data-flash class="notice notice-info" role="status" th:text="#{settings.registry.cleared}">Cleared.</div>
+  <div th:if="${flash == 'registryInvalid'}" data-flash class="notice notice-bad" role="alert" th:text="#{settings.registry.invalid}">Not a valid address.</div>
 
   <div class="set-grid">
     <nav class="set-side panel" id="setNav" th:attr="aria-label=#{set.nav}">
@@ -34,7 +31,7 @@
     <!-- ── My preferences ── -->
     <section class="panel set-main" id="prefs" aria-labelledby="h-prefs">
       <div class="panel-head set-head2"><h2 id="h-prefs" th:text="#{set.prefs}">My preferences</h2></div>
-      <form th:action="@{/settings/prefs}" method="post">
+      <form th:action="@{/settings/prefs}" method="post" data-appearance-preview>
         <input type="hidden" name="notifyForm" value="1">
 
         <div class="set-row">
@@ -72,12 +69,24 @@
           </div>
         </div>
 
-        <div class="set-row">
-          <div class="set-label"><b th:text="#{set.appearance}">Appearance</b><span class="sub" th:text="#{set.appearance.help}">Light, dark</span></div>
-          <div class="set-ctl set-seg">
-            <label><input type="radio" name="theme" value="light" th:checked="${prefs.theme == 'light'}"><span th:text="#{set.theme.light}">Light</span></label>
-            <label><input type="radio" name="theme" value="dark" th:checked="${prefs.theme == 'dark'}"><span th:text="#{set.theme.dark}">Dark</span></label>
-            <label><input type="radio" name="theme" value="system" th:checked="${prefs.theme == 'system'}"><span th:text="#{set.theme.system}">Automatic</span></label>
+        <div class="set-row" id="appearance">
+          <div class="set-label"><b th:text="#{set.appearance}">Appearance</b><span class="sub" th:text="#{set.appearance.help}">Light, dark or follow your computer</span>
+            <span class="sub" th:text="#{set.appearance.quick}">The same choices are in the header, so you rarely need to come here.</span></div>
+          <div class="set-ctl set-appearance">
+            <div class="set-seg" role="radiogroup" th:attr="aria-label=#{theme.mode}">
+              <label><input type="radio" name="theme" value="light" th:checked="${prefs.theme == 'light'}"><span th:text="#{set.theme.light}">Light</span></label>
+              <label><input type="radio" name="theme" value="dark" th:checked="${prefs.theme == 'dark'}"><span th:text="#{set.theme.dark}">Dark</span></label>
+              <label><input type="radio" name="theme" value="system" th:checked="${prefs.theme == 'system'}"><span th:text="#{set.theme.system}">Automatic</span></label>
+            </div>
+            <b class="set-sub" th:text="#{theme.accent}">Colour theme</b>
+            <div class="accent-grid" role="radiogroup" th:attr="aria-label=#{theme.accent}">
+              <label class="accent-card" th:each="a : ${accents}">
+                <input type="radio" name="accent" th:value="${a}" th:checked="${prefs.accent == a}">
+                <span class="swatch swatch-lg" th:attr="data-sw=${a}" aria-hidden="true"><i></i><i></i><i></i></span>
+                <span><b th:text="#{'theme.accent.' + ${a}}">Clinic</b><span class="sub" th:text="#{'theme.accent.' + ${a} + '.help'}">Teal</span></span>
+              </label>
+            </div>
+            <p class="sub" th:text="#{set.accent.help}">Each theme has a light and a dark version. Text and buttons keep strong contrast in all of them, and charts always show OK in blue and failed in red.</p>
           </div>
         </div>
 
@@ -114,7 +123,7 @@
             </div>
             <form th:action="@{/settings/saved/{id}/delete(id=${s.id})}" method="post"><button class="set-remove" type="submit" th:text="#{set.saved.remove}">Remove</button></form>
           </div>
-          <p class="muted" th:if="${savedSearches.isEmpty()}" th:text="#{set.saved.none}">No saved searches yet.</p>
+          <th:block th:if="${savedSearches.isEmpty()}"><th:block th:replace="~{fragments/states :: emptyInline(#{set.saved.none})}"></th:block></th:block>
         </div>
       </div>
     </section>

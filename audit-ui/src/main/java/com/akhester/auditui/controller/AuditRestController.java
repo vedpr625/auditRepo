@@ -60,7 +60,7 @@ public class AuditRestController {
     @Operation(
         summary     = "List audit events",
         description = """
-            Returns a paginated, filtered list of AuditEvent resources from Chester.
+            Returns a paginated, filtered list of AuditEvent resources from the audit repository.
             All parameters are optional and combinable.
 
             **Filters available:**
@@ -77,7 +77,7 @@ public class AuditRestController {
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Success",
             content = @Content(schema = @Schema(implementation = AuditListResponse.class))),
-        @ApiResponse(responseCode = "502", description = "Chester FHIR server unreachable")
+        @ApiResponse(responseCode = "502", description = "Audit repository FHIR server unreachable")
     })
     public ResponseEntity<AuditListResponse> listAuditEvents(
 
@@ -208,7 +208,7 @@ public class AuditRestController {
         @ApiResponse(responseCode = "200", description = "Found",
             content = @Content(schema = @Schema(implementation = AuditEventResponse.class))),
         @ApiResponse(responseCode = "404", description = "Not found"),
-        @ApiResponse(responseCode = "502", description = "Chester unreachable")
+        @ApiResponse(responseCode = "502", description = "Audit repository unreachable")
     })
     public ResponseEntity<AuditEventResponse> getAuditEvent(
         @Parameter(description = "FHIR resource logical ID", example = "ae-1234", required = true)
@@ -343,7 +343,7 @@ public class AuditRestController {
     @GetMapping("/health")
     @Operation(
         summary     = "Health check",
-        description = "Returns whether the Chester FHIR server is reachable from audit-ui."
+        description = "Returns whether the audit repository FHIR server is reachable from audit-ui."
     )
     @ApiResponse(responseCode = "200", description = "Status returned (check `chester` field)")
     public ResponseEntity<Map<String, Object>> health() {

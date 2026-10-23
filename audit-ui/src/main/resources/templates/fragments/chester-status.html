@@ -9,8 +9,8 @@
 <span th:fragment="chesterStatus"
       style="display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:600;">
   <span class="status-dot" th:classappend="${chesterUp} ? 'up' : 'down'"></span>
-  <span th:text="${chesterUp} ? 'Chester Live' : 'Chester Offline'"
-        th:style="${chesterUp} ? 'color:var(--green-700)' : 'color:var(--red-700)'">Chester</span>
+  <span th:text="${chesterUp} ? 'Audit repository live' : 'Audit repository offline'"
+        th:style="${chesterUp} ? 'color:var(--green-700)' : 'color:var(--red-700)'">Audit repository</span>
 </span>
 
 </body>

@@ -102,11 +102,11 @@ public class SettingsController {
     @PostMapping("/settings/prefs")
     public String savePrefs(@RequestParam String language, @RequestParam String timeZone, @RequestParam String timeDisplay,
                             @RequestParam(defaultValue = "false") boolean clock24, @RequestParam(defaultValue = "false") boolean showUtc,
-                            @RequestParam String theme, @RequestParam String density,
+                            @RequestParam String theme, @RequestParam String density, @RequestParam(required = false) String accent,
                             @RequestParam(required = false) String notifyForm, @RequestParam(required = false) java.util.List<String> notify,
                             HttpServletRequest request, HttpServletResponse response, RedirectAttributes ra) {
         try {
-            UserPrefs p = new UserPrefs(language, timeZone, timeDisplay, clock24, showUtc, theme, density).checked();
+            UserPrefs p = new UserPrefs(language, timeZone, timeDisplay, clock24, showUtc, theme, density, accent == null ? prefsContext.forRequest(request).accent() : accent).checked();
             prefsContext.save(request, p);
             if (notifyForm != null && PrefsContext.username() != null) {
                 for (String k : UserSettingRepository.NOTIFY.keySet()) userSettings.set(PrefsContext.username(), k, String.valueOf(notify != null && notify.contains(k)));

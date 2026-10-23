@@ -10,7 +10,7 @@ for u in priya nimal kumari samantha; do pick p_$u $u; done
 $PSQL -c "truncate consent_check_log" >/dev/null
 R=$(c -H "X-Forwarded-For: 1.2.3.4" $UI/demo/registry/Patient/P-00101); t "registry not readable through a proxy" "$([ "$R" = 302 ] || [ "$R" = 403 ] && echo refused)" refused
 R=$(c -H "X-Forwarded-For: 1.2.3.4" "$UI/demo/consent/check?patient=Patient/P-00101"); t "consent service not readable through a proxy" "$([ "$R" = 302 ] || [ "$R" = 403 ] && echo refused)" refused
-t "banner shown in demo mode" "$(curl -s -b p_nimal $UI/overview | grep -c 'DEMONSTRATION')" 1
+t "no banner strip by default" "$(curl -s -b p_nimal $UI/overview | grep -c 'DEMONSTRATION')" 0
 P=$(page p_nimal P-00101)
 t "permitted patient: name shown" "$(echo "$P" | grep -c 'Nimali Perera')" 1
 t "permitted patient: tagged demo" "$(echo "$P" | grep -c 'Demo data')" 1

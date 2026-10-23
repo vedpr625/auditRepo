@@ -64,8 +64,10 @@ audit:
     cors-origins: ""
     default-time-zone: Asia/Colombo   # used until a person chooses their own in Settings
     overview-cache-seconds: 60
-    # DEMONSTRATION MODE: fake registry and consent manager inside this app, and a banner on every page. Never on for real use.
+    # DEMONSTRATION MODE: fake registry and consent manager inside this app. Never on for real use.
     demo: ${AUDIT_UI_DEMO:false}
+    # Show the coloured strip "all data is made up" above every page (and the sign-in page). Off by default.
+    demo-banner: ${AUDIT_UI_DEMO_BANNER:false}
     # Addresses of the Bundle 2a registry (a Settings value overrides this) and of the consent service
     registry-base-url: ${AUDIT_UI_REGISTRY_URL:${AUDIT_UI_DEMO_REGISTRY:}}
     consent-base-url: ${AUDIT_UI_CONSENT_URL:}

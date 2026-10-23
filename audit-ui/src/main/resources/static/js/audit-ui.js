@@ -76,7 +76,7 @@ document.addEventListener('htmx:responseError', function(e) {
 });
 
 document.addEventListener('htmx:timeout', function() {
-  showToast('Request timed out — is Chester running?', 'warn');
+  showToast('Request timed out — is the audit repository running?', 'warn');
 });
 
 document.addEventListener('htmx:sendError', function() {

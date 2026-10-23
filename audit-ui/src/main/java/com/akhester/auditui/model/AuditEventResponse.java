@@ -75,7 +75,7 @@ public class AuditEventResponse {
     @Schema(description = "Facility (AuditEvent.source.observer.reference)", example = "Organization/EXAMPLE001")
     private String facility;
 
-    @Schema(description = "Keycloak client that submitted the event (stamped by Chester)", example = "chester-audit-writer")
+    @Schema(description = "Keycloak client that submitted the event (stamped by the audit repository)", example = "chester-audit-writer")
     private String submittedBy;
 
     @Schema(description = "Stored with the policy-incomplete flag")
@@ -84,7 +84,7 @@ public class AuditEventResponse {
     @Schema(description = "Carries the break-glass label")
     private boolean breakGlass;
 
-    @Schema(description = "Review status (managed in audit-ui, not in Chester)",
+    @Schema(description = "Review status (managed in audit-ui, not in the audit repository)",
             example = "pending", allowableValues = {"pending","reviewed","flagged"})
     private String reviewStatus;
 

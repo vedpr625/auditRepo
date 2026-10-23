@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}"
-      th:attr="data-theme=${prefs.themeAttr()},data-density=${prefs.densityAttr()}">
+      th:attr="data-theme=${prefs.themeAttr()},data-density=${prefs.densityAttr()},data-accent=${prefs.accentAttr()}">
 <head th:replace="~{fragments/layout :: headx(#{admin.title}, 'page-admin.css')}"></head>
 <body>
 <th:block th:replace="~{fragments/layout :: header('admin')}"></th:block>
@@ -12,7 +12,7 @@
     <a class="btn" th:href="@{/admin}" th:text="#{admin.sys.back}">Back</a></div></div>
 
   <th:block th:if="${s != null}">
-    <div class="notice notice-info" role="status" th:if="${flash == 'saved'}" th:text="#{admin.saved}">Saved.</div>
+    <div data-flash class="notice notice-info" role="status" th:if="${flash == 'saved'}" th:text="#{admin.saved}">Saved.</div>
     <div class="page-head"><h1 th:text="${s.label}">HHIMS</h1><span class="mono lede" th:text="${s.clientId}">hhims-audit</span>
       <span class="tag tag-ok" th:if="${st.status == 'active'}" th:text="#{admin.status.active}">Active</span>
       <span class="tag tag-warn" th:if="${st.status == 'failing'}" th:text="#{admin.status.failing.n(${st.failed7})}">failures</span>
@@ -36,7 +36,7 @@
         </section>
         <section class="panel" aria-labelledby="s-latest">
           <div class="panel-head"><h3 id="s-latest" th:text="#{admin.sys.latest}">Newest records</h3></div>
-          <div class="panel-pad" th:if="${#lists.isEmpty(latest)}"><span class="sub" th:text="#{admin.sys.none}">None</span></div>
+          <th:block th:if="${#lists.isEmpty(latest)}"><th:block th:replace="~{fragments/states :: empty('0', #{admin.sys.none}, null, null, null)}"></th:block></th:block>
           <div class="table-wrap" th:unless="${#lists.isEmpty(latest)}"><table class="table table-cards">
             <thead><tr><th th:text="#{admin.col.when}">When</th><th th:text="#{admin.col.agent}">Person</th><th th:text="#{admin.col.facility}">Facility</th><th th:text="#{admin.col.patient}">Patient</th><th th:text="#{admin.col.outcome}">Outcome</th></tr></thead>
             <tbody><tr th:each="r : ${latest}">

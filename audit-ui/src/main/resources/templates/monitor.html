@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}"
-      th:attr="data-theme=${prefs.themeAttr()},data-density=${prefs.densityAttr()}">
+      th:attr="data-theme=${prefs.themeAttr()},data-density=${prefs.densityAttr()},data-accent=${prefs.accentAttr()}">
 <head th:replace="~{fragments/layout :: headx(#{monitor.title}, 'page-monitor.css')}"></head>
 <body>
 <th:block th:replace="~{fragments/layout :: header('explore')}"></th:block>
@@ -43,7 +43,7 @@
           <line x1="16" y1="17" x2="8" y2="17"/>
         </svg>
         <p th:text="#{monitor.waiting}">Waiting for IHE BALP audit events…</p>
-        <small th:text="#{monitor.waiting.help}">POST /fhir/AuditEvent to Chester</small>
+        <small th:text="#{monitor.waiting.help}">POST /fhir/AuditEvent to the audit repository</small>
       </div>
 
       <!-- Detail inner -->
@@ -94,7 +94,7 @@
 <script th:inline="javascript">
 /* ── Config ─────────────────────────────────────────────────────────── */
 const POLL_MS     = 5000;
-const STORAGE_KEY = 'chester_monitor_events';
+const STORAGE_KEY = 'audit_monitor_events';
 const MAX_STORED  = 200;
 
 /* ── State ──────────────────────────────────────────────────────────── */
@@ -135,7 +135,7 @@ function setConn(state) {
   var dot = document.getElementById('connDot');
   var lbl = document.getElementById('connLabel');
   dot.className = 'conn-dot ' + state;
-  lbl.textContent = { live: 'live (polling)', err: 'cannot reach Chester', demo: 'demo mode' }[state] || state;
+  lbl.textContent = { live: 'live (polling)', err: 'cannot reach the audit repository', demo: 'sample data' }[state] || state;
   // Also sync the live-dot in sidebar nav
   var liveDot = document.querySelector('.live-dot');
   if (liveDot) liveDot.style.display = (state === 'live') ? '' : 'none';

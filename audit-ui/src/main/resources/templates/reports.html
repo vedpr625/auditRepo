@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}"
-      th:attr="data-theme=${prefs.themeAttr()},data-density=${prefs.densityAttr()}">
+      th:attr="data-theme=${prefs.themeAttr()},data-density=${prefs.densityAttr()},data-accent=${prefs.accentAttr()}">
 <head th:replace="~{fragments/layout :: headx(#{reports.title}, 'page-reports.css')}"></head>
 <body>
 <th:block th:replace="~{fragments/layout :: header('reports')}"></th:block>
@@ -21,7 +21,7 @@
         <ul class="rep-sched panel-pad">
           <li th:each="s : ${schedules}"><b th:text="#{'reports.r.' + ${s.reportKey} + '.title'}">Report</b> · <span th:text="${s.cadence}">cadence</span>
             <span class="sub" th:text="#{reports.scheduled.to(${s.recipients})}">To someone</span></li>
-          <li th:if="${#lists.isEmpty(schedules)}" class="sub" th:text="#{find.none}">None</li>
+          <li th:if="${#lists.isEmpty(schedules)}"><th:block th:replace="~{fragments/states :: emptyInline(#{find.none})}"></th:block></li>
         </ul>
         <div class="panel-foot" th:text="#{reports.scheduled.demo}">Demo data. Nothing is sent.</div>
       </section>
@@ -81,7 +81,7 @@
             </div>
           </div>
 
-          <div class="panel-pad" th:if="${#lists.isEmpty(res.rows)}"><div class="state"><h2 th:text="#{reports.empty}">Nothing</h2></div></div>
+          <div class="panel-pad" th:if="${#lists.isEmpty(res.rows)}"><th:block th:replace="~{fragments/states :: empty('0', #{reports.empty}, null, null, null)}"></th:block></div>
           <div class="table-wrap" th:unless="${#lists.isEmpty(res.rows)}">
             <table class="table table-cards">
               <thead><tr><th th:if="${res.hasWhen}" th:text="#{reports.col.when}">When</th><th th:each="c : ${res.columns}" th:text="#{'reports.col.' + ${c}}">col</th></tr></thead>

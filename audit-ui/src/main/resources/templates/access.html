@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}"
-      th:attr="data-theme=${prefs.themeAttr()},data-density=${prefs.densityAttr()}">
+      th:attr="data-theme=${prefs.themeAttr()},data-density=${prefs.densityAttr()},data-accent=${prefs.accentAttr()}">
 <head th:replace="~{fragments/layout :: headx(#{access.title}, 'page-access.css')}"></head>
 <body>
 <th:block th:replace="~{fragments/layout :: header('access')}"></th:block>
@@ -54,7 +54,7 @@
         </table>
       </div>
       <div class="acc-foot">
-        <span th:text="#{access.log.chester}">These records are written to Chester as audit events too.</span>
+        <span th:text="#{access.log.chester}">These records are written to the audit repository as audit events too.</span>
         <a th:if="${canActivity}" th:href="@{/activity}"><b th:text="#{access.log.open}">Open the full log</b></a>
         <span class="sub" th:unless="${canActivity}" th:text="#{access.log.noaccess}">Only privacy officers and ministry auditors can open the log.</span>
       </div>

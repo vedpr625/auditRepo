@@ -68,3 +68,9 @@
 .rv-empty{font-size:12px}
 @media (max-width:1100px){.rv-list{width:100%}}
 .rv-more{padding:2px 4px;font-size:12.5px}
+
+/* phones: the board is one column so each card reads in full */
+@media (max-width:640px){
+  .rv-list{width:100%;flex-direction:column}
+  .rv-col{flex:none;width:100%}
+}

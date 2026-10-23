@@ -41,18 +41,18 @@ public class OpenApiConfig {
 
         return new OpenAPI()
             .info(new Info()
-                .title("Chester Audit REST API")
+                .title("Audit Repository REST API")
                 .version("1.0.0")
                 .description("""
-                    REST API for the Chester IHE ATNA / BALP Audit Event system.
+                    REST API for the Audit Repository IHE ATNA / BALP Audit Event system.
 
-                    Provides access to AuditEvent resources stored in Chester (HAPI FHIR R4).
+                    Provides access to AuditEvent resources stored in the audit repository (HAPI FHIR R4).
 
                     **Auth**: currently open. Keycloak JWT integration is pre-configured —
                     click **Authorize** and use your Keycloak credentials when ready.
                     """)
                 .contact(new Contact()
-                    .name("Chester Team")
+                    .name("Audit Repository Team")
                     .email("admin@chester.local"))
                 .license(new License()
                     .name("Private")

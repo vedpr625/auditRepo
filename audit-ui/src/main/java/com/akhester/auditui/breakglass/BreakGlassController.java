@@ -123,7 +123,7 @@ public class BreakGlassController {
                                       @RequestParam(defaultValue = "") String facility, HttpServletRequest request) {
         String per = List.of("24h", "7d", "30d").contains(period) ? period : "7d";
         View v = service.load(days(per), prefsContext.forRequest(request).zone());
-        if (v.error() != null) throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Chester did not answer.");
+        if (v.error() != null) throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "The audit repository did not answer.");
         List<Row> rows = filter(v, FILTERS.contains(filter) ? filter : "all", facility.length() > 120 ? "" : facility);
         StringBuilder b = new StringBuilder("recorded_utc,person,facility,patient,reason_state,minutes_to_reason,reason,review\n");
         for (Row x : rows) {

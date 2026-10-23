@@ -101,4 +101,39 @@ class ConsoleUnitTest {
             for (Object k : p.keySet()) assertTrue(en.containsKey(k), f + " has unknown key " + k);
         }
     }
+
+    /** The product is called "Audit Repository" on screen. The old project name must not reach a person's eyes. */
+    @Test void noOldProjectNameInVisibleText() throws IOException {
+        List<String> found = new ArrayList<>();
+        Path res = Path.of("src/main/resources");
+        try (Stream<Path> files = Files.list(res)) {
+            for (Path f : files.filter(x -> x.getFileName().toString().startsWith("messages") && x.toString().endsWith(".properties")).toList()) {
+                Properties p = new Properties();
+                try (java.io.Reader r = Files.newBufferedReader(f, java.nio.charset.StandardCharsets.UTF_8)) { p.load(r); }
+                for (String k : p.stringPropertyNames()) if (p.getProperty(k).toLowerCase(Locale.ROOT).contains("chester")) found.add(f.getFileName() + ": " + k);
+            }
+        }
+        // templates: drop comments, template expressions and attributes that a person never sees, then look at what is left
+        Pattern comment = Pattern.compile("<!--.*?-->", Pattern.DOTALL);
+        Pattern expr = Pattern.compile("[$#@~*]\\{[^{}]*\\}");
+        Pattern hidden = Pattern.compile("\\s(?:th:)?(?:if|unless|each|class|classappend|fragment|replace|insert|with|object|switch|case|href|action|src|value|style|id|name|for|data-[a-z-]+|hx-[a-z-]+|onclick|th:attr|th:styleappend)=(\"[^\"]*\"|'[^']*')");
+        try (Stream<Path> files = Files.walk(res.resolve("templates"))) {
+            for (Path f : files.filter(x -> x.toString().endsWith(".html")).toList()) {
+                String t = comment.matcher(Files.readString(f)).replaceAll("");
+                for (String before = null; !t.equals(before); ) { before = t; t = expr.matcher(t).replaceAll(""); }
+                t = hidden.matcher(t).replaceAll("");
+                if (t.toLowerCase(Locale.ROOT).contains("chester")) found.add("template " + res.resolve("templates").relativize(f));
+            }
+        }
+        assertTrue(found.isEmpty(), "Visible text still names the old project: " + found);
+    }
+
+    @Test void accentsAreValidated() {
+        assertTrue(UserPrefs.ACCENTS.containsAll(List.of("clinic", "ocean", "ministry", "observatory")));
+        UserPrefs d = UserPrefs.defaults("UTC");
+        assertEquals("clinic", d.accent());
+        assertEquals(d, d.checked());
+        assertThrows(IllegalArgumentException.class, () -> d.withAccent("neon").checked());
+        assertEquals("ocean", d.withAccent("ocean").checked().accent());
+    }
 }

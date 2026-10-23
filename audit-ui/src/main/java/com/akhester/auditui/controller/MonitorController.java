@@ -74,12 +74,12 @@ public class MonitorController {
             if (code == 401 || code == 403) {
                 log.warn("Monitor history: Chester answered HTTP {}", code);
                 return ResponseEntity.status(code).contentType(MediaType.APPLICATION_JSON)
-                        .body("{\"error\":\"Chester refused this user\"}");
+                        .body("{\"error\":\"The audit repository refused this user\"}");
             }
             if (code < 200 || code >= 300) {
                 log.warn("Monitor history: Chester answered HTTP {}", code);
                 return ResponseEntity.status(HttpStatus.BAD_GATEWAY).contentType(MediaType.APPLICATION_JSON)
-                        .body("{\"error\":\"Could not read from Chester\"}");
+                        .body("{\"error\":\"Could not read from the audit repository\"}");
             }
             try (InputStream is = conn.getInputStream()) {
                 return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON)
@@ -88,7 +88,7 @@ public class MonitorController {
         } catch (Exception ex) {
             log.warn("Monitor history error: {}", ex.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_GATEWAY).contentType(MediaType.APPLICATION_JSON)
-                    .body("{\"error\":\"Could not reach Chester\"}");
+                    .body("{\"error\":\"Could not reach the audit repository\"}");
         }
     }
 

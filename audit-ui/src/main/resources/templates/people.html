@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}"
-      th:attr="data-theme=${prefs.themeAttr()},data-density=${prefs.densityAttr()}">
+      th:attr="data-theme=${prefs.themeAttr()},data-density=${prefs.densityAttr()},data-accent=${prefs.accentAttr()}">
 <head th:replace="~{fragments/layout :: headx(#{people.title}, 'page-people.css')}"></head>
 <body>
 <th:block th:replace="~{fragments/layout :: header('people')}"></th:block>
@@ -25,7 +25,7 @@
 
   <section class="panel" th:if="${tab == 'people' and s.error == null}" aria-labelledby="pp-h1">
     <div class="panel-head"><h3 id="pp-h1" th:text="#{people.count.people(${peopleTotal})}">n people</h3></div>
-    <div class="state" th:if="${#lists.isEmpty(people)}"><h2 th:text="#{people.empty.people}">None</h2></div>
+    <th:block th:if="${#lists.isEmpty(people)}"><th:block th:replace="~{fragments/states :: empty('0', #{people.empty.people}, null, (${#strings.isEmpty(q)} ? null : #{people.filter.clear}), @{/people(tab=${tab})})}"></th:block></th:block>
     <div class="table-wrap" th:unless="${#lists.isEmpty(people)}">
       <table class="table table-cards">
         <thead><tr><th th:text="#{people.col.name}">Name</th><th th:text="#{people.col.kind}">Kind</th><th th:text="#{people.col.role}">Role</th><th th:text="#{people.col.facility}">Facility</th>
@@ -47,7 +47,7 @@
   </section>
 
   <section class="panel" th:if="${tab == 'patients' and s.error == null}" aria-labelledby="pp-h2">
-    <div class="panel-head"><h3 id="pp-h2" th:text="#{people.count.patients(${patientsTotal})}">n patients</h3><span class="tag tag-warn" th:if="${demo}" th:text="#{demo.tag}">Demo data</span></div>
+    <div class="panel-head"><h3 id="pp-h2" th:text="#{people.count.patients(${patientsTotal})}">n patients</h3></div>
     <div class="panel-pad"><span class="sub" th:text="#{people.patients.note}">Names are not listed</span></div>
     <div class="state" th:if="${#lists.isEmpty(patients)}"><h2 th:text="#{people.empty.patients}">None</h2></div>
     <div class="table-wrap" th:unless="${#lists.isEmpty(patients)}">

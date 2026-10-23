@@ -2,11 +2,11 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
 
-<!-- Chester and the app's own database -->
+<!-- The audit repository and the app's own database -->
 <div th:fragment="systems" class="panel-pad stack">
   <div class="row">
     <span class="tag" th:classappend="${chester.up} ? 'tag-ok' : 'tag-bad'" th:text="${chester.up} ? #{health.up} : #{health.down}">Up</span>
-    <b>Chester</b>
+    <b>Audit Repository</b>
     <span class="sub" th:if="${chester.up}" th:text="#{health.chester.detail(${chester.millis}, ${chester.fhirVersion ?: '?'}, ${chester.software ?: '?'})}">answered in 40 ms</span>
     <span class="sub" th:unless="${chester.up}" th:text="${chester.error}">error</span>
   </div>
@@ -34,7 +34,7 @@
         <span class="delta" th:if="${h.lastEvent != null}"><th:block th:replace="~{fragments/layout :: when(${h.lastEvent})}"></th:block></span>
       </div>
       <div class="panel kpi" th:classappend="${h.chester.up} ? 'ok' : 'bad'">
-        <span class="sub" th:text="#{health.k.server}">Chester server</span>
+        <span class="sub" th:text="#{health.k.server}">Audit Repository server</span>
         <span class="value" th:text="${h.chester.up} ? #{health.up} : #{health.down}">Up</span>
         <span class="delta" th:if="${h.chester.up}" th:text="#{health.chester.detail(${h.chester.millis}, ${h.chester.fhirVersion ?: '?'}, ${h.chester.software ?: '?'})}">detail</span>
       </div>
@@ -103,11 +103,11 @@
       </td>
     </tr></tbody>
   </table></div>
-  <div class="panel-foot" th:text="#{health.integrity.help2}">A broken day shows in red. The check runs Chester’s own verify function for each day, one after another.</div>
+  <div class="panel-foot" th:text="#{health.integrity.help2}">A broken day shows in red. The check runs the audit repository’s own verify function for each day, one after another.</div>
 </div>
 
 <div th:fragment="late">
-  <div class="notice notice-bad" role="alert" th:if="${failed}" th:text="#{health.late.failed}">Chester did not answer.</div>
+  <div class="notice notice-bad" role="alert" th:if="${failed}" th:text="#{health.late.failed}">The audit repository did not answer.</div>
   <th:block th:if="${late != null}">
     <div class="panel-pad stack-sm">
       <p th:utext="#{health.late.intro}">Each event has two times.</p>

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}"
-      th:attr="data-theme=${prefs.themeAttr()},data-density=${prefs.densityAttr()}">
+      th:attr="data-theme=${prefs.themeAttr()},data-density=${prefs.densityAttr()},data-accent=${prefs.accentAttr()}">
 <head th:replace="~{fragments/layout :: headx(#{alerts.title}, 'page-alerts.css')}"></head>
 <body>
 <th:block th:replace="~{fragments/layout :: header('alerts')}"></th:block>
@@ -11,7 +11,7 @@
     <div class="actions"><span class="btn btn-planned" role="button" aria-disabled="true" tabindex="0"><span th:text="#{alerts.new}">New rule</span> <span class="tag tag-planned tag-sm" th:text="#{common.planned}">Planned</span></span></div>
   </div>
 
-  <div class="notice notice-info" role="status" th:if="${flash != null}" th:text="#{${flash}}">Done</div>
+  <div data-flash class="notice notice-info" role="status" th:if="${flash != null}" th:text="#{${flash}}">Done</div>
   <div class="notice notice-planned" th:if="${isDemoData}"><span class="tag tag-planned tag-sm" th:text="#{alerts.demo.tag}">Demo data</span> <span th:text="#{alerts.demo}">Firings below were worked out at start-up from the made-up records, using the thresholds in configuration. The engine that watches live records on a schedule is Planned.</span></div>
   <div class="notice notice-planned" th:unless="${isDemoData}"><span class="tag tag-planned tag-sm" th:text="#{common.planned}">Planned</span> <span th:text="#{alerts.engine}">The engine that watches live records is Planned, so nothing fires yet. The thresholds below are what it will use.</span></div>
 
@@ -40,7 +40,7 @@
     <aside class="side">
       <section class="panel" aria-labelledby="al-fired">
         <div class="panel-head"><h3 id="al-fired" th:text="#{alerts.fired.title}">Fired in the last 7 days</h3><span class="tag" th:classappend="${firedTotal > 0} ? 'tag-bad' : 'tag-off'" th:text="${firedTotal}">9</span></div>
-        <p class="sub panel-pad" th:if="${#lists.isEmpty(recent)}" th:text="#{alerts.fired.empty}">Nothing has fired.</p>
+        <th:block th:if="${#lists.isEmpty(recent)}"><th:block th:replace="~{fragments/states :: empty('✓', #{alerts.fired.empty}, null, null, null)}"></th:block></th:block>
         <div class="al-fire" th:each="f : ${recent}" th:classappend="${f.markedNormal} ? 'dim'">
           <span class="tag" th:classappend="${f.severity == 'high'} ? 'tag-bad' : (${f.severity == 'medium'} ? 'tag-warn' : 'tag-info')" th:text="#{'alerts.sev.' + ${f.severity}}">High</span>
           <div class="grow">

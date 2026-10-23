@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}"
-      th:attr="data-theme=${prefs.themeAttr()},data-density=${prefs.densityAttr()}">
+      th:attr="data-theme=${prefs.themeAttr()},data-density=${prefs.densityAttr()},data-accent=${prefs.accentAttr()}">
 <head th:replace="~{fragments/layout :: headx(#{breakglass.title}, 'page-breakglass.css')}"></head>
 <body>
 <th:block th:replace="~{fragments/layout :: header('breakglass')}"></th:block>
@@ -17,7 +17,7 @@
   </div>
 
   <div class="notice notice-bad" role="alert" th:if="${v.error != null}">
-    <b th:text="#{state.chester.down.title}">Chester is not answering</b> <span th:text="#{state.chester.down.text}">Try again.</span> <a th:href="@{/break-glass}" th:text="#{common.retry}">Try again</a></div>
+    <b th:text="#{state.chester.down.title}">The audit repository is not answering</b> <span th:text="#{state.chester.down.text}">Try again.</span> <a th:href="@{/break-glass}" th:text="#{common.retry}">Try again</a></div>
 
   <th:block th:if="${v.error == null}">
     <div class="grid-kpi">
@@ -66,7 +66,7 @@
     <div class="split">
       <section class="panel grow" aria-labelledby="bg-list">
         <h2 id="bg-list" class="sr-only" th:text="#{breakglass.list}">Break-glass records</h2>
-        <div class="state" th:if="${#lists.isEmpty(rows)}"><div class="state-icon" aria-hidden="true">✓</div><h2 th:text="#{breakglass.none}">No break-glass records here</h2></div>
+        <th:block th:if="${#lists.isEmpty(rows)}"><th:block th:replace="~{fragments/states :: empty('✓', #{breakglass.none}, null, null, null)}"></th:block></th:block>
         <div class="table-wrap" th:unless="${#lists.isEmpty(rows)}">
           <table class="table table-cards">
             <thead><tr><th th:text="#{reviews.col.when}">When</th><th th:text="#{reviews.col.who}">Who</th><th th:text="#{reviews.col.patient}">Patient</th><th th:text="#{breakglass.col.reason}">Reason given</th><th th:text="#{breakglass.col.status}">Reason status</th><th th:text="#{breakglass.col.review}">Review</th></tr></thead>
@@ -119,7 +119,7 @@
               <li th:if="${selRow.state == 'waiting'}"><span class="tag tag-warn" th:text="${tf.hourLabel(selRow.r.recordedInstant.plusSeconds(deadline * 3600))}">02:14</span><span th:text="#{breakglass.t.due(${deadline})}">Due</span></li>
               <li th:if="${selRow.caseId != null}"><span class="tag tag-info" th:text="${selRow.caseId}">C-1</span><span th:text="#{breakglass.t.case}">Case opened</span></li>
             </ol>
-            <div class="notice notice-planned"><span class="tag tag-planned tag-sm" th:text="#{breakglass.confirm.tag}">To confirm · AR-09</span> <span th:text="#{breakglass.confirm}">The reason is written in the vendor’s application and sent to Chester afterwards. Linking it to this record is not yet confirmed with the vendors. This build reads two extensions on the record.</span></div>
+            <div class="notice notice-planned"><span class="tag tag-planned tag-sm" th:text="#{breakglass.confirm.tag}">To confirm · AR-09</span> <span th:text="#{breakglass.confirm}">The reason is written in the vendor’s application and sent to the audit repository afterwards. Linking it to this record is not yet confirmed with the vendors. This build reads two extensions on the record.</span></div>
             <div class="row-wrap">
               <a class="btn btn-primary" th:if="${selRow.caseId != null}" th:href="@{/reviews(case=${selRow.caseId})}" th:text="#{breakglass.case.open}">Open the case</a>
               <form th:if="${selRow.caseId == null && canReview}" th:action="@{/break-glass/{id}/case(id=${selRow.r.id})}" method="post"><button class="btn btn-primary" type="submit" th:text="#{breakglass.case.new}">Open a case</button></form>

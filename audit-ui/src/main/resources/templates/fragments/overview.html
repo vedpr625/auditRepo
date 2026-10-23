@@ -35,7 +35,7 @@
           <a th:href="@{/overview(range='30d',facility=${p.facility},compare=${p.compare ? '1' : null})}" th:attr="aria-current=${p.range == '30d'} ? 'true' : null" th:text="#{overview.range.30d}">30 days</a>
           <a th:href="@{/overview(range='custom',from=${p.from != null ? p.from : #temporals.format(#temporals.createToday().minusDays(7), 'yyyy-MM-dd')},to=${p.to != null ? p.to : #temporals.format(#temporals.createToday(), 'yyyy-MM-dd')},facility=${p.facility},compare=${p.compare ? '1' : null})}" th:attr="aria-current=${p.range == 'custom'} ? 'true' : null" th:text="#{overview.range.custom}">Custom</a>
         </div>
-        <a class="btn" th:href="@{/overview(range=${p.range},from=${p.from},to=${p.to},facility=${p.facility},compare=${p.compare ? null : '1'})}" th:attr="aria-pressed=${p.compare}" th:text="${p.compare} ? #{overview.compare.off} : #{overview.compare.on(${d.prevLabel})}">Compare with yesterday</a>
+        <a class="btn" th:href="@{/overview(range=${p.range},from=${p.from},to=${p.to},facility=${p.facility},compare=${p.compare ? null : '1'})}" th:text="${p.compare} ? #{overview.compare.off} : #{overview.compare.on(${d.prevLabel})}">Compare with yesterday</a>
       </div>
     </div>
     <form class="ov-custom row-wrap" method="get" th:action="@{/overview}" th:if="${p.range == 'custom'}">
@@ -184,7 +184,7 @@
     <div class="split ov-two">
       <!-- systems table -->
       <section class="panel grow" aria-labelledby="ov-sys-h">
-        <div class="panel-head"><h3 id="ov-sys-h" th:text="#{overview.systems.title}">Systems sending to Chester</h3><span class="sub" th:text="${d.rangeLabel}">last 24 hours</span></div>
+        <div class="panel-head"><h3 id="ov-sys-h" th:text="#{overview.systems.title}">Systems sending to the Audit Repository</h3><span class="sub" th:text="${d.rangeLabel}">last 24 hours</span></div>
         <th:block th:if="${#lists.isEmpty(d.systems)}"><th:block th:replace="~{fragments/states :: empty('0', #{overview.systems.empty}, #{overview.systems.empty.text}, null, null)}"></th:block></th:block>
         <div class="table-wrap" th:unless="${#lists.isEmpty(d.systems)}">
           <table class="table table-cards">

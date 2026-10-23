@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}"
-      th:attr="data-theme=${prefs.themeAttr()},data-density=${prefs.densityAttr()}">
+      th:attr="data-theme=${prefs.themeAttr()},data-density=${prefs.densityAttr()},data-accent=${prefs.accentAttr()}">
 <head th:replace="~{fragments/layout :: headx(#{reviews.title}, 'page-reviews.css')}"></head>
 <body>
 <th:block th:replace="~{fragments/layout :: header('reviews')}"></th:block>
@@ -23,9 +23,9 @@
     </div>
   </div>
 
-  <div class="notice notice-info" role="status" th:if="${flash != null}" th:text="#{${flash}}">Done</div>
-  <div class="notice notice-bad" role="alert" th:if="${flashBad != null}" th:text="#{${flashBad}}">Not done</div>
-  <div class="notice notice-bad" role="alert" th:if="${flashText != null}" th:text="${flashText}">Not done</div>
+  <div data-flash class="notice notice-info" role="status" th:if="${flash != null}" th:text="#{${flash}}">Done</div>
+  <div data-flash class="notice notice-bad" role="alert" th:if="${flashBad != null}" th:text="#{${flashBad}}">Not done</div>
+  <div data-flash class="notice notice-bad" role="alert" th:if="${flashText != null}" th:text="${flashText}">Not done</div>
 
   <section class="panel" th:unless="${canView}">
     <div class="state"><div class="state-icon warn" aria-hidden="true">!</div>
@@ -85,7 +85,7 @@
             </div>
 
             <h3 class="rv-h" th:text="#{reviews.events}">Events in this case</h3>
-            <div class="notice notice-bad" th:if="${eventsFailed}" th:text="#{reviews.events.failed}">Chester did not answer.</div>
+            <div class="notice notice-bad" th:if="${eventsFailed}" th:text="#{reviews.events.failed}">The audit repository did not answer.</div>
             <p class="sub" th:if="${eventsHidden}" th:text="#{reviews.events.hidden}">Some events are outside your access.</p>
             <p class="sub" th:if="${selEventTotal == 0}" th:text="#{reviews.events.none}">No events attached.</p>
             <div class="table-wrap" th:if="${!#lists.isEmpty(selRows)}">
@@ -199,7 +199,7 @@
       </section>
 
       <section class="panel grow rv-detail" th:if="${sel == null}">
-        <div class="state"><div class="state-icon" aria-hidden="true">✓</div><h2 th:text="#{reviews.none}">No cases here</h2><p th:text="#{reviews.none.text}">Nothing matches.</p></div>
+        <th:block th:replace="~{fragments/states :: empty('✓', #{reviews.none}, #{reviews.none.text}, #{reviews.filter.clear}, @{/reviews})}"></th:block>
       </section>
     </div>
 

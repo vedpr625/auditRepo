@@ -56,8 +56,7 @@ public class I18nConfig implements WebMvcConfigurer {
                 if (user != null) {
                     UserPrefs now = prefs.forRequest(request);
                     if (!lang.equals(now.language())) {
-                        prefs.save(request, new UserPrefs(lang, now.timeZone(), now.timeDisplay(), now.clock24(),
-                                now.showUtc(), now.theme(), now.density()));
+                        prefs.save(request, now.withLanguage(lang));
                     }
                 }
             }

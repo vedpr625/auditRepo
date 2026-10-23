@@ -74,7 +74,7 @@ public class AuditController {
     public String detail(@PathVariable String id, Model model) {
         AuditDetail detail = auditService.getDetail(id);
         if (detail == null) {
-            model.addAttribute("errorMsg", "AuditEvent/" + id + " not found in Chester.");
+            model.addAttribute("errorMsg", "AuditEvent/" + id + " not found in the audit repository.");
             return "fragments/drawer-error :: drawerError";
         }
         model.addAttribute("d", detail);
@@ -268,7 +268,7 @@ public class AuditController {
                 var lr = explore.withoutCareLink(filter, page, size);
                 result = new AuditEventService.SearchResult(lr.rows(), lr.total(), null, messageSource.getMessage("explore.link.note", null, locale));
             } catch (RuntimeException ex) {
-                result = new AuditEventService.SearchResult(java.util.List.of(), 0, "Chester could not answer.", null);
+                result = new AuditEventService.SearchResult(java.util.List.of(), 0, "The audit repository could not answer.", null);
             }
         } else {
             result = auditService.searchWithTotal(filter);

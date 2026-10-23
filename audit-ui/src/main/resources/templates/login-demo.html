@@ -1,24 +1,22 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}">
-<head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <title th:text="#{login.title} + ' · ' + #{app.name}">Sign in</title>
-  <link rel="stylesheet" th:href="@{/css/audit-console.css}">
-</head>
-<body>
-<main id="main" class="page" style="max-width:640px;margin:0 auto">
-  <div class="page-head"><h1 th:text="#{app.name}">Audit Console</h1></div>
-  <div class="notice notice-warn" role="note"><b th:text="#{demo.banner}">DEMONSTRATION</b></div>
-  <div class="notice notice-bad" role="alert" th:if="${param.error != null}" th:text="#{login.error}" style="margin-top:12px">Wrong name or password.</div>
-  <div class="notice notice-info" role="status" th:if="${param.logout != null}" th:text="#{login.loggedout}" style="margin-top:12px">Signed out.</div>
+<head th:replace="~{fragments/layout :: headbare(#{login.title})}"></head>
+<body class="auth-body">
+<div class="demo-strip" role="note" th:if="${demoBanner}"><b th:text="#{demo.banner}">Sample data</b></div>
+<main id="main" class="auth">
+  <div class="auth-brand"><span class="brand-mark" aria-hidden="true"></span><span th:text="#{app.name}">Audit Repository</span></div>
+  <h1 th:text="#{login.title}">Sign in</h1>
+  <p class="auth-tag" th:text="#{login.tagline}">Audit event review</p>
+  <div class="notice notice-bad" role="alert" th:if="${param.error != null}" th:text="#{login.error}">Wrong name or password.</div>
+  <div class="notice notice-info" role="status" th:if="${param.logout != null}" th:text="#{login.loggedout}">Signed out.</div>
 
-  <section class="panel" style="margin-top:16px" aria-labelledby="l-pick">
-    <div class="panel-head"><h3 id="l-pick" th:text="#{login.pick}">Pick a person</h3></div>
-    <div class="stack" style="padding:12px 18px">
+  <section class="panel" aria-labelledby="l-pick">
+    <div class="panel-head"><h2 id="l-pick" class="h-small" th:text="#{login.pick}">Sample users for evaluation</h2></div>
+    <div class="auth-pick">
       <form th:each="u : ${demoUsers}" th:action="@{/login}" method="post">
         <input type="hidden" name="username" th:value="${u.username}">
         <input type="hidden" name="password" th:value="${u.password}">
-        <button class="btn" type="submit" style="width:100%;display:grid;gap:2px;padding:12px;justify-content:start;justify-items:start;text-align:left;height:auto">
+        <button class="pick" type="submit">
           <b th:text="${u.title}">Role</b>
           <span class="mono sub" th:text="${u.username} + ' / ' + ${u.password}">name / password</span>
           <span class="sub" th:text="${u.can}">what they can do</span>
@@ -27,8 +25,8 @@
     </div>
   </section>
 
-  <section class="panel" style="margin-top:16px" aria-labelledby="l-form">
-    <div class="panel-head"><h3 id="l-form" th:text="#{login.manual}">Or type it</h3></div>
+  <section class="panel" aria-labelledby="l-form">
+    <div class="panel-head"><h2 id="l-form" class="h-small" th:text="#{login.manual}">Sign in with a name and password</h2></div>
     <form class="panel-pad stack" th:action="@{/login}" method="post">
       <label class="field"><span th:text="#{login.username}">Name</span><input class="input" name="username" autocomplete="username" required></label>
       <label class="field"><span th:text="#{login.password}">Password</span><input class="input" type="password" name="password" autocomplete="current-password" required></label>

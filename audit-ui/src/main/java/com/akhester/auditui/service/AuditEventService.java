@@ -187,14 +187,14 @@ public class AuditEventService {
         if (ex instanceof IllegalArgumentException iae && INVALID_VALUE.equals(iae.getMessage())) return INVALID_VALUE;
         if (ex instanceof ca.uhn.fhir.rest.server.exceptions.BaseServerResponseException b) {
             int c = b.getStatusCode();
-            if (c == 401) return "Chester refused your sign-in (HTTP 401). Your session may have expired: sign out and in again.";
+            if (c == 401) return "The audit repository refused your sign-in (HTTP 401). Your session may have expired: sign out and in again.";
             if (c == 403) return "Your account is not allowed to read audit events (HTTP 403).";
-            return "Chester returned an error (HTTP " + c + ").";
+            return "The audit repository returned an error (HTTP " + c + ").";
         }
         if (ex instanceof IllegalStateException && ex.getMessage() != null && ex.getMessage().startsWith("No signed-in")) {
             return "You are not signed in.";
         }
-        return "Chester could not be reached.";
+        return "The audit repository could not be reached.";
     }
 
     /**
@@ -227,9 +227,9 @@ public class AuditEventService {
             out.put("partition", partition == null ? "all days" : partition);
         } catch (org.springframework.web.client.HttpStatusCodeException ex) {
             out.put("error", ex.getStatusCode().value() == 403
-                ? "Your account is not allowed to verify the chain (HTTP 403)." : "Chester returned HTTP " + ex.getStatusCode().value() + ".");
+                ? "Your account is not allowed to verify the chain (HTTP 403)." : "The audit repository returned HTTP " + ex.getStatusCode().value() + ".");
         } catch (Exception ex) {
-            out.put("error", "Chester could not be reached.");
+            out.put("error", "The audit repository could not be reached.");
         }
         return out;
     }

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}"
-      th:attr="data-theme=${prefs.themeAttr()},data-density=${prefs.densityAttr()}">
+      th:attr="data-theme=${prefs.themeAttr()},data-density=${prefs.densityAttr()},data-accent=${prefs.accentAttr()}">
 <head th:replace="~{fragments/layout :: headx(#{activity.title}, 'page-access.css')}"></head>
 <body>
 <th:block th:replace="~{fragments/layout :: header('access')}"></th:block>
@@ -18,7 +18,7 @@
     </nav>
     <div class="table-wrap">
       <table class="table acc-log table-cards">
-        <thead><tr><th th:text="#{activity.col.when}">When</th><th th:text="#{activity.col.who}">Who</th><th th:text="#{activity.col.what}">What</th><th th:text="#{activity.col.chester}">In Chester</th></tr></thead>
+        <thead><tr><th th:text="#{activity.col.when}">When</th><th th:text="#{activity.col.who}">Who</th><th th:text="#{activity.col.what}">What</th><th th:text="#{activity.col.chester}">In the audit repository</th></tr></thead>
         <tbody>
           <tr th:each="e : ${rows}">
             <td th:attr="data-label=#{activity.col.when}"><span class="mono" th:text="${tf.clockSeconds(e.at)}">10:21:40 IST</span><span class="sub" th:text="${tf.dayLong(e.at) + ' · ' + tf.relative(e.at)}">Thu 22 Oct 2026 · 2 min ago</span></td>
@@ -31,7 +31,7 @@
               <span class="acc-chester-bad" th:if="${e.chesterState == 'failed'}" th:text="#{activity.chester.failed}">Not written</span>
               <span class="sub" th:if="${e.chesterState == 'none'}" th:text="#{activity.chester.none}">Not sent</span></td>
           </tr>
-          <tr th:if="${#lists.isEmpty(rows)}"><td colspan="4"><span class="sub" th:text="#{activity.empty}">Nothing recorded yet.</span></td></tr>
+          <tr th:if="${#lists.isEmpty(rows)}"><td colspan="4"><th:block th:replace="~{fragments/states :: empty('0', #{activity.empty}, null, null, null)}"></th:block></td></tr>
         </tbody>
       </table>
     </div>
@@ -40,7 +40,7 @@
       <span class="sub" th:text="#{activity.page(${page}, ${pages})}">1 of 3</span>
       <a class="btn btn-sm" th:if="${page < pages}" th:href="@{/activity(kind=${kind},page=${page + 1})}" th:text="#{activity.next}">Older</a><span th:unless="${page < pages}"></span>
     </div>
-    <div class="acc-foot" th:text="#{activity.foot}">These records are written to Chester as audit events too.</div>
+    <div class="acc-foot" th:text="#{activity.foot}">These records are written to the audit repository as audit events too.</div>
   </section>
 
   <section class="panel mt-3" aria-labelledby="act-req" th:if="${canSeeRequests}">
@@ -52,7 +52,7 @@
           <tr th:each="r : ${requests}"><td><th:block th:replace="~{fragments/layout :: when(${r.at})}"></th:block></td><td th:text="${r.user}">name</td>
             <td><a class="mono" th:href="@{/patient/{id}(id=${#strings.replace(r.patientRef, 'Patient/', '')})}" th:text="${#strings.replace(r.patientRef, 'Patient/', '')}">P-1</a></td>
             <td><span class="tag tag-warn" th:text="#{'activity.req.' + ${r.status}}">Pending</span></td></tr>
-          <tr th:if="${#lists.isEmpty(requests)}"><td colspan="4"><span class="sub" th:text="#{activity.req.none}">No requests.</span></td></tr>
+          <tr th:if="${#lists.isEmpty(requests)}"><td colspan="4"><th:block th:replace="~{fragments/states :: empty('0', #{activity.req.none}, null, null, null)}"></th:block></td></tr>
         </tbody>
       </table>
     </div>

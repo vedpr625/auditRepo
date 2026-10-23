@@ -31,14 +31,17 @@ public class ShellAdvice {
     private final PrefsContext prefsContext;
     private final MessageSource messages;
     private final boolean demo;
+    private final boolean demoBanner;
     private final org.springframework.beans.factory.ObjectProvider<NavBadges> badges;
 
     public ShellAdvice(PrefsContext prefsContext, MessageSource messages,
                        @org.springframework.beans.factory.annotation.Value("${audit.ui.demo:false}") boolean demo,
+                       @org.springframework.beans.factory.annotation.Value("${audit.ui.demo-banner:false}") boolean demoBanner,
                        org.springframework.beans.factory.ObjectProvider<NavBadges> badges) {
         this.prefsContext = prefsContext;
         this.messages = messages;
         this.demo = demo;
+        this.demoBanner = demoBanner;
         this.badges = badges;
     }
 
@@ -64,6 +67,9 @@ public class ShellAdvice {
         model.addAttribute("shellUser", a == null ? "" : a.getName());
         model.addAttribute("shellRole", roleKey == null ? "" : messages.getMessage("role." + roleKey, null, roleKey, locale));
         model.addAttribute("demo", demo);
+        model.addAttribute("demoBanner", demoBanner);
+        model.addAttribute("shellUrl", request.getQueryString() == null ? request.getRequestURI() : request.getRequestURI() + "?" + request.getQueryString());
+        model.addAttribute("accents", UserPrefs.ACCENTS);
         int open = 0;
         try { NavBadges b = badges.getIfAvailable(); if (b != null) open = b.reviewsOpen(); } catch (RuntimeException ignored) { /* a badge must never break a page */ }
         model.addAttribute("navReviewsOpen", open);

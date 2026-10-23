@@ -31,6 +31,8 @@ CREATE TABLE IF NOT EXISTS user_pref (
   density      VARCHAR(12)  NOT NULL,
   updated_at   TIMESTAMP WITH TIME ZONE NOT NULL
 );
+-- Colour theme (data-accent): added later, so older databases get the column here.
+ALTER TABLE user_pref ADD COLUMN IF NOT EXISTS accent VARCHAR(16) NOT NULL DEFAULT 'clinic';
 
 -- Systems that have sent audit records (a Keycloak client id each). Found automatically from recent records;
 -- an administrator can give each a readable name.
