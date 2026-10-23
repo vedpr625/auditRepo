@@ -36,8 +36,8 @@ public class DemoAuditData {
     public static final String EXT_REASON = TAGS + "/StructureDefinition/break-glass-reason", EXT_REASON_AT = TAGS + "/StructureDefinition/reason-given-at";
     private static final String GENESIS = "0".repeat(64);
 
-    private final List<AuditEvent> events = new ArrayList<>();
-    private final Map<String, Chain> chains = new HashMap<>();
+    private final List<AuditEvent> events = new java.util.concurrent.CopyOnWriteArrayList<>();
+    private final Map<String, Chain> chains = new java.util.concurrent.ConcurrentHashMap<>();
     private int next = 2001;
 
     /** A person or system that sends records. */
@@ -84,6 +84,7 @@ public class DemoAuditData {
             int n = poisson(8.9);
             for (int i = 0; i < n; i++) ordinary(now.minusSeconds(m * 60L - rnd.nextInt(60)), pats);
         }
+        patientStory();
         events.sort(Comparator.comparing((AuditEvent e) -> e.getRecorded()));
         buildChain();
     }
@@ -187,6 +188,58 @@ public class DemoAuditData {
         }
     }
 
+    /** Gives patient P-10407 three registry visits that the patient page tells (an outpatient visit, an inpatient stay, a casualty visit with break-glass). */
+    private void patientStory() {
+        final String pid = "P-10407";
+        Random r = new Random(10407);
+        // outpatient visit OPD-3 at Colombo, yesterday: 7 events, 4 people, 3 systems
+        Instant opd = now.minus(26, ChronoUnit.HOURS);
+        String e1 = "Encounter/E-88213";
+        String[][] opdEv = {
+            {"Dr. N. Perera", "Practitioner/dr-n-perera", COL, "hhims-audit", "R", "OPD-3", "0"}, {"lab-gateway", "Device/lab-gateway", LAB, "lablink-gw", "C", "Central laboratory", "0"},
+            {"A. Jayasuriya", "Practitioner/pharm-jayasuriya", PHA, "pharma-galle", "U", "Pharmacy", "0"}, {"Dr. N. Perera", "Practitioner/dr-n-perera", COL, "hhims-audit", "R", "OPD-3", "0"},
+            {"Dr. N. Perera", "Practitioner/dr-n-perera", COL, "hhims-audit", "R", "OPD-3", "0"}, {"lab-gateway", "Device/lab-gateway", LAB, "lablink-gw", "R", "Central laboratory", "0"},
+            {"Dr. H. Ranasinghe", "Practitioner/dr-ranasinghe", COL, "hhims-audit", "R", "OPD-3", "0"}};
+        for (int i = 0; i < opdEv.length; i++) {
+            String[] x = opdEv[i];
+            add(opd.minus(i * 4L + 2, ChronoUnit.MINUTES), pid, x[2], x[0], x[1], "TREAT", 0, null, x[4], false, false, x[5], x[3], null, null);
+            withEncounter(e1);
+        }
+        // inpatient stay Ward 7 at Colombo, 5 to 3 days ago: 29 events, two refused, 9 people, 2 systems
+        String e2 = "Encounter/E-87702";
+        String[] ward = {"Dr. A. Silva", "Dr. N. Perera", "Dr. A. de Silva", "Dr. S. Perera", "Dr. H. Ranasinghe"};
+        for (int i = 0; i < 29; i++) {
+            String[] c;
+            if (i == 3 || i == 17) {   // the laboratory system also sends records during the stay
+                add(now.minus(5, ChronoUnit.DAYS).plus(i * 130L, ChronoUnit.MINUTES), pid, LAB, "lab-gateway", "Device/lab-gateway", "TREAT", 0, null, "C", false, false, "Central laboratory", "lablink-gw", null, null);
+                withEncounter(e2);
+                continue;
+            }
+            if (i % 6 == 5) c = new String[]{"Nurse " + (char) ('A' + (i / 6) % 3) + ". Fonseka", "Practitioner/nurse-fonseka-" + (i / 6) % 3, COL};
+            else c = clinician(ward[i % ward.length]);
+            boolean refused = i == 11 || i == 23;
+            Instant at = now.minus(5, ChronoUnit.DAYS).plus(i * 130L + r.nextInt(40), ChronoUnit.MINUTES);
+            add(at, pid, COL, c[0], c[1], "TREAT", refused ? 8 : 0, refused ? "Not allowed (403)" : null, i % 4 == 0 ? "U" : "R", false, false, "Ward 7", "hhims-audit", null, null);
+            withEncounter(e2);
+        }
+        // casualty at Kandy, about three weeks ago: break-glass by a nurse, reason 26 minutes later, then a doctor treats
+        String e3 = "Encounter/E-86110";
+        Instant day = now.minus(21, ChronoUnit.DAYS).atZone(java.time.ZoneId.of("Asia/Colombo")).toLocalDate().atStartOfDay(java.time.ZoneId.of("Asia/Colombo")).toInstant();
+        Instant btgAt = day.plus(2, ChronoUnit.HOURS).plus(14, ChronoUnit.MINUTES);
+        String[] nurse = {"Nurse K. Perera", "Practitioner/nurse-k-perera", KAN}, dr = clinician("Dr. R. Fernando");
+        add(btgAt, pid, KAN, nurse[0], nurse[1], "BTG", 0, null, "R", true, false, "Casualty", "hhims-audit", "unconscious patient, history needed", btgAt.plus(26, ChronoUnit.MINUTES));
+        withEncounter(e3);
+        add(btgAt.plus(40, ChronoUnit.MINUTES), pid, KAN, dr[0], dr[1], "ETREAT", 0, null, "R", false, false, "Casualty", "hhims-audit", null, null);
+        withEncounter(e3);
+    }
+
+    /** Puts the last event added into the given encounter (so systems that do not send one still join the visit). */
+    private void withEncounter(String ref) {
+        AuditEvent e = events.get(events.size() - 1);
+        e.getEntity().removeIf(x -> x.hasWhat() && x.getWhat().hasReference() && x.getWhat().getReference().startsWith("Encounter/"));
+        e.addEntity().setWhat(new Reference(ref)).setType(new Coding("http://terminology.hl7.org/CodeSystem/audit-entity-type", "2", "System Object"));
+    }
+
     private void add(Instant at, String pid, String facility, String agentName, String agentRef, String purpose, int outcome, String outcomeDesc, String action,
                      boolean btg, boolean incomplete, String site, String client, String reason, Instant reasonAt) {
         AuditEvent e = new AuditEvent();
@@ -246,6 +299,27 @@ public class DemoAuditData {
             for (byte x : d) b.append(String.format("%02x", x));
             return b.toString();
         } catch (Exception ex) { throw new IllegalStateException(ex); }
+    }
+
+    /**
+     * The console writing its own activity to the stand-in Chester (POST /AuditEvent): the event gets the next id and joins the hash chain of
+     * its day, so it shows in Explore and passes the chain check like any other record. Returns the stored event.
+     */
+    public synchronized AuditEvent append(AuditEvent e) {
+        e.setId(String.valueOf(next++));
+        if (e.getRecorded() == null) e.setRecorded(new Date());
+        Instant at = e.getRecorded().toInstant();
+        String day = at.toString().substring(0, 10);
+        String prev = GENESIS;
+        int pos = 0;
+        for (AuditEvent o : events) {
+            Chain c = chains.get(o.getIdElement().getIdPart());
+            if (c != null && c.partition().equals(day) && c.position() >= pos) { pos = c.position(); prev = c.currentHash(); }
+        }
+        String cur = sha(prev + "|" + e.getIdElement().getIdPart() + "|" + at);
+        chains.put(e.getIdElement().getIdPart(), new Chain(day, pos + 1, prev, cur, at.plusSeconds(1)));
+        events.add(e);
+        return e;
     }
 
     public List<AuditEvent> events() { return events; }

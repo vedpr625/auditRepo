@@ -60,6 +60,7 @@
   </div>
 </header>
 <div class="notice notice-warn" role="note" th:if="${demo}" style="border-radius:0;text-align:center"><b th:text="#{demo.banner}">DEMONSTRATION</b></div>
+<th:block th:replace="~{fragments/access :: shell}"></th:block>
 </th:block>
 
 <!--

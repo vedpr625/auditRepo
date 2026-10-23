@@ -67,7 +67,7 @@ public class DemoSecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/login", "/error", "/css/**", "/js/**", "/fonts/**", "/favicon.ico").permitAll()
+                .requestMatchers("/login", "/signed-out", "/error", "/css/**", "/js/**", "/fonts/**", "/favicon.ico").permitAll()
                 // the stand-in Chester, registry and consent manager: only this program itself may call them (loopback, not via a proxy)
                 .requestMatchers("/demo/**").access((authn, ctx) -> {
                     var req = ctx.getRequest();
@@ -79,6 +79,10 @@ public class DemoSecurityConfig {
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.POST, "/settings/registry").hasRole("ADMIN")
                 .anyRequest().authenticated())
+            // the console writes its own activity to the stand-in Chester (a loopback call with no browser, so no CSRF token)
+            .csrf(c -> c.ignoringRequestMatchers("/demo/**"))
+            // a request that carries an ended session goes to the "Your sign-in has expired" page
+            .sessionManagement(sm -> sm.invalidSessionUrl("/signed-out"))
             .formLogin(f -> f.loginPage("/login").defaultSuccessUrl("/overview", true).failureUrl("/login?error"))
             .logout(l -> l.logoutUrl("/logout").logoutSuccessUrl("/login?logout").invalidateHttpSession(true).deleteCookies("JSESSIONID"));
         return http.build();

@@ -53,7 +53,7 @@ public class DemoRegistry {
         new P("P-00116", "Ishara Madushani (demo)", "female", "2003-12-01", "••••••0312V", new Object[][]{s(COL, "Emergency Treatment Unit", 1, 1)}),
         new P("P-00117", "Gamini Ratnayake (demo)", "male", "1955-07-07", "••••••5507V", new Object[][]{s(COL, "Ward 5 Cardiology", 7, 2)}),
         // patients that the Reviews, Break-glass and Reports screens talk about
-        new P("P-10407", "Kamal Mendis (demo)", "male", "1985-03-14", "••••••4821V", new Object[][]{s(COL, "OPD-3", 1, 1), s(COL, "Ward 7", 5, 3), s(KAN, "Casualty", 21, 21)}),
+        new P("P-10407", "Kamal Mendis (demo)", "male", "1985-03-14", "••••••4821V", new Object[][]{s(COL, "OPD-3", 1, 1), s(COL, "Ward 7", 5, 3), s(KAN, "Casualty", 22, 21)}),
         new P("P-20881", "Sunethra Karunaratne (demo)", "female", "1978-09-02", "••••••7809V", new Object[][]{s(KAN, "Casualty", 1, 1)}),
         new P("P-30177", "Ranjith Abeysekara (demo)", "male", "1990-12-12", "••••••9012V", new Object[][]{s(COL, "Casualty", 1, 1)}),
         new P("P-40119", "Malini Gamage (demo)", "female", "1969-05-30", "••••••6905V", new Object[][]{s(GAL, "ICU", 2, -1)}),

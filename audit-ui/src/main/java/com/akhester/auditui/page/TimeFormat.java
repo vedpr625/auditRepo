@@ -86,6 +86,57 @@ public final class TimeFormat {
         return DateTimeFormatter.ofPattern(prefs.clock24() ? "HH:mm" : "h a", locale).format(at.atZone(zone));
     }
 
+    // ── Short forms used by the patient page (added by the access/patient screen; the zone shows as a short name where one is well known) ──
+
+    /** "IST" for Sri Lanka and India (both UTC+05:30), otherwise the numeric label from {@link #zoneLabel}. */
+    public String zoneShort(Instant at) {
+        ZoneOffset off = zone.getRules().getOffset(at == null ? now : at);
+        String id = zone.getId();
+        if (off.getTotalSeconds() == 19800 && (id.equals("Asia/Colombo") || id.equals("Asia/Kolkata") || id.equals("Asia/Calcutta"))) return "IST";
+        return zoneLabel(at);
+    }
+
+    /** "09:41 IST" (or "9:41 am IST" on a 12-hour clock). */
+    public String clock(Instant at) {
+        return at == null ? "" : DateTimeFormatter.ofPattern(prefs.clock24() ? "HH:mm" : "h:mm a", locale).format(at.atZone(zone)) + " " + zoneShort(at);
+    }
+
+    /** "10:21:40 IST" (seconds shown, for logs). */
+    public String clockSeconds(Instant at) {
+        return at == null ? "" : DateTimeFormatter.ofPattern(prefs.clock24() ? "HH:mm:ss" : "h:mm:ss a", locale).format(at.atZone(zone)) + " " + zoneShort(at);
+    }
+
+    /** "22 Oct 06:00 IST". */
+    public String stamp(Instant at) {
+        return at == null ? "" : DateTimeFormatter.ofPattern("d MMM", locale).format(at.atZone(zone)) + " " + clock(at);
+    }
+
+    /** "Thu 22 Oct 2026". */
+    public String dayLong(Instant at) {
+        return at == null ? "" : DateTimeFormatter.ofPattern("EEE d MMM yyyy", locale).format(at.atZone(zone));
+    }
+
+    /** "18 to 20 Oct 2026" for two different days, otherwise the single day with its weekday. */
+    public String dayRange(Instant from, Instant to) {
+        if (from == null || to == null) return dayLong(from == null ? to : from);
+        java.time.LocalDate a = from.atZone(zone).toLocalDate(), b = to.atZone(zone).toLocalDate();
+        if (a.equals(b)) return dayLong(to);
+        DateTimeFormatter d = DateTimeFormatter.ofPattern("d", locale), dm = DateTimeFormatter.ofPattern("d MMM", locale), full = DateTimeFormatter.ofPattern("d MMM yyyy", locale);
+        return (a.getMonth() == b.getMonth() && a.getYear() == b.getYear() ? d.format(a) : dm.format(a)) + " " + msg("patient.range.to") + " " + full.format(b);
+    }
+
+    /** "1 day ago", "3 to 5 days ago" or "today", counted in whole days in this person's zone. */
+    public String agoRange(Instant from, Instant to) {
+        if (from == null || to == null) return relative(from == null ? to : from);
+        long a = java.time.temporal.ChronoUnit.DAYS.between(to.atZone(zone).toLocalDate(), now.atZone(zone).toLocalDate());
+        long b = java.time.temporal.ChronoUnit.DAYS.between(from.atZone(zone).toLocalDate(), now.atZone(zone).toLocalDate());
+        if (b <= 0) return msg("patient.ago.today");
+        if (a >= 14) return relative(to);   // three weeks ago, not 21 days ago
+        if (a == b) return a == 1 ? msg("patient.ago.day") : msg("patient.ago.days", a);
+        if (a <= 0) return msg("patient.ago.range.today", b);
+        return msg("patient.ago.range", a, b);
+    }
+
     private String msg(String key, Object... args) {
         return messages.getMessage(key, args, key, locale);
     }

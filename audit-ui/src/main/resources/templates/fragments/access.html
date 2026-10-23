@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!--
+  Added once, at the end of the header fragment: the first-sign-in notice and the session timer (warning dialog, then the signed-out page).
+  Everything is guarded, so a page whose controller did not provide the values just shows nothing.
+-->
+<th:block th:fragment="shell">
+  <div class="notice notice-info acc-notice" role="status" th:if="${accNoticeDue == true}">
+    <div><b th:text="#{access.notice.title}">This console is recorded.</b>
+      <span th:text="#{access.notice.text}">Every search, patient page opened, report download and decision is written to a log.</span></div>
+    <form th:action="@{/activity/notice-ack}" method="post"><input type="hidden" name="next" th:value="${shellPath}"><button class="btn btn-sm btn-primary" type="submit" th:text="#{access.notice.ok}">Got it</button></form>
+  </div>
+  <div id="acc-session" hidden th:if="${accSignedIn == true}"
+       th:attr="data-timeout=${accSessionSeconds},data-warn=${accWarnSeconds},data-keepalive=@{/session/keepalive},data-out=@{/signed-out},data-t-min=#{access.session.minutes},data-t-min1=#{access.session.minute},data-t-sec=#{access.session.seconds},data-t-title=#{access.session.title},data-t-idle=#{access.session.idle}">
+    <div class="acc-backdrop"></div>
+    <div class="acc-dialog panel" role="alertdialog" aria-modal="true" aria-labelledby="acc-s-title" aria-describedby="acc-s-text">
+      <div class="panel-head"><h3 th:text="#{access.session.head}">Session ends</h3></div>
+      <div class="acc-dialog-body">
+        <div class="state-icon warn" aria-hidden="true">&#9201;</div>
+        <h2 id="acc-s-title"></h2>
+        <p id="acc-s-text"></p>
+        <div class="row acc-dialog-actions">
+          <button type="button" class="btn btn-primary" id="acc-stay" th:text="#{access.session.stay}">Stay signed in</button>
+          <form th:action="@{/logout}" method="post"><button type="submit" class="btn" th:text="#{access.session.out}">Sign out now</button></form>
+        </div>
+      </div>
+    </div>
+  </div>
+  <link rel="stylesheet" th:href="@{/css/page-access.css}">
+  <script th:src="@{/js/access-session.js}" defer></script>
+</th:block>
+
+<!-- Links to the access and trust screens, for Settings, Admin and the checklist. -->
+<section th:fragment="links" class="panel acc-links" aria-labelledby="acc-links-h">
+  <div class="panel-head"><h3 id="acc-links-h" th:text="#{access.links.title}">Access and trust</h3></div>
+  <div class="panel-pad stack-sm">
+    <div><a th:href="@{/access}"><b th:text="#{access.links.access}">Who can do what</b></a> <span class="sub" th:text="#{access.links.access.sub}">The roles and what each may do.</span></div>
+    <div th:if="${accCanActivity == true}"><a th:href="@{/activity}"><b th:text="#{access.links.activity}">Console activity log</b></a> <span class="sub" th:text="#{access.links.activity.sub}">Who watched the watchers.</span></div>
+  </div>
+</section>
+
+</body>
+</html>
