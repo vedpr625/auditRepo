@@ -1,17 +1,25 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}"
       th:attr="data-theme=${prefs.themeAttr()},data-density=${prefs.densityAttr()}">
-<head th:replace="~{fragments/layout :: head(#{health.title})}"></head>
+<head th:replace="~{fragments/layout :: headx(#{health.title}, 'page-health.css')}"></head>
 <body>
 <th:block th:replace="~{fragments/layout :: header('health')}"></th:block>
-<main id="main" class="page">
-  <div class="page-head"><h1 th:text="#{health.title}">Health</h1><span class="lede" th:text="#{health.lede}">Is the audit repository answering and complete?</span></div>
+<main id="main" class="page hl">
+  <div class="page-head"><h1 th:text="#{health.title}">Health</h1><span class="lede" th:text="#{health.lede}">Is the audit repository receiving, keeping and protecting records?</span>
+    <span class="tag tag-planned push-end" th:text="#{health.dashed}">Dashed boxes are planned, not yet built</span></div>
 
-  <div class="grid-2">
-    <section class="panel" aria-labelledby="h-sys">
+  <div class="panel" th:unless="${allowed}"><th:block th:replace="~{fragments/states :: notAllowed(#{overview.denied.title}, #{overview.denied.text}, #{nav.overview}, '/overview')}"></th:block></div>
+  <th:block th:if="${allowed}">
+  <div id="h-live" hx-get="/health/live" hx-trigger="load, every 30s" hx-swap="innerHTML" aria-live="polite">
+    <div class="hl-kpis" aria-hidden="true"><div class="panel kpi" th:each="i : ${#numbers.sequence(1, 5)}"><div class="skeleton hl-sk1"></div><div class="skeleton hl-sk2"></div></div></div>
+    <div class="panel mt-3"><th:block th:replace="~{fragments/states :: loading(6)}"></th:block></div>
+  </div>
+
+  <div class="split hl-row">
+    <section class="panel grow" aria-labelledby="h-sys">
       <div class="panel-head"><h3 id="h-sys" th:text="#{health.systems}">Connections</h3></div>
       <div hx-get="/health/systems" hx-trigger="load" hx-swap="innerHTML" aria-live="polite">
-        <div class="panel-pad stack"><div class="skeleton" style="width:80%"></div><div class="skeleton" style="width:60%"></div><div class="skeleton" style="width:70%"></div></div>
+        <th:block th:replace="~{fragments/states :: loading(3)}"></th:block>
       </div>
       <div class="panel-foot">
         <span th:if="${registryUrl != null}" th:text="#{health.registry.set(${registryUrl})}">Registry set</span>
@@ -19,44 +27,33 @@
       </div>
     </section>
 
-    <section class="panel" aria-labelledby="h-int">
-      <div class="panel-head"><h3 id="h-int" th:text="#{health.integrity}">Integrity of the audit trail</h3></div>
-      <div id="integrity" class="panel-pad stack">
-        <p class="muted" th:text="#{health.integrity.help}">Chester links each record to the one before it.</p>
-        <button class="btn btn-primary" type="button" hx-post="/health/integrity" hx-target="#integrity" hx-swap="innerHTML" hx-disabled-elt="this">
-          <span th:text="#{health.integrity.run}">Check now</span><span class="htmx-indicator spinner" aria-hidden="true"></span></button>
-      </div>
-    </section>
-  </div>
-
-  <section class="panel" aria-labelledby="h-ing">
-    <div class="panel-head"><h3 id="h-ing" th:text="#{health.ingestion}">Records received per day</h3><span class="sub" th:text="#{health.ingestion.zone(${prefs.timeZone})}">Days in Asia/Colombo</span></div>
-    <div hx-get="/health/ingestion" hx-trigger="load" hx-swap="innerHTML" aria-live="polite">
-      <div class="panel-pad stack"><div class="skeleton" style="width:90%"></div><div class="skeleton" style="width:75%"></div><div class="skeleton" style="width:85%"></div></div>
-    </div>
-  </section>
-
-  <div class="grid-2">
-    <section class="panel" aria-labelledby="h-met">
-      <div class="panel-head"><h3 id="h-met" th:text="#{health.metrics}">Metrics for Prometheus and Grafana</h3><span class="tag tag-ok" th:text="#{health.metrics.ready}">Ready</span></div>
+    <section class="panel grow" aria-labelledby="h-met">
+      <div class="panel-head"><h3 id="h-met" th:text="#{health.metrics}">Prometheus and Grafana</h3><span class="tag tag-ok" th:text="#{health.metrics.ready}">Ready</span></div>
       <div class="panel-pad stack-sm">
-        <span th:text="#{health.metrics.where}">Address:</span>
+        <span th:text="#{health.metrics.where}">Metrics address for this console:</span>
         <code class="mono" th:text="${'http://' + metricsAddress + ':' + (metricsPort == '' ? '8081' : metricsPort) + '/actuator/prometheus'}">http://localhost:8091/actuator/prometheus</code>
-        <span class="sub" th:text="#{health.metrics.help}">Only reachable from the server itself unless the address is changed.</span>
-        <div class="notice notice-planned" th:text="#{health.metrics.dashboard}">A ready-made Grafana dashboard file is planned.</div>
+        <span class="sub" th:text="#{health.metrics.help}">Reachable from the server itself unless the address is changed in the configuration.</span>
+        <div class="hl-plan"><span th:text="#{health.grafana.dash}">Ready-made Grafana dashboard file</span><span class="tag tag-planned" th:text="#{health.tobuild}">To build</span></div>
+        <div class="hl-plan"><span th:text="#{health.grafana.open}">Open in Grafana (link appears when an address is set)</span><button class="btn btn-sm btn-planned" type="button" disabled th:text="#{health.notset}">Not set</button></div>
       </div>
     </section>
 
-    <section class="panel planned" aria-labelledby="h-plan">
-      <div class="panel-head"><h3 id="h-plan" th:text="#{health.planned}">Planned</h3><span class="tag tag-planned" th:text="#{common.planned}">Planned</span></div>
-      <ul class="panel-pad stack-sm">
-        <li th:text="#{health.planned.retention}">Retention</li>
-        <li th:text="#{health.planned.backup}">Backup</li>
-        <li th:text="#{health.planned.gaps}">Missing-record detection</li>
-        <li th:text="#{health.planned.rate}">Ingestion rate alerts</li>
-      </ul>
+    <section class="panel planned grow" aria-labelledby="h-keep">
+      <div class="panel-head"><h3 id="h-keep" th:text="#{health.keeping}">Keeping records</h3><span class="tag tag-planned" th:text="#{health.keeping.ref}">Planned · AR-23, AR-33</span></div>
+      <dl class="dl panel-pad hl-dl">
+        <dt th:text="#{health.keeping.oldest}">Oldest record</dt><dd id="h-oldest" hx-get="/health/oldest" hx-trigger="load" hx-swap="innerHTML" th:text="#{health.keeping.oldest.plan}">Shows the date and the 10-year target</dd>
+        <dt th:text="#{health.keeping.storage}">Storage used</dt><dd th:text="#{health.keeping.storage.plan}">Size and growth per month</dd>
+        <dt th:text="#{health.keeping.backup}">Last backup</dt><dd th:text="#{health.keeping.backup.plan}">Time and result, from the database</dd>
+        <dt th:text="#{health.keeping.restore}">Restore tested</dt><dd th:text="#{health.keeping.restore.plan}">Date of the last restore test</dd>
+      </dl>
     </section>
   </div>
+
+  <section class="panel planned" aria-labelledby="h-alerts">
+    <div class="panel-head"><h3 id="h-alerts" th:text="#{health.alerts}">Alert statistics, 7 days</h3><span class="tag tag-planned" th:text="#{health.alerts.tag}">Planned until Alerts is connected</span></div>
+    <div class="panel-pad"><p class="muted" th:text="#{health.alerts.text}">Alerts fired, sent by email, turned into cases, marked as normal and not delivered will be counted here once the Alerts screen keeps real alerts.</p></div>
+  </section>
+  </th:block>
 </main>
 </body>
 </html>

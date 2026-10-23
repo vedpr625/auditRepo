@@ -2,57 +2,226 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
 
-<div th:fragment="kpis">
-  <div th:if="${k.error != null}" class="state"><div class="state-icon bad" aria-hidden="true">!</div>
-    <h2 th:text="#{state.chester.down.title}">Chester is not answering</h2><p th:text="#{state.chester.down.text}">Try again.</p>
-    <button class="btn btn-primary" type="button" hx-get="/overview/kpis" hx-target="closest div[hx-get]" hx-swap="innerHTML" th:text="#{common.retry}">Try again</button></div>
-  <div th:if="${k.error == null}" class="grid-kpi">
-    <div class="panel kpi"><span class="sub" th:text="#{overview.kpi.events}">Records</span><span class="value" th:text="${#numbers.formatInteger(k.events24h, 1, 'COMMA')}">0</span><span class="delta" th:text="#{overview.kpi.last24}">last 24 hours</span></div>
-    <div class="panel kpi" th:classappend="${k.failed24h > 0} ? 'warn'"><span class="sub" th:text="#{overview.kpi.failed}">Failed</span><span class="value" th:text="${#numbers.formatInteger(k.failed24h, 1, 'COMMA')}">0</span><span class="delta" th:text="#{overview.kpi.last24}">last 24 hours</span></div>
-    <div class="panel kpi" th:classappend="${k.breakGlass24h > 0} ? 'warn'"><span class="sub" th:text="#{overview.kpi.btg}">Break-glass</span><span class="value" th:text="${#numbers.formatInteger(k.breakGlass24h, 1, 'COMMA')}">0</span><span class="delta" th:text="#{overview.kpi.last24}">last 24 hours</span></div>
-    <div class="panel kpi" th:classappend="${k.overdue > 0} ? 'bad' : (${k.warning > 0} ? 'warn' : 'ok')">
-      <span class="sub" th:text="#{overview.kpi.overdue}">Overdue reviews</span>
-      <span class="value"><span th:text="${k.overdue}">0</span><small th:text="' / ' + ${k.warning}"> / 0</small></span>
-      <span class="delta" th:text="${k.slaTruncated} ? #{overview.kpi.overdue.more} : #{overview.kpi.overdue.help}">overdue / due soon</span></div>
-  </div>
-</div>
+<!-- Everything under the page title. Loaded by /overview/body, refreshed every minute. -->
+<div th:fragment="body" class="stack ov-body" id="ov-body-inner">
 
-<div th:fragment="hours">
-  <div th:if="${#lists.isEmpty(hours)}" class="state"><h2 th:text="#{state.chester.down.title}">Chester is not answering</h2></div>
-  <div th:unless="${#lists.isEmpty(hours)}" class="panel-pad">
-    <div class="bars" role="img" th:attr="aria-label=#{overview.hours.alt}">
-      <b th:each="h : ${hours}" th:style="'height:' + ${h.count == 0 ? 2 : h.count * 100 / max} + '%'" th:title="${tf.brief(h.from) + ': ' + h.count}"></b>
+  <th:block th:if="${denied}"><th:block th:replace="~{fragments/states :: notAllowed(#{overview.denied.title}, #{overview.denied.text}, #{nav.settings}, '/settings')}"></th:block></th:block>
+
+  <th:block th:if="${failed}">
+    <div class="panel"><th:block th:replace="~{fragments/states :: down(#{state.chester.down.title}, #{state.chester.down.text}, #{common.retry}, @{/overview/body(range=${p.range},from=${p.from},to=${p.to},facility=${p.facility},compare=${p.compare ? '1' : null})}, '#ov-body')}"></th:block></div>
+  </th:block>
+
+  <th:block th:if="${d != null}">
+
+    <!-- filters -->
+    <div class="ov-bar">
+      <span class="lede" th:text="#{overview.updated(${p.facility == null ? #messages.msg('overview.allfacilities') : #strings.substringAfter(p.facility, '/')}, ${tf.hourLabel(d.computedAt)}, ${tf.relative(d.computedAt)}, ${prefs.timeZone})}">All facilities · updated 09:42</span>
+      <div class="ov-controls">
+        <form method="get" th:action="@{/overview}" class="ov-facility">
+          <input type="hidden" name="range" th:value="${p.range}">
+          <input type="hidden" name="from" th:value="${p.from}" th:if="${p.from != null}">
+          <input type="hidden" name="to" th:value="${p.to}" th:if="${p.to != null}">
+          <input type="hidden" name="compare" value="1" th:if="${p.compare}">
+          <label class="sr-only" for="ov-fac" th:text="#{overview.facility.label}">Facility</label>
+          <select id="ov-fac" name="facility" class="select" data-autosubmit>
+            <option value="" th:text="#{overview.allfacilities}">All facilities</option>
+            <option th:each="f : ${d.facilities}" th:value="${f}" th:text="${#strings.substringAfter(f, '/')}" th:selected="${f == p.facility}">Colombo</option>
+          </select>
+          <noscript><button class="btn btn-sm" type="submit" th:text="#{overview.apply}">Apply</button></noscript>
+        </form>
+        <div class="segmented" role="group" th:attr="aria-label=#{overview.period}">
+          <a th:href="@{/overview(range='24h',facility=${p.facility},compare=${p.compare ? '1' : null})}" th:attr="aria-current=${p.range == '24h'} ? 'true' : null" th:text="#{overview.range.24h}">24 hours</a>
+          <a th:href="@{/overview(range='7d',facility=${p.facility},compare=${p.compare ? '1' : null})}" th:attr="aria-current=${p.range == '7d'} ? 'true' : null" th:text="#{overview.range.7d}">7 days</a>
+          <a th:href="@{/overview(range='30d',facility=${p.facility},compare=${p.compare ? '1' : null})}" th:attr="aria-current=${p.range == '30d'} ? 'true' : null" th:text="#{overview.range.30d}">30 days</a>
+          <a th:href="@{/overview(range='custom',from=${p.from != null ? p.from : #temporals.format(#temporals.createToday().minusDays(7), 'yyyy-MM-dd')},to=${p.to != null ? p.to : #temporals.format(#temporals.createToday(), 'yyyy-MM-dd')},facility=${p.facility},compare=${p.compare ? '1' : null})}" th:attr="aria-current=${p.range == 'custom'} ? 'true' : null" th:text="#{overview.range.custom}">Custom</a>
+        </div>
+        <a class="btn" th:href="@{/overview(range=${p.range},from=${p.from},to=${p.to},facility=${p.facility},compare=${p.compare ? null : '1'})}" th:attr="aria-pressed=${p.compare}" th:text="${p.compare} ? #{overview.compare.off} : #{overview.compare.on(${d.prevLabel})}">Compare with yesterday</a>
+      </div>
     </div>
-    <div class="chart-axis sub"><span th:text="${tf.hourLabel(hours[0].from)}">10:00</span><span th:text="${tf.hourLabel(hours[11].from)}">22:00</span><span th:text="#{overview.hours.now}">now</span></div>
-  </div>
-</div>
+    <form class="ov-custom row-wrap" method="get" th:action="@{/overview}" th:if="${p.range == 'custom'}">
+      <input type="hidden" name="range" value="custom">
+      <input type="hidden" name="facility" th:value="${p.facility}" th:if="${p.facility != null}">
+      <input type="hidden" name="compare" value="1" th:if="${p.compare}">
+      <label class="field"><span th:text="#{overview.custom.from}">From</span><input class="input" type="date" name="from" th:value="${p.from}" required></label>
+      <label class="field"><span th:text="#{overview.custom.to}">To</span><input class="input" type="date" name="to" th:value="${p.to}"></label>
+      <button class="btn btn-primary btn-sm" type="submit" th:text="#{overview.apply}">Apply</button>
+      <span class="sub" th:text="#{overview.custom.help}">Up to 30 days back.</span>
+    </form>
 
-<div th:fragment="queue">
-  <div th:if="${failed}" class="state"><h2 th:text="#{state.chester.down.title}">Chester is not answering</h2></div>
-  <div th:unless="${failed}">
-    <div th:if="${#lists.isEmpty(items)}" class="state"><div class="state-icon" aria-hidden="true">✓</div><h2 th:text="#{overview.queue.empty}">Nothing waiting</h2></div>
-    <a class="queue-item" th:each="i : ${items}" th:href="@{/patient/{id}(id=${#strings.substringAfter(i.row.patientRef, 'Patient/')})}" style="text-decoration:none;color:inherit">
-      <span class="tag" th:classappend="${i.row.slaCss == 'sla-over'} ? 'tag-bad' : (${i.row.slaCss == 'sla-warn'} ? 'tag-warn' : 'tag-info')" th:text="${i.row.slaLabel}">30h</span>
-      <span><b th:text="${i.row.agentName ?: '—'}">agent</b>
-        <span class="sub" th:text="${i.row.patientRef}">Patient/1</span>
-        <span class="why" style="display:block" th:classappend="${i.row.slaCss == 'sla-warn'} ? 'warn'" th:text="#{'overview.why.' + ${i.why}}">why</span></span>
-      <span class="sub"><th:block th:replace="~{fragments/layout :: when(${i.row.recordedInstant})}"></th:block></span>
-    </a>
-  </div>
-</div>
+    <th:block th:if="${d.stale}"><th:block th:replace="~{fragments/states :: stale(#{overview.stale(${tf.hourLabel(d.computedAt)})})}"></th:block></th:block>
+    <div class="notice notice-info" th:if="${d.truncated}" th:text="#{overview.truncated(${#numbers.formatInteger(d.scanned, 1, 'COMMA')})}">Charts use the newest records only.</div>
 
-<div th:fragment="systems">
-  <div th:if="${failed}" class="state"><h2 th:text="#{state.chester.down.title}">Chester is not answering</h2></div>
-  <div th:unless="${failed}">
-    <div th:if="${#lists.isEmpty(rows)}" class="state"><h2 th:text="#{overview.systems.empty}">No systems listed yet</h2><p th:text="#{overview.systems.empty.text}">Admin can add them.</p></div>
-    <table class="table table-cards" th:unless="${#lists.isEmpty(rows)}">
-      <thead><tr><th th:text="#{admin.col.name}">System</th><th class="right" th:text="#{overview.kpi.events}">Records</th></tr></thead>
-      <tbody><tr th:each="r : ${rows}">
-        <td th:attr="data-label=#{admin.col.name}"><div><b th:text="${r.label}">name</b> <span class="sub mono" th:if="${r.label != r.clientId}" th:text="${r.clientId}">id</span></div></td>
-        <td class="right num" th:attr="data-label=#{overview.kpi.events}"><div th:text="${#numbers.formatInteger(r.count24h, 1, 'COMMA')}">0</div></td>
-      </tr></tbody>
-    </table>
-  </div>
+    <!-- KPI tiles -->
+    <div class="ov-kpis">
+      <div class="panel kpi ov-kpi" th:each="k : ${d.kpis}" th:classappend="${k.tone}">
+        <span class="sub" th:text="${k.label}">Events</span>
+        <span class="value"><span th:text="${k.value}">12,840</span><small th:if="${k.suffix != null}" th:text="' ' + ${k.suffix}"> of 6</small></span>
+        <span class="delta" th:classappend="'t-' + ${k.subTone}" th:text="${k.sub}">8% more than yesterday</span>
+        <svg th:if="${k.spark != null}" class="spark" th:classappend="'s-' + ${k.id}" viewBox="0 0 120 26" preserveAspectRatio="none" role="img" th:attr="aria-label=${k.sparkAlt}"><polyline fill="none" stroke-width="2" vector-effect="non-scaling-stroke" th:attr="points=${k.spark}"></polyline></svg>
+        <div th:if="${k.dots != null}" class="ov-dots" role="img" th:attr="aria-label=${k.sparkAlt}"><i th:each="up : ${k.dots}" th:classappend="${up} ? '' : 'q'"></i></div>
+      </div>
+    </div>
+
+    <div class="split">
+      <!-- chart -->
+      <section class="panel grow" aria-labelledby="ov-chart-h">
+        <div class="panel-head">
+          <h3 id="ov-chart-h" th:text="#{overview.chart.title(${d.chart.unit}, ${d.rangeLabel})}">Events per hour</h3>
+          <div class="legend"><span><i class="lg-ok"></i><th:block th:text="#{overview.chart.ok}">OK</th:block></span><span><i class="lg-fail"></i><th:block th:text="#{overview.chart.failed}">Failed</th:block></span></div>
+        </div>
+        <div class="panel-pad" th:unless="${d.chart.empty}">
+          <div class="ov-chart">
+            <div class="ov-y mono" aria-hidden="true"><span th:each="y : ${d.chart.yLabels}" th:text="${y}">1,000</span></div>
+            <div class="ov-plot" role="img" th:attr="aria-label=${d.chart.summary}">
+              <div class="ov-col" th:each="b : ${d.chart.bars}" th:title="${b.title}">
+                <i class="f" th:if="${b.failed > 0}" th:style="'height:' + ${#numbers.formatDecimal(b.failPct, 1, 1, 'POINT')} + '%'"></i>
+                <i class="o" th:style="'height:' + ${#numbers.formatDecimal(b.okPct, 1, 1, 'POINT')} + '%'"></i>
+              </div>
+            </div>
+          </div>
+          <div class="ov-x mono" aria-hidden="true"><span th:each="x : ${d.chart.xLabels}" th:text="${x}">Thu 10:00</span></div>
+          <p class="ov-summary" th:text="${d.chart.summary}">Busiest hour was 10:00 with 982 events.</p>
+          <details class="ov-details">
+            <summary th:text="#{overview.chart.table}">Table view</summary>
+            <div class="table-wrap ov-scroll"><table class="table table-plain">
+              <thead><tr><th th:text="#{overview.chart.col.when}">When</th><th class="num" th:text="#{overview.chart.ok}">OK</th><th class="num" th:text="#{overview.chart.failed}">Failed</th></tr></thead>
+              <tbody><tr th:each="b : ${d.chart.bars}"><td class="mono" th:text="${b.label}">10:00</td><td class="num" th:text="${b.ok}">0</td><td class="num" th:text="${b.failed}">0</td></tr></tbody>
+            </table></div>
+          </details>
+        </div>
+        <th:block th:if="${d.chart.empty}"><th:block th:replace="~{fragments/states :: empty('0', #{overview.empty.title}, #{overview.empty.text}, #{overview.range.7d}, '/overview?range=7d')}"></th:block></th:block>
+      </section>
+
+      <!-- needs a human -->
+      <aside class="panel side ov-needs" aria-labelledby="ov-needs-h">
+        <div class="panel-head"><h3 id="ov-needs-h" th:text="#{overview.needs.title}">Needs a human, riskiest first</h3>
+          <span class="sub" th:text="#{overview.needs.count(${#lists.size(d.needs)}, ${d.needsTotal})}">5 of 12</span></div>
+        <th:block th:if="${#lists.isEmpty(d.needs)}"><th:block th:replace="~{fragments/states :: empty('✓', #{overview.needs.empty}, #{overview.needs.empty.text}, null, null)}"></th:block></th:block>
+        <ul th:unless="${#lists.isEmpty(d.needs)}">
+          <li th:each="n : ${d.needs}"><a class="ov-need" th:href="@{${n.href}}">
+            <span class="tag" th:classappend="${n.tagCss}" th:text="${n.tag}">Late</span>
+            <span><b th:text="${n.title}">No reason yet</b>
+              <span class="sub" th:text="${n.meta}">Risk 85</span>
+              <span class="sub ov-why" th:classappend="${n.whyCss}" th:text="#{overview.needs.why(${n.why})}">Why: ...</span></span>
+          </a></li>
+        </ul>
+        <div class="panel-foot row">
+          <span class="tag tag-planned tag-sm" th:text="#{overview.needs.demo}">Demo scoring</span>
+          <span class="sub" th:text="#{overview.needs.demo.text}">Risk is a simple points rule, not a trained model.</span>
+        </div>
+        <div class="panel-pad"><a class="btn btn-primary ov-wide" th:href="@{/reviews}" th:text="#{overview.needs.open}">Open the review queue</a></div>
+      </aside>
+    </div>
+
+    <div class="split ov-two">
+      <!-- by system -->
+      <section class="panel grow" aria-labelledby="ov-bysys-h">
+        <div class="panel-head"><h3 id="ov-bysys-h" th:text="#{overview.bysys.title}">Events by system that sent them</h3><span class="sub" th:text="#{overview.bysys.note}">failure rate at right</span></div>
+        <div class="panel-pad">
+          <th:block th:if="${#lists.isEmpty(d.systems)}"><th:block th:replace="~{fragments/states :: empty('0', #{overview.systems.empty}, #{overview.systems.empty.text}, null, null)}"></th:block></th:block>
+          <div class="hbar ov-hbar" th:each="s : ${d.systems}" th:title="#{overview.bysys.tip(${s.name}, ${s.events}, ${s.failed})}">
+            <span><span th:text="${s.name}">HHIMS</span><span class="sub" th:if="${!#strings.isEmpty(s.note)}" th:text="${s.note}">29 facilities</span></span>
+            <div class="track" aria-hidden="true"><b th:style="'width:' + ${s.pct} + '%'"></b></div>
+            <span class="mono num ov-right"><th:block th:text="${#numbers.formatInteger(s.events, 1, 'COMMA')}">8,420</th:block><br><span class="sub" th:classappend="${s.failed > 0} ? 'ov-bad'" th:text="${s.rate}">0.25%</span></span>
+          </div>
+        </div>
+      </section>
+
+      <!-- heat map -->
+      <section class="panel grow ov-heatpanel" aria-labelledby="ov-heat-h">
+        <div class="panel-head"><h3 id="ov-heat-h" th:text="#{overview.heat.title}">When the record is opened</h3><span class="sub" th:text="#{overview.heat.note(${prefs.timeZone})}">4 weeks</span></div>
+        <div class="panel-pad">
+          <div class="ov-heat" role="img" th:attr="aria-label=#{overview.heat.alt}">
+            <span class="ov-h0"></span><span class="mono ov-hh" style="grid-column:2 / span 8">00</span><span class="mono ov-hh" style="grid-column:10 / span 8">08</span><span class="mono ov-hh" style="grid-column:18 / span 8">16</span>
+            <th:block th:each="r : ${d.heat}">
+              <span class="mono ov-hd" th:text="${r.day}">Mon</span>
+              <i th:each="c : ${r.cells}" th:class="'h' + ${c.level}" th:title="${c.title}"></i>
+            </th:block>
+          </div>
+          <div class="legend ov-heatlegend"><span th:text="#{overview.heat.fewer}">Fewer</span><span class="ramp"><i class="h0"></i><i class="h1"></i><i class="h2"></i><i class="h3"></i><i class="h4"></i></span><span th:text="#{overview.heat.more}">More</span>
+            <span class="push-end" th:text="#{overview.heat.help}">Night-time access stands out here.</span></div>
+        </div>
+      </section>
+    </div>
+
+    <div class="grid-3 ov-three">
+      <!-- refusals -->
+      <section class="panel" aria-labelledby="ov-ref-h">
+        <div class="panel-head"><h3 id="ov-ref-h" th:text="#{overview.refused.title}">Why access was refused</h3><span class="sub" th:text="#{overview.refused.count(${d.failedTotal})}">37 failed events</span></div>
+        <div class="panel-pad">
+          <th:block th:if="${#lists.isEmpty(d.refusals)}"><th:block th:replace="~{fragments/states :: empty('✓', #{overview.refused.empty}, null, null, null)}"></th:block></th:block>
+          <div class="hbar ov-hbar2" th:each="r : ${d.refusals}"><span th:text="${r.label}">Not allowed (403)</span><div class="track" aria-hidden="true"><b class="bad" th:style="'width:' + ${r.widthPct} + '%'"></b></div><span class="mono num" th:text="${r.pct}">19</span></div>
+          <p class="sub mt-1" th:if="${d.refusalNote != null}"><th:block th:text="${d.refusalNote}">Mostly one facility.</th:block> <a th:href="@{${d.refusalHref}}" th:text="#{overview.refused.see}">See these in Explore</a></p>
+        </div>
+      </section>
+
+      <!-- purposes -->
+      <section class="panel" aria-labelledby="ov-pur-h">
+        <div class="panel-head"><h3 id="ov-pur-h" th:text="#{overview.purpose.title}">Why records were opened</h3><span class="sub" th:text="#{overview.purpose.note}">purpose of use</span></div>
+        <div class="panel-pad">
+          <th:block th:if="${#lists.isEmpty(d.purposes)}"><th:block th:replace="~{fragments/states :: empty('0', #{overview.empty.title}, null, null, null)}"></th:block></th:block>
+          <div class="hbar ov-hbar2" th:each="r : ${d.purposes}"><span th:text="${r.label}">Treatment</span><div class="track" aria-hidden="true"><b th:classappend="${r.css}" th:style="'width:' + ${r.widthPct} + '%'"></b></div><span class="mono num" th:text="${r.pct}">78%</span></div>
+        </div>
+      </section>
+
+      <!-- break-glass -->
+      <section class="panel" aria-labelledby="ov-btg-h">
+        <div class="panel-head"><h3 id="ov-btg-h" th:text="#{overview.btg.title}">Break-glass, last 14 days</h3>
+          <div class="legend"><span><i class="lg-ok"></i><th:block th:text="#{overview.btg.given}">Reason given</th:block></span><span><i class="lg-warn"></i><th:block th:text="#{overview.btg.missing}">No reason yet</th:block></span></div></div>
+        <div class="panel-pad">
+          <div class="ov-btgbars" role="img" th:attr="aria-label=#{overview.btg.alt(${d.btgTotal})}">
+            <div class="ov-col" th:each="b : ${d.btg}" th:title="${b.title}">
+              <i class="w" th:if="${b.missing > 0}" th:style="'height:' + ${b.missingPx} + 'px'"></i>
+              <i class="o" th:if="${b.given > 0}" th:style="'height:' + ${b.givenPx} + 'px'"></i>
+            </div>
+          </div>
+          <div class="ov-x mono" aria-hidden="true"><span th:each="x : ${d.btgAxis}" th:text="${x}">9 Oct</span></div>
+          <p class="sub mt-1" th:if="${d.btgAvg != null}"><th:block th:text="#{overview.btg.avg}">Average time to give a reason:</th:block> <b th:text="${d.btgAvg}">5 h 10 min</b></p>
+        </div>
+      </section>
+    </div>
+
+    <div class="split ov-two">
+      <!-- systems table -->
+      <section class="panel grow" aria-labelledby="ov-sys-h">
+        <div class="panel-head"><h3 id="ov-sys-h" th:text="#{overview.systems.title}">Systems sending to Chester</h3><span class="sub" th:text="${d.rangeLabel}">last 24 hours</span></div>
+        <th:block th:if="${#lists.isEmpty(d.systems)}"><th:block th:replace="~{fragments/states :: empty('0', #{overview.systems.empty}, #{overview.systems.empty.text}, null, null)}"></th:block></th:block>
+        <div class="table-wrap" th:unless="${#lists.isEmpty(d.systems)}">
+          <table class="table table-cards">
+            <thead><tr><th th:text="#{overview.col.system}">System</th><th th:text="#{overview.col.last}">Last event</th><th class="num" th:text="#{overview.col.events}">Events</th><th class="num" th:text="#{overview.col.failed}">Failed</th><th class="num" th:text="#{overview.col.typical}">Typical</th><th th:text="#{overview.col.status}">Status</th></tr></thead>
+            <tbody>
+              <tr th:each="s : ${d.systems}">
+                <td th:attr="data-label=#{overview.col.system}"><div><b th:text="${s.name}">HHIMS</b><span class="sub mono" th:if="${s.name != s.clientId}" th:text="${s.clientId}">hhims-audit</span></div></td>
+                <td th:attr="data-label=#{overview.col.last}"><div class="mono" th:text="${s.lastEvent}">1 min ago</div></td>
+                <td class="num" th:attr="data-label=#{overview.col.events}"><div class="mono" th:text="${#numbers.formatInteger(s.events, 1, 'COMMA')}">8,420</div></td>
+                <td class="num" th:attr="data-label=#{overview.col.failed}"><div class="mono" th:text="${s.failed}">21</div></td>
+                <td class="num" th:attr="data-label=#{overview.col.typical}"><div class="mono" th:text="${s.typical != null} ? ${#numbers.formatInteger(s.typical, 1, 'COMMA')} : '—'">8,100</div></td>
+                <td th:attr="data-label=#{overview.col.status}"><div><span class="tag" th:classappend="${s.quiet} ? 'tag-warn' : 'tag-ok'" th:text="${s.statusText}">Reporting</span></div></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="panel-foot" th:text="#{overview.systems.help}">Typical is the average of the same length of time just before.</div>
+      </section>
+
+      <!-- review queue summary -->
+      <section class="panel side ov-rq" aria-labelledby="ov-rq-h">
+        <div class="panel-head"><h3 id="ov-rq-h" th:text="#{overview.rq.title}">Review queue</h3><span class="sub" th:text="#{overview.rq.count(${d.reviewOpen}, ${d.decidedReviewed + d.decidedFlagged})}">3 open</span></div>
+        <div class="panel-pad stack">
+          <div th:each="s : ${d.reviewSlices}">
+            <div class="row"><span class="grow" th:text="${s.label}">Under 6 hours</span><b class="mono" th:text="${s.count}">1</b></div>
+            <div class="track ov-track"><b th:classappend="${s.css}" th:style="'width:' + ${s.widthPct} + '%'"></b></div>
+          </div>
+          <div class="ov-rq-foot">
+            <span th:text="#{overview.rq.decided(${d.decidedReviewed}, ${d.decidedFlagged})}">Marked reviewed: 14. Flagged: 3.</span>
+          </div>
+          <div class="notice notice-planned" th:text="#{overview.rq.planned}">Median time to decide and peer-review disagreements arrive with case reviews.</div>
+          <a class="btn" th:href="@{/reviews}" th:text="#{overview.needs.open}">Open the review queue</a>
+        </div>
+      </section>
+    </div>
+
+  </th:block>
 </div>
 
 </body>
