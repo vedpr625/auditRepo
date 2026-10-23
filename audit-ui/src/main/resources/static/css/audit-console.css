@@ -366,3 +366,11 @@ kbd{font:500 12px var(--font-mono);border:1px solid var(--border-input);border-b
   .find-box{display:none}
 }
 @media (max-width:520px){.user-block{display:none}}
+
+/* phone width: nothing may push the page sideways */
+@media (max-width:640px){
+  .ex-groupby{flex-wrap:wrap;gap:8px;max-width:100%}
+  .ex-groupby .segmented{max-width:100%;overflow-x:auto}
+  .panel,.panel.grow{min-width:0;max-width:100%}
+  .table-cards td{min-width:0;overflow-wrap:anywhere}
+}
