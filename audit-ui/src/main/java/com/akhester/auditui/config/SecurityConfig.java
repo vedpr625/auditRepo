@@ -71,7 +71,7 @@ public class SecurityConfig {
         http
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/login", "/signed-out", "/error", "/css/**", "/js/**", "/fonts/**", "/favicon.ico").permitAll()
+                .requestMatchers("/login", "/signed-out", "/error", "/css/**", "/js/**", "/fonts/**", "/img/**", "/favicon.ico").permitAll()
                 // only UI admins may change review status (MVC form and REST)
                 .requestMatchers(HttpMethod.POST, "/audit/review/**", "/api/v1/audit-events/*/review").hasAnyRole("ADMIN", "MINISTRY_AUDITOR", "PRIVACY_OFFICER")
                 // fake registry / consent manager: exist only in demo mode (404 otherwise), called by this app itself

@@ -4,7 +4,7 @@
 <body class="auth-body">
 <div class="demo-strip" role="note" th:if="${demoBanner}"><b th:text="#{demo.banner}">Sample data</b></div>
 <main id="main" class="auth">
-  <div class="auth-brand"><span class="brand-mark" aria-hidden="true"></span><span th:text="#{app.name}">Audit Repository</span></div>
+  <div class="auth-brand"><th:block th:replace="~{fragments/brand-mark :: mark}"></th:block><span th:text="#{app.name}">Audit Repository</span></div>
   <h1 th:text="#{login.title}">Sign in</h1>
   <p class="auth-tag" th:text="#{login.tagline}">Audit event review</p>
   <div class="notice notice-bad" role="alert" th:if="${param.error != null}" th:text="#{login.error}">Wrong name or password.</div>

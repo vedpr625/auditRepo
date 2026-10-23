@@ -378,8 +378,8 @@ kbd{font:500 12px var(--font-mono);border:1px solid var(--border-input);border-b
 
 .app-header{position:sticky;top:0;z-index:100;display:flex;align-items:center;gap:var(--s4);height:56px;padding:0 24px;background:var(--panel);border-bottom:1px solid var(--border)}
 .brand{display:flex;align-items:center;gap:10px;font-weight:600;font-size:16px;color:var(--ink);text-decoration:none;flex:none;border-radius:var(--radius-sm)}
-.brand-mark{width:26px;height:26px;border-radius:7px;background:var(--accent);display:inline-block;position:relative}
-.brand-mark::after{content:"";position:absolute;left:8px;top:6px;width:6px;height:11px;border:solid var(--ink-on-accent);border-width:0 2.6px 2.6px 0;transform:rotate(40deg)}
+.brand-mark{width:28px;height:28px;flex:none;display:block}
+.bm-shield{fill:var(--accent)}.bm-shade{fill:#000;opacity:.16}.bm-eye{fill:var(--ink-on-accent,#fff)}.bm-iris{fill:var(--accent)}.bm-pupil{fill:var(--ink-on-accent,#fff)}
 .main-nav{display:flex;align-items:stretch;flex:1;align-self:stretch;min-width:0;gap:2px}
 .main-nav>a,.nav-more-btn{display:flex;align-items:center;gap:6px;padding:0 10px;color:var(--ink-2);text-decoration:none;border-bottom:3px solid transparent;border-top:3px solid transparent;white-space:nowrap;font-weight:500;border-radius:0;transition:color .12s,background-color .12s}
 .main-nav>a:hover,.nav-more-btn:hover{color:var(--ink);background:var(--panel-sub)}

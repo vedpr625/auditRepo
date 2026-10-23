@@ -9,7 +9,10 @@
   <meta name="_csrf" th:content="${_csrf.token}">
   <meta name="_csrf_header" th:content="${_csrf.headerName}">
   <title th:text="${title} + ' · ' + #{app.name}">Audit Console</title>
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230b6e6e'/%3E%3Cpath d='M8 17l5 5 11-12' fill='none' stroke='white' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="icon" type="image/svg+xml" th:href="@{/img/favicon.svg}">
+  <link rel="apple-touch-icon" th:href="@{/img/apple-touch-icon.png}">
+  <link rel="manifest" th:href="@{/img/manifest.webmanifest}">
+  <meta name="theme-color" content="#0f766e">
   <script th:src="@{/js/theme-init.js}" th:attr="data-theme=${prefs?.themeAttr()},data-accent=${prefs?.accentAttr()},data-known=${shellUser != null and shellUser != ''} ? '1' : null"></script>
   <link rel="stylesheet" th:href="@{/css/audit-console.css}">
   <script th:src="@{/js/htmx.min.js}" defer></script>
@@ -23,7 +26,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title th:text="${title} + ' · ' + #{app.name}">Audit Console</title>
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230b6e6e'/%3E%3Cpath d='M8 17l5 5 11-12' fill='none' stroke='white' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="icon" type="image/svg+xml" th:href="@{/img/favicon.svg}">
+  <link rel="apple-touch-icon" th:href="@{/img/apple-touch-icon.png}">
+  <link rel="manifest" th:href="@{/img/manifest.webmanifest}">
+  <meta name="theme-color" content="#0f766e">
   <script th:src="@{/js/theme-init.js}"></script>
   <link rel="stylesheet" th:href="@{/css/audit-console.css}">
   <script th:src="@{/js/console.js}" defer></script>
@@ -36,7 +42,10 @@
   <meta name="_csrf" th:content="${_csrf.token}">
   <meta name="_csrf_header" th:content="${_csrf.headerName}">
   <title th:text="${title} + ' · ' + #{app.name}">Audit Console</title>
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230b6e6e'/%3E%3Cpath d='M8 17l5 5 11-12' fill='none' stroke='white' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="icon" type="image/svg+xml" th:href="@{/img/favicon.svg}">
+  <link rel="apple-touch-icon" th:href="@{/img/apple-touch-icon.png}">
+  <link rel="manifest" th:href="@{/img/manifest.webmanifest}">
+  <meta name="theme-color" content="#0f766e">
   <script th:src="@{/js/theme-init.js}" th:attr="data-theme=${prefs?.themeAttr()},data-accent=${prefs?.accentAttr()},data-known=${shellUser != null and shellUser != ''} ? '1' : null"></script>
   <link rel="stylesheet" th:href="@{/css/audit-console.css}">
   <link rel="stylesheet" th:href="@{'/css/' + ${css}}">
@@ -55,7 +64,7 @@
   <a class="nav-toggle" href="#site-nav" role="button" aria-controls="site-nav" aria-expanded="false" th:attr="aria-label=#{nav.menu}">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
   </a>
-  <a class="brand" th:href="@{/overview}"><span class="brand-mark" aria-hidden="true"></span><span class="brand-name" th:text="#{app.name}">Audit Console</span></a>
+  <a class="brand" th:href="@{/overview}"><th:block th:replace="~{fragments/brand-mark :: mark}"></th:block><span class="brand-name" th:text="#{app.name}">Audit Console</span></a>
   <nav class="main-nav" id="site-nav" th:attr="aria-label=#{nav.label}">
     <form class="nav-find" th:action="@{/find}" method="get" role="search">
       <label class="sr-only" for="find-q-nav" th:text="#{nav.find}">Find anything</label>

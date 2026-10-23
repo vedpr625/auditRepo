@@ -67,7 +67,7 @@ public class DemoSecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/login", "/signed-out", "/error", "/css/**", "/js/**", "/fonts/**", "/favicon.ico").permitAll()
+                .requestMatchers("/login", "/signed-out", "/error", "/css/**", "/js/**", "/fonts/**", "/img/**", "/favicon.ico").permitAll()
                 // the stand-in Chester, registry and consent manager: only this program itself may call them (loopback, not via a proxy)
                 .requestMatchers("/demo/**").access((authn, ctx) -> {
                     var req = ctx.getRequest();
