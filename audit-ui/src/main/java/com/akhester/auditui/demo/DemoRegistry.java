@@ -83,7 +83,7 @@ public class DemoRegistry {
 
     private static P find(String id) { return PATIENTS.stream().filter(p -> p.id.equals(id)).findFirst().orElse(null); }
 
-    private final DemoClinicalData clinical = new DemoClinicalData();
+    private final DemoEncounterData visits = new DemoEncounterData();
 
     @GetMapping(value = "/metadata", produces = "application/fhir+json")
     public Map<String, Object> metadata() {
@@ -153,46 +153,19 @@ public class DemoRegistry {
     @GetMapping(value = "/Encounter", produces = "application/fhir+json")
     public ResponseEntity<Map<String, Object>> encounters(@RequestParam(required = false) String patient, @RequestParam(required = false, name = "_id") String id,
                                                           @RequestParam(required = false, name = "_count", defaultValue = "100") int count, @RequestParam(required = false, name = "_offset", defaultValue = "0") int offset) {
-        if (id != null) { Map<String, Object> e = clinical.encounter(id); return bundle(e == null ? List.of() : List.of(e), count, offset); }
+        if (id != null) { Map<String, Object> e = visits.encounter(id); return bundle(e == null ? List.of() : List.of(e), count, offset); }
         P p = patient == null ? null : find(patient.replace("Patient/", ""));
         if (p == null) return bundle(List.of(), count, offset);
-        List<Map<String, Object>> rich = clinical.encounters(p.id);
+        List<Map<String, Object>> rich = visits.encounters(p.id);
         return bundle(rich != null ? rich : plainEncounters(p), count, offset);
     }
 
     @GetMapping(value = "/Encounter/{id}", produces = "application/fhir+json")
     public ResponseEntity<Map<String, Object>> encounter(@PathVariable String id) {
-        Map<String, Object> e = clinical.encounter(id);
+        Map<String, Object> e = visits.encounter(id);
         if (e != null) return ResponseEntity.ok().contentType(FHIR).body(e);
         // plain stays (patients without a richer record) have made-up numbers E-6nnnn
-        for (P p : PATIENTS) if (clinical.encounters(p.id) == null) for (Map<String, Object> x : plainEncounters(p)) if (id.equals(x.get("id"))) return ResponseEntity.ok().contentType(FHIR).body(x);
+        for (P p : PATIENTS) if (visits.encounters(p.id) == null) for (Map<String, Object> x : plainEncounters(p)) if (id.equals(x.get("id"))) return ResponseEntity.ok().contentType(FHIR).body(x);
         return outcome(404, "not-found");
-    }
-
-    /**
-     * Clinical searches: ?patient=Patient/P-1 or ?encounter=Encounter/E-1 (with or without patient), _count, _offset. A patient with no data gets an empty Bundle.
-     * P-00107 shows a registry that does not serve everything (403 for allergies, 404 for procedures).
-     */
-    @GetMapping(value = "/{type:Condition|MedicationRequest|Observation|AllergyIntolerance|Procedure}", produces = "application/fhir+json")
-    public ResponseEntity<Map<String, Object>> clinicalSearch(@PathVariable String type, @RequestParam(required = false) String patient, @RequestParam(required = false) String encounter,
-                                                              @RequestParam(required = false, name = "_count", defaultValue = "100") int count, @RequestParam(required = false, name = "_offset", defaultValue = "0") int offset) {
-        String pid = patient == null ? null : patient.replace("Patient/", "");
-        String eid = encounter == null ? null : encounter.replace("Encounter/", "");
-        if (pid == null && eid != null) {
-            Map<String, Object> e = clinical.encounter(eid);
-            if (e != null) pid = String.valueOf(((Map<?, ?>) e.get("subject")).get("reference")).replace("Patient/", "");
-        }
-        if (pid == null) return outcome(400, "required");
-        int refused = clinical.refusal(type, pid);
-        if (refused != 0) return outcome(refused, refused == 403 ? "forbidden" : "not-supported");
-        List<Map<String, Object>> all = new ArrayList<>(clinical.list(type, pid));
-        if (eid != null) {
-            final String want = eid;
-            all.removeIf(r -> {
-                Object e = r.get("encounter");
-                return !(e instanceof Map<?, ?> m && ("Encounter/" + want).equals(m.get("reference")));
-            });
-        }
-        return bundle(all, count, offset);
     }
 }

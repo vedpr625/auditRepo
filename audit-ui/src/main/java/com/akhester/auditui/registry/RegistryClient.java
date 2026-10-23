@@ -28,11 +28,11 @@ import com.akhester.auditui.page.AppSettingRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 
 /**
- * Reads a patient, encounters and clinical resources from a plain FHIR R4 registry (Bundle 2a): Patient, Encounter, Condition, MedicationRequest,
- * Observation, AllergyIntolerance, Procedure, using only standard read and search (patient=, encounter=, _count, _sort, paging by the Bundle's "next" link).
+ * Reads a patient and the patient's encounters from a plain FHIR R4 registry (Bundle 2a): Patient and Encounter only, using only standard read and search
+ * (patient=, _count, _sort, paging by the Bundle's "next" link). Nothing about health (conditions, medicines, results, allergies, procedures) is ever requested.
  * The base address comes from Settings, or from audit.ui.registry-base-url.
  *
- * <p>Fail-safe: a resource type the registry does not have, or refuses (404, 403, 400...), gives a {@link Clinical.Section} with status NOT_PROVIDED,
+ * <p>Fail-safe: a resource type the registry does not have, or refuses (404, 403, 400...), gives a {@link Registry.Section} with status NOT_PROVIDED,
  * and an address that does not answer gives UNAVAILABLE. Nothing here throws to the screen except {@link #patient} (RegistryUnavailable), which the caller handles.
  * This class does not decide whether a person may see the data: callers ask the consent service first.
  */
@@ -134,61 +134,39 @@ public class RegistryClient {
         }
         List<Stay> stays = new ArrayList<>();
         if (withStays) {
-            for (Clinical.Encounter e : encounters(id).items()) stays.add(stay(e));
+            for (Registry.Encounter e : encounters(id).items()) stays.add(stay(e));
         }
         return Optional.of(new PatientInfo(id, name, sex, born, ident, stays));
     }
 
     /** A stay from an Encounter, or null when it has no start (it cannot be placed in time). */
-    public static Stay stay(Clinical.Encounter e) {
+    public static Stay stay(Registry.Encounter e) {
         if (e == null || e.start() == null) return null;
         return new Stay(e.facilityRef() == null ? "" : e.facilityRef(), e.facilityName() == null ? "" : e.facilityName(), e.ward(), e.start(), e.end(), e.id());
     }
 
     // ---------- typed lists ----------
 
-    public Clinical.Section<Clinical.Encounter> encounters(String patientId) {
-        Clinical.Section<Clinical.Encounter> s = search("Encounter", params("patient", ref("Patient", patientId), "_sort", "-date"), FhirParser::encounter);
+    public Registry.Section<Registry.Encounter> encounters(String patientId) {
+        Registry.Section<Registry.Encounter> s = search("Encounter", params("patient", ref("Patient", patientId), "_sort", "-date"), FhirParser::encounter);
         if (!s.isOk()) return s;
-        List<Clinical.Encounter> keep = new ArrayList<>(s.items().stream().filter(e -> e.start() != null).toList());
-        return Clinical.Section.ok(keep);
+        List<Registry.Encounter> keep = new ArrayList<>(s.items().stream().filter(e -> e.start() != null).toList());
+        return Registry.Section.ok(keep);
     }
 
     /** One Encounter by id (read). NOT_PROVIDED when the registry has none (or refuses); the list is empty or has one item. */
-    public Clinical.Section<Clinical.Encounter> encounter(String encounterId) {
+    public Registry.Section<Registry.Encounter> encounter(String encounterId) {
         String b = base();
-        if (b == null) return Clinical.Section.unavailable();
+        if (b == null) return Registry.Section.unavailable();
         try {
             JsonNode n = get(uri(b, new String[]{"Encounter", encounterId}, Map.of()));
-            Clinical.Encounter e = FhirParser.encounter(n);
-            return e == null ? Clinical.Section.notProvided() : Clinical.Section.ok(List.of(e));
+            Registry.Encounter e = FhirParser.encounter(n);
+            return e == null ? Registry.Section.notProvided() : Registry.Section.ok(List.of(e));
         } catch (HttpClientErrorException e) {
             return unlessRetryable(e);
         } catch (RuntimeException e) {
-            return Clinical.Section.unavailable();
+            return Registry.Section.unavailable();
         }
-    }
-
-    /** Conditions of a patient (patientId set) or of one encounter (encounterId set; the patient may be given too). */
-    public Clinical.Section<Clinical.Condition> conditions(String patientId, String encounterId) {
-        return forEncounter(search("Condition", scope(patientId, encounterId, "_sort", "-recorded-date"), FhirParser::condition), encounterId, Clinical.Condition::encounterId);
-    }
-
-    public Clinical.Section<Clinical.Medication> medications(String patientId, String encounterId) {
-        return forEncounter(search("MedicationRequest", scope(patientId, encounterId, "_sort", "-authoredon"), FhirParser::medication), encounterId, Clinical.Medication::encounterId);
-    }
-
-    /** Laboratory results and vital signs together (the screen splits them by category). */
-    public Clinical.Section<Clinical.Observation> observations(String patientId, String encounterId) {
-        return forEncounter(search("Observation", scope(patientId, encounterId, "_sort", "-date"), FhirParser::observation), encounterId, Clinical.Observation::encounterId);
-    }
-
-    public Clinical.Section<Clinical.Procedure> procedures(String patientId, String encounterId) {
-        return forEncounter(search("Procedure", scope(patientId, encounterId, "_sort", "-date"), FhirParser::procedure), encounterId, Clinical.Procedure::encounterId);
-    }
-
-    public Clinical.Section<Clinical.Allergy> allergies(String patientId) {
-        return search("AllergyIntolerance", params("patient", ref("Patient", patientId)), FhirParser::allergy);
     }
 
     // ---------- plumbing ----------
@@ -201,29 +179,15 @@ public class RegistryClient {
         return m;
     }
 
-    private static Map<String, String> scope(String patientId, String encounterId, String... more) {
-        Map<String, String> m = new LinkedHashMap<>();
-        if (patientId != null) m.put("patient", ref("Patient", patientId));
-        if (encounterId != null) m.put("encounter", ref("Encounter", encounterId));
-        for (int i = 0; i + 1 < more.length; i += 2) m.put(more[i], more[i + 1]);
-        return m;
-    }
-
-    /** A server that ignores the encounter parameter returns the whole record: whatever names another encounter is dropped. */
-    private static <T> Clinical.Section<T> forEncounter(Clinical.Section<T> s, String encounterId, Function<T, String> enc) {
-        if (!s.isOk() || encounterId == null) return s;
-        return Clinical.Section.ok(s.items().stream().filter(x -> enc.apply(x) == null || encounterId.equals(enc.apply(x))).toList());
-    }
-
-    private static <T> Clinical.Section<T> unlessRetryable(HttpStatusCodeException e) {
+    private static <T> Registry.Section<T> unlessRetryable(HttpStatusCodeException e) {
         int c = e.getStatusCode().value();
-        return c == 408 || c == 429 ? Clinical.Section.unavailable() : Clinical.Section.notProvided();
+        return c == 408 || c == 429 ? Registry.Section.unavailable() : Registry.Section.notProvided();
     }
 
     /** One search, following the Bundle's "next" links (only to the same registry address, at most MAX_PAGES pages). */
-    <T> Clinical.Section<T> search(String type, Map<String, String> query, Function<JsonNode, T> parse) {
+    <T> Registry.Section<T> search(String type, Map<String, String> query, Function<JsonNode, T> parse) {
         String b = base();
-        if (b == null) return Clinical.Section.unavailable();
+        if (b == null) return Registry.Section.unavailable();
         Map<String, String> q = new LinkedHashMap<>(query);
         q.put("_count", String.valueOf(PAGE));
         URI next = uri(b, new String[]{type}, q);
@@ -235,18 +199,18 @@ public class RegistryClient {
             } catch (HttpClientErrorException e) {
                 return unlessRetryable(e);              // 404, 403, 400, 401, 410 ...: not something this registry gives
             } catch (RuntimeException e) {
-                return Clinical.Section.unavailable();  // 5xx, timeout, refused connection, unreadable answer
+                return Registry.Section.unavailable();  // 5xx, timeout, refused connection, unreadable answer
             }
-            if (body == null) return Clinical.Section.unavailable();
+            if (body == null) return Registry.Section.unavailable();
             String rt = body.path("resourceType").asText("");
-            if ("OperationOutcome".equals(rt)) return Clinical.Section.notProvided();
-            if (!"Bundle".equals(rt)) return Clinical.Section.unavailable();
+            if ("OperationOutcome".equals(rt)) return Registry.Section.notProvided();
+            if (!"Bundle".equals(rt)) return Registry.Section.unavailable();
             for (JsonNode r : FhirParser.resources(body, type)) {
                 try { T t = parse.apply(r); if (t != null) out.add(t); } catch (RuntimeException ignored) { /* one odd resource must not hide the others */ }
             }
             next = nextLink(body, b);
         }
-        return Clinical.Section.ok(out);
+        return Registry.Section.ok(out);
     }
 
     /** The "next" link of a Bundle, only when it points at the configured registry address. */

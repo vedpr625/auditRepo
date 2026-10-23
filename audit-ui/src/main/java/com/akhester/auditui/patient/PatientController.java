@@ -28,7 +28,7 @@ import com.akhester.auditui.consent.ConsentLogRepository;
 import com.akhester.auditui.model.AuditRow;
 import com.akhester.auditui.page.ShellAdvice;
 import com.akhester.auditui.prefs.PrefsContext;
-import com.akhester.auditui.registry.Clinical;
+import com.akhester.auditui.registry.Registry;
 import com.akhester.auditui.registry.RegistryClient;
 import com.akhester.auditui.service.AuditEventService;
 
@@ -66,18 +66,17 @@ public class PatientController {
     private final AccessRequestRepository requests;
     private final ConsoleActivity activity;
     private final Masking masking;
-    private final ClinicalService clinical;
 
     public PatientController(AuditEventService audit, ConsentClient consent, ConsentLogRepository consentLog, RegistryClient registry,
                              com.akhester.auditui.prefs.PrefsContext prefsContext, FacilityDirectory facilities, SendingSystemRepository systems,
-                             SensitivePatients sensitive, AccessRequestRepository requests, ConsoleActivity activity, Masking masking, ClinicalService clinical) {
+                             SensitivePatients sensitive, AccessRequestRepository requests, ConsoleActivity activity, Masking masking) {
         this.audit = audit; this.consent = consent; this.consentLog = consentLog; this.registry = registry;
         this.prefsContext = prefsContext; this.facilities = facilities; this.systems = systems;
-        this.sensitive = sensitive; this.requests = requests; this.activity = activity; this.masking = masking; this.clinical = clinical;
+        this.sensitive = sensitive; this.requests = requests; this.activity = activity; this.masking = masking;
     }
 
     /** The tabs of the patient page (?tab=). Anything else is the overview. */
-    static final List<String> TABS = List.of("overview", "clinical", "encounters", "access", "consent");
+    static final List<String> TABS = List.of("overview", "encounters", "access", "consent");
 
     @GetMapping("/patient")
     public String open(@RequestParam(required = false) String id) {
@@ -91,6 +90,8 @@ public class PatientController {
     @GetMapping("/patient/{id}")
     public String page(@PathVariable String id, @RequestParam(required = false) String days, @RequestParam(required = false) String tab,
                        @RequestParam(required = false) String day, jakarta.servlet.http.HttpServletRequest request, Model model) {
+        // the retired Clinical 360 tab: nothing clinical is shown in this console, so its old address goes to the overview
+        if ("clinical".equals(tab) && ID.matcher(id).matches()) return "redirect:/patient/" + id;
         String tabName = tab != null && TABS.contains(tab) ? tab : "overview";
         model.addAttribute("tab", tabName);
         if (!ID.matcher(id).matches()) { model.addAttribute("state", "notfound"); return "patient"; }
@@ -139,9 +140,9 @@ public class PatientController {
 
         model.addAttribute("can", canMap(d));
         RegistryClient.PatientInfo info = null;
-        Clinical.Section<Clinical.Encounter> encSection = null;
+        Registry.Section<Registry.Encounter> encSection = null;
         if (d.covered()) {
-            // only the sections the consent covers are read: the patient resource for demographics, the encounter list for stays
+            // only the sections the consent covers are read: the patient resource for demographics, the encounter list for visits
             try {
                 boolean demo = d.allows("demographics");
                 info = registry.patient(id, demo, false).orElse(null);
@@ -194,9 +195,8 @@ public class PatientController {
             .collect(java.util.stream.Collectors.joining(", ")));
         boolean restrictedRecord = sensitive.isSensitive(id);   // only a privacy officer gets here
         model.addAttribute("restrictedRecord", restrictedRecord);
-        if (d.covered() && ("clinical".equals(tabName) || "encounters".equals(tabName))) {
-            try { model.addAttribute("c360", clinical.load(id, d, encSection, lines, zone, "clinical".equals(tabName))); }
-            catch (RuntimeException e) { model.addAttribute("registryDown", true); }
+        if (d.covered() && d.allows("encounters") && "encounters".equals(tabName)) {
+            model.addAttribute("encRows", encSection != null && encSection.isOk() ? EncounterService.rows(id, encSection.items(), lines) : List.of());
         }
         if ("access".equals(tabName)) {
             java.time.LocalDate dayFilter = null;
@@ -215,9 +215,8 @@ public class PatientController {
             String u = PrefsContext.username();
             model.addAttribute("pendingRequest", u != null && requests.hasPending(u, ref));
         }
-        String opened = d.permitted() ? (d.limited() ? "Consent covers " + d.scopes().size() + " of " + ConsentClient.SCOPES.size() + " sections" : null) : "Consent not given, clinical details not shown";
+        String opened = d.permitted() ? (d.limited() ? "Consent covers " + d.scopes().size() + " of " + ConsentClient.SCOPES.size() + " sections" : null) : "Consent not given, registry details not shown";
         switch (tabName) {
-            case "clinical" -> activity.record(ConsoleActivity.KIND_PATIENT, "Opened Clinical 360 for " + id, restrictedRecord ? "Restricted record, opened by a privacy officer" : opened, id);
             case "encounters" -> activity.record(ConsoleActivity.KIND_PATIENT, "Opened the encounter list of " + id, restrictedRecord ? "Restricted record, opened by a privacy officer" : opened, id);
             default -> activity.record(ConsoleActivity.KIND_PATIENT, "Opened patient " + id, restrictedRecord ? "Restricted record, opened by a privacy officer" : null, id);
         }
@@ -232,15 +231,15 @@ public class PatientController {
         return m;
     }
 
-    /** "Ask the privacy officer for access" when the consent does not allow the clinical details. Recorded like the restricted-record request; nothing about the patient is read. */
+    /** "Ask the privacy officer for access" when the consent does not allow the registry details. Recorded like the restricted-record request; nothing about the patient is read. */
     @PostMapping("/patient/{id}/request-consent-access")
     public String requestConsentAccess(@PathVariable String id, @RequestParam(required = false) String note, RedirectAttributes ra) {
         if (!ID.matcher(id).matches()) return "redirect:/overview?badPatient";
         String user = PrefsContext.username();
         if (user != null && !sensitive.restrictedFor(id) && !requests.hasPending(user, "Patient/" + id)) {
             String n = note == null ? "" : note.strip();
-            requests.add(user, "Patient/" + id, "Clinical details (consent)" + (n.isEmpty() ? "" : ": " + n));
-            activity.record(ConsoleActivity.KIND_REQUEST, "Asked the privacy officer for access to clinical details", "Decision pending", id);
+            requests.add(user, "Patient/" + id, "Registry details (consent)" + (n.isEmpty() ? "" : ": " + n));
+            activity.record(ConsoleActivity.KIND_REQUEST, "Asked the privacy officer for access to registry details", "Decision pending", id);
         }
         ra.addFlashAttribute("requested", true);
         return "redirect:/patient/" + id + "?tab=consent";

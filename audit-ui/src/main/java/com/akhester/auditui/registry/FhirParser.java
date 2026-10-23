@@ -12,14 +12,12 @@ import java.util.Set;
 import com.fasterxml.jackson.databind.JsonNode;
 
 /**
- * Reads FHIR R4 JSON into the small records of {@link Clinical}. Tolerant on purpose: a missing field is null, a field of an unexpected shape is
+ * Reads FHIR R4 JSON (Patient and Encounter only) into the small records of {@link Registry}. Tolerant on purpose: a missing field is null, a field of an unexpected shape is
  * ignored, a resource that cannot be understood is skipped, and a resource the registry marks "entered-in-error" is never shown. Nothing here throws on odd input.
  */
 public final class FhirParser {
 
     private FhirParser() {}
-
-    private static final Set<String> VITAL_LOINC = Set.of("85354-9", "8480-6", "8462-4", "8867-4", "8310-5", "9279-1", "59408-5", "2708-6", "29463-7", "8302-2", "39156-5", "8329-5");
 
     // ---------- small helpers ----------
 
@@ -102,154 +100,9 @@ public final class FhirParser {
 
     private static boolean is(JsonNode r, String type) { return r != null && type.equals(str(r.path("resourceType"))); }
 
-    // ---------- Condition ----------
-
-    public static Clinical.Condition condition(JsonNode r) {
-        if (!is(r, "Condition") || errorEntry(r)) return null;
-        String id = str(r.path("id"));
-        String text = text(r.path("code"));
-        if (text == null) return null;
-        String icd = code(r.path("code"), "icd");
-        return new Clinical.Condition(id, text, icd != null ? icd : code(r.path("code"), null), code(r.path("clinicalStatus"), null),
-            firstInstant(r, "onsetDateTime", "onsetPeriod.start"), firstInstant(r, "abatementDateTime", "abatementPeriod.start"), firstInstant(r, "recordedDate"),
-            refId(r.path("encounter")));
-    }
-
-    // ---------- MedicationRequest ----------
-
-    public static Clinical.Medication medication(JsonNode r) {
-        if (!is(r, "MedicationRequest") || errorEntry(r)) return null;
-        String text = text(r.path("medicationCodeableConcept"));
-        if (text == null) text = refDisplay(r.path("medicationReference"));
-        if (text == null) text = text(r.path("contained").path(0).path("code"));
-        if (text == null) return null;
-        JsonNode d = r.path("dosageInstruction").path(0);
-        String dose = str(d.path("text"));
-        if (dose == null) {
-            JsonNode q = d.path("doseAndRate").path(0).path("doseQuantity");
-            if (!q.isMissingNode()) dose = (str(q.path("value")) == null ? "" : str(q.path("value")) + " ") + (str(q.path("unit")) == null ? "" : str(q.path("unit")));
-            dose = blank(dose);
-        }
-        return new Clinical.Medication(str(r.path("id")), text, dose, str(r.path("status")), firstInstant(r, "authoredOn"), refDisplay(r.path("requester")),
-            text(r.path("reasonCode")), refId(r.path("encounter")));
-    }
-
-    // ---------- AllergyIntolerance ----------
-
-    public static Clinical.Allergy allergy(JsonNode r) {
-        if (!is(r, "AllergyIntolerance") || errorEntry(r)) return null;
-        String text = text(r.path("code"));
-        if (text == null) return null;
-        String c = code(r.path("code"), null);
-        boolean none = "716186003".equals(c) || text.toLowerCase().startsWith("no known");
-        JsonNode re = r.path("reaction").path(0);
-        return new Clinical.Allergy(str(r.path("id")), text, str(r.path("criticality")), code(r.path("clinicalStatus"), null), text(re.path("manifestation")),
-            str(re.path("severity")), none, firstInstant(r, "recordedDate", "onsetDateTime"));
-    }
-
-    // ---------- Procedure ----------
-
-    public static Clinical.Procedure procedure(JsonNode r) {
-        if (!is(r, "Procedure") || errorEntry(r)) return null;
-        String text = text(r.path("code"));
-        if (text == null) return null;
-        return new Clinical.Procedure(str(r.path("id")), text, code(r.path("code"), null), firstInstant(r, "performedDateTime", "performedPeriod.start"),
-            str(r.path("status")), refDisplay(r.path("performer").path(0).path("actor")), refId(r.path("encounter")));
-    }
-
-    // ---------- Observation ----------
-
-    /** "H", "L", "N", "A" or null for the code of an interpretation. */
-    public static String flag(String c) {
-        if (c == null) return null;
-        return switch (c.strip().toUpperCase()) {
-            case "H", "HH", "HU", ">", "CH" -> "H";
-            case "L", "LL", "LU", "<", "CL" -> "L";
-            case "N" -> "N";
-            case "A", "AA", "ABN" -> "A";
-            default -> null;
-        };
-    }
-
-    /** From a value and its reference range; null when there is not enough to say. */
-    public static String computeFlag(Double v, Double lo, Double hi) {
-        if (v == null || (lo == null && hi == null)) return null;
-        if (hi != null && v > hi) return "H";
-        if (lo != null && v < lo) return "L";
-        return "N";
-    }
-
-    private static int rank(String f) { return f == null ? 0 : switch (f) { case "H", "L" -> 3; case "A" -> 2; case "N" -> 1; default -> 0; }; }
-
-    private static Double num(JsonNode n) { return n == null || n.isMissingNode() || !n.isNumber() ? tryParse(str(n)) : Double.valueOf(n.asDouble()); }
-
-    private static Double tryParse(String s) {
-        if (s == null) return null;
-        try { return Double.valueOf(s.replace(",", ".").strip()); } catch (NumberFormatException e) { return null; }
-    }
-
-    private static String fmt(double d) { return d == Math.rint(d) && Math.abs(d) < 1e9 ? String.valueOf((long) d) : String.valueOf(Math.round(d * 100) / 100.0); }
-
-    private record Quantity(Double value, String unit, Double low, Double high, String flag) {}
-
-    private static Quantity quantity(JsonNode holder, JsonNode valueQuantity) {
-        Double v = num(valueQuantity.path("value"));
-        String unit = str(valueQuantity.path("unit")) != null ? str(valueQuantity.path("unit")) : str(valueQuantity.path("code"));
-        JsonNode rr = holder.path("referenceRange").path(0);
-        Double lo = num(rr.path("low").path("value")), hi = num(rr.path("high").path("value"));
-        String f = flag(code(holder.path("interpretation"), null));
-        if (f == null) f = computeFlag(v, lo, hi);
-        return new Quantity(v, unit, lo, hi, f);
-    }
-
-    /** One result or vital sign. A panel with components (blood pressure) becomes one row: "148/92", flag of the worst component, trend on the first. */
-    public static Clinical.Observation observation(JsonNode r) {
-        if (!is(r, "Observation") || errorEntry(r) || "cancelled".equals(str(r.path("status")))) return null;
-        String text = text(r.path("code"));
-        if (text == null) return null;
-        String loinc = code(r.path("code"), "loinc");
-        if (loinc == null) loinc = code(r.path("code"), null);
-        String cat = code(r.path("category"), null);
-        if (cat == null) cat = text(r.path("category"));
-        if (cat != null) cat = cat.toLowerCase().replace(' ', '-');
-        Double value = null, low = null, high = null;
-        String display = null, unit = null, flag = null;
-        if (r.has("valueQuantity")) {
-            Quantity q = quantity(r, r.path("valueQuantity"));
-            value = q.value; unit = q.unit; low = q.low; high = q.high; flag = q.flag;
-            display = value == null ? null : fmt(value);
-        } else if (r.path("component").isArray() && r.path("component").size() > 0) {
-            List<String> parts = new ArrayList<>();
-            for (JsonNode c : r.path("component")) {
-                if (!c.has("valueQuantity")) continue;
-                Quantity q = quantity(c, c.path("valueQuantity"));
-                if (q.value == null) continue;
-                if (parts.isEmpty()) { value = q.value; unit = q.unit; low = q.low; high = q.high; }
-                parts.add(fmt(q.value));
-                if (rank(q.flag) > rank(flag)) flag = q.flag;
-            }
-            if (!parts.isEmpty()) display = String.join("/", parts);
-            String top = flag(code(r.path("interpretation"), null));
-            if (rank(top) > rank(flag)) flag = top;
-        } else if (r.has("valueString")) {
-            display = str(r.path("valueString"));
-            flag = flag(code(r.path("interpretation"), null));
-        } else if (r.has("valueCodeableConcept")) {
-            display = text(r.path("valueCodeableConcept"));
-            flag = flag(code(r.path("interpretation"), null));
-        } else if (r.has("valueInteger") || r.has("valueBoolean")) {
-            display = str(r.path(r.has("valueInteger") ? "valueInteger" : "valueBoolean"));
-            value = r.has("valueInteger") ? num(r.path("valueInteger")) : null;
-        }
-        if (display == null) return null;   // a result without a value (not yet reported) is not a result
-        if (cat == null) cat = loinc != null && VITAL_LOINC.contains(loinc) ? "vital-signs" : (value != null ? "laboratory" : "other");
-        return new Clinical.Observation(str(r.path("id")), loinc, text, cat, value, display, unit, low, high, flag,
-            firstInstant(r, "effectiveDateTime", "effectivePeriod.start", "effectiveInstant", "issued"), str(r.path("status")), refId(r.path("encounter")));
-    }
-
     // ---------- Encounter ----------
 
-    public static Clinical.Encounter encounter(JsonNode r) {
+    public static Registry.Encounter encounter(JsonNode r) {
         if (!is(r, "Encounter") || errorEntry(r)) return null;
         String id = str(r.path("id"));
         Instant start = firstInstant(r, "period.start");
@@ -279,17 +132,8 @@ public final class FhirParser {
             if (attending == null && "ATND".equalsIgnoreCase(code(p.path("type"), null))) attending = d;
         }
         if (attending == null && !people.isEmpty()) attending = people.get(0);
-        List<Clinical.Diagnosis> dx = new ArrayList<>();
-        for (JsonNode d : r.path("diagnosis")) {
-            String dt = refDisplay(d.path("condition"));
-            if (dt == null) dt = refId(d.path("condition"));
-            if (dt == null) continue;
-            dx.add(new Clinical.Diagnosis(refId(d.path("condition")), dt, text(d.path("use")), d.path("rank").isNumber() ? d.path("rank").asInt() : null));
-        }
-        String reason = text(r.path("reasonCode"));
-        if (reason == null) reason = text(r.path("reason").path(0).path("value"));
-        return new Clinical.Encounter(id, refId(r.path("subject")), str(r.path("status")), cc, cd, text(r.path("type")), reason, start, firstInstant(r, "period.end"),
-            facRef, facName, ward, attending, people, dx, provider, text(r.path("hospitalization").path("dischargeDisposition")));
+        return new Registry.Encounter(id, refId(r.path("subject")), str(r.path("status")), cc, cd, text(r.path("type")), start, firstInstant(r, "period.end"),
+            facRef, facName, ward, attending, people, provider);
     }
 
     // ---------- bundles ----------

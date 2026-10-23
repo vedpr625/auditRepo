@@ -24,7 +24,7 @@ import com.akhester.auditui.page.ShellAdvice;
 import com.akhester.auditui.people.FacilityDirectory;
 import com.akhester.auditui.people.Who;
 import com.akhester.auditui.prefs.PrefsContext;
-import com.akhester.auditui.registry.Clinical;
+import com.akhester.auditui.registry.Registry;
 import com.akhester.auditui.registry.RegistryClient;
 import com.akhester.auditui.service.AuditEventService;
 
@@ -32,7 +32,7 @@ import com.akhester.auditui.service.AuditEventService;
  * One encounter (visit or stay). Same order of work as the patient page, and the same gate:
  * 1. The audit records of this encounter are read first (the person's own access applies). None visible: "nothing found", in the same words whether or not the encounter exists.
  * 2. The consent service is asked about the encounter's patient (fail closed, the answer is written to the consent check log). A restricted patient is not read at all.
- * 3. Only on a permit, and only for the sections the consent covers, the registry is read: the encounter itself and what was recorded in it.
+ * 3. Only on a permit, and only for the sections the consent covers, the registry is read: the encounter itself and only its header (class, period, place, people).
  * The "who looked" half never depends on the consent: it comes from the audit records.
  */
 @Controller
@@ -45,16 +45,16 @@ public class EncounterController {
     private final ConsentClient consent;
     private final ConsentLogRepository consentLog;
     private final RegistryClient registry;
-    private final ClinicalService clinical;
+    private final EncounterService encounters;
     private final SensitivePatients sensitive;
     private final AccessRequestRepository requests;
     private final ConsoleActivity activity;
     private final FacilityDirectory facilities;
     private final SendingSystemRepository systems;
 
-    public EncounterController(AuditEventService audit, ConsentClient consent, ConsentLogRepository consentLog, RegistryClient registry, ClinicalService clinical,
+    public EncounterController(AuditEventService audit, ConsentClient consent, ConsentLogRepository consentLog, RegistryClient registry, EncounterService encounters,
                                SensitivePatients sensitive, AccessRequestRepository requests, ConsoleActivity activity, FacilityDirectory facilities, SendingSystemRepository systems) {
-        this.audit = audit; this.consent = consent; this.consentLog = consentLog; this.registry = registry; this.clinical = clinical;
+        this.audit = audit; this.consent = consent; this.consentLog = consentLog; this.registry = registry; this.encounters = encounters;
         this.sensitive = sensitive; this.requests = requests; this.activity = activity; this.facilities = facilities; this.systems = systems;
     }
 
@@ -130,8 +130,8 @@ public class EncounterController {
 
         // 3. registry, only what the consent covers
         RegistryClient.PatientInfo info = null;
-        Clinical.Section<Clinical.Encounter> encSection = null;
-        ClinicalService.EncounterView view = null;
+        Registry.Section<Registry.Encounter> encSection = null;
+        EncounterService.Header view = null;
         String patientName = null;
         if (d.covered()) {
             try {
@@ -157,9 +157,9 @@ public class EncounterController {
         List<PatientController.Line> lines = encLines;
         if (d.covered()) {
             try {
-                view = clinical.loadEncounter(patientId, enc, d, encLines.isEmpty() ? allLines : encLines, encSection);
+                view = encounters.header(patientId, enc, d, encLines.isEmpty() ? allLines : encLines, encSection);
                 // the visit as the patient page shows it: the records that carry this number plus those at the same facility during the registry stay
-                if (view.enc() != null && encSection != null && encSection.isOk()) lines = ClinicalService.linesOf(view.enc(), encSection.items(), allLines);
+                if (view.enc() != null && encSection != null && encSection.isOk()) lines = EncounterService.linesOf(view.enc(), encSection.items(), allLines);
             } catch (RuntimeException e) { model.addAttribute("registryDown", true); }
         }
         lines = new ArrayList<>(lines);
@@ -175,14 +175,15 @@ public class EncounterController {
         model.addAttribute("people", (int) lines.stream().map(l -> l.row().getAgentRef() != null ? l.row().getAgentRef() : String.valueOf(l.row().getAgentName())).distinct().count());
         model.addAttribute("systemCount", (int) lines.stream().map(l -> String.valueOf(l.row().getSubmittedBy())).distinct().count());
         model.addAttribute("refusedCount", (int) lines.stream().filter(l -> l.row().getOutcomeCode() != null && !"0".equals(l.row().getOutcomeCode())).count());
-        model.addAttribute("care", ClinicalService.careLinkCounts(lines));
+        model.addAttribute("kinds", EncounterService.kinds(lines));
+        model.addAttribute("care", EncounterService.careLinkCounts(lines));
         model.addAttribute("careChecked", info != null);
         model.addAttribute("canReview", Who.canReview());
         AuditRow first = lines.isEmpty() ? null : lines.get(0).row();
         model.addAttribute("auditFacility", first == null || first.getFacility() == null ? null : FacilityDirectory.nameIn(fnames, first.getFacility()));
         model.addAttribute("auditDept", first == null ? null : first.getDepartment());
         model.addAttribute("state", d.permitted() ? "shown" : "withheld");
-        activity.record(ConsoleActivity.KIND_PATIENT, "Opened encounter " + enc, d.permitted() ? null : "Consent not given, clinical details not shown", patientId);
+        activity.record(ConsoleActivity.KIND_PATIENT, "Opened encounter " + enc, d.permitted() ? null : "Consent not given, registry details not shown", patientId);
         return "encounter";
     }
 }

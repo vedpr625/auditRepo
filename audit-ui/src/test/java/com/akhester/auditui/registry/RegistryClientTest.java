@@ -13,7 +13,7 @@ import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-/** A registry that does not have, refuses or fails a resource type must give "not provided" or "unavailable", never an exception. */
+/** A registry that does not have, refuses or fails the Encounter list must give "not provided" or "unavailable", never an exception. */
 class RegistryClientTest {
 
     private static final String BASE = "http://registry.test/fhir";
@@ -29,9 +29,9 @@ class RegistryClientTest {
         for (HttpStatus s : new HttpStatus[]{HttpStatus.NOT_FOUND, HttpStatus.FORBIDDEN, HttpStatus.BAD_REQUEST, HttpStatus.UNAUTHORIZED, HttpStatus.METHOD_NOT_ALLOWED}) {
             MockRestServiceServer[] m = new MockRestServiceServer[1];
             RegistryClient c = client(m);
-            m[0].expect(requestTo(org.hamcrest.Matchers.startsWith(BASE + "/AllergyIntolerance"))).andRespond(withStatus(s));
-            Clinical.Section<Clinical.Allergy> r = c.allergies("P-1");
-            assertEquals(Clinical.Status.NOT_PROVIDED, r.status(), s.toString());
+            m[0].expect(requestTo(org.hamcrest.Matchers.startsWith(BASE + "/Encounter"))).andRespond(withStatus(s));
+            Registry.Section<Registry.Encounter> r = c.encounters("P-1");
+            assertEquals(Registry.Status.NOT_PROVIDED, r.status(), s.toString());
             assertTrue(r.items().isEmpty());
         }
     }
@@ -39,28 +39,28 @@ class RegistryClientTest {
     @Test void serverErrorAndTimeoutAreUnavailable() {
         MockRestServiceServer[] m = new MockRestServiceServer[1];
         RegistryClient c = client(m);
-        m[0].expect(requestTo(org.hamcrest.Matchers.startsWith(BASE + "/Procedure"))).andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR));
-        assertEquals(Clinical.Status.UNAVAILABLE, c.procedures("P-1", null).status());
+        m[0].expect(requestTo(org.hamcrest.Matchers.startsWith(BASE + "/Encounter"))).andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR));
+        assertEquals(Registry.Status.UNAVAILABLE, c.encounters("P-1").status());
         m[0].reset();
-        m[0].expect(requestTo(org.hamcrest.Matchers.startsWith(BASE + "/Condition"))).andRespond(withStatus(HttpStatus.TOO_MANY_REQUESTS));
-        assertEquals(Clinical.Status.UNAVAILABLE, c.conditions("P-1", null).status());
+        m[0].expect(requestTo(org.hamcrest.Matchers.startsWith(BASE + "/Encounter"))).andRespond(withStatus(HttpStatus.TOO_MANY_REQUESTS));
+        assertEquals(Registry.Status.UNAVAILABLE, c.encounters("P-1").status());
     }
 
     @Test void operationOutcomeOrOddBodyIsNotAResult() {
         MockRestServiceServer[] m = new MockRestServiceServer[1];
         RegistryClient c = client(m);
-        m[0].expect(requestTo(org.hamcrest.Matchers.startsWith(BASE + "/Procedure"))).andRespond(withSuccess("{\"resourceType\":\"OperationOutcome\",\"issue\":[]}", FHIR));
-        assertEquals(Clinical.Status.NOT_PROVIDED, c.procedures("P-1", null).status());
+        m[0].expect(requestTo(org.hamcrest.Matchers.startsWith(BASE + "/Encounter"))).andRespond(withSuccess("{\"resourceType\":\"OperationOutcome\",\"issue\":[]}", FHIR));
+        assertEquals(Registry.Status.NOT_PROVIDED, c.encounters("P-1").status());
         m[0].reset();
-        m[0].expect(requestTo(org.hamcrest.Matchers.startsWith(BASE + "/Condition"))).andRespond(withSuccess("{\"hello\":1}", FHIR));
-        assertEquals(Clinical.Status.UNAVAILABLE, c.conditions("P-1", null).status());
+        m[0].expect(requestTo(org.hamcrest.Matchers.startsWith(BASE + "/Encounter"))).andRespond(withSuccess("{\"hello\":1}", FHIR));
+        assertEquals(Registry.Status.UNAVAILABLE, c.encounters("P-1").status());
     }
 
     @Test void emptyBundleIsOkAndEmpty() {
         MockRestServiceServer[] m = new MockRestServiceServer[1];
         RegistryClient c = client(m);
-        m[0].expect(requestTo(org.hamcrest.Matchers.startsWith(BASE + "/Condition"))).andRespond(withSuccess("{\"resourceType\":\"Bundle\",\"type\":\"searchset\",\"total\":0}", FHIR));
-        Clinical.Section<Clinical.Condition> r = c.conditions("P-1", null);
+        m[0].expect(requestTo(org.hamcrest.Matchers.startsWith(BASE + "/Encounter"))).andRespond(withSuccess("{\"resourceType\":\"Bundle\",\"type\":\"searchset\",\"total\":0}", FHIR));
+        Registry.Section<Registry.Encounter> r = c.encounters("P-1");
         assertTrue(r.isOk());
         assertTrue(r.isEmpty());
     }
@@ -68,34 +68,34 @@ class RegistryClientTest {
     @Test void searchUsesStandardParametersAndSkipsBadResources() {
         MockRestServiceServer[] m = new MockRestServiceServer[1];
         RegistryClient c = client(m);
-        m[0].expect(requestTo(org.hamcrest.Matchers.allOf(org.hamcrest.Matchers.startsWith(BASE + "/Observation?"), org.hamcrest.Matchers.containsString("patient=Patient/P-1"),
-                org.hamcrest.Matchers.containsString("encounter=Encounter/E-9"), org.hamcrest.Matchers.containsString("_count="))))
-            .andRespond(withSuccess("{\"resourceType\":\"Bundle\",\"entry\":[{\"resource\":{\"resourceType\":\"Observation\",\"id\":\"a\",\"code\":{\"text\":\"HR\"},\"valueQuantity\":{\"value\":80},\"encounter\":{\"reference\":\"Encounter/E-9\"}}},"
-                + "{\"resource\":{\"resourceType\":\"Observation\",\"id\":\"b\",\"code\":{\"text\":\"Other visit\"},\"valueQuantity\":{\"value\":1},\"encounter\":{\"reference\":\"Encounter/E-OTHER\"}}},"
-                + "{\"resource\":{\"resourceType\":\"Observation\",\"id\":\"c\"}}]}", FHIR));
-        Clinical.Section<Clinical.Observation> r = c.observations("P-1", "E-9");
+        m[0].expect(requestTo(org.hamcrest.Matchers.allOf(org.hamcrest.Matchers.startsWith(BASE + "/Encounter?"), org.hamcrest.Matchers.containsString("patient=Patient/P-1"),
+                org.hamcrest.Matchers.containsString("_count="))))
+            .andRespond(withSuccess("{\"resourceType\":\"Bundle\",\"entry\":[{\"resource\":{\"resourceType\":\"Encounter\",\"id\":\"a\",\"period\":{\"start\":\"2026-10-01T00:00:00Z\"}}},"
+                + "{\"resource\":{\"resourceType\":\"Encounter\",\"id\":\"b\",\"status\":\"entered-in-error\",\"period\":{\"start\":\"2026-10-02T00:00:00Z\"}}},"
+                + "{\"resource\":{\"resourceType\":\"Encounter\",\"id\":\"c\"}}]}", FHIR));
+        Registry.Section<Registry.Encounter> r = c.encounters("P-1");
         assertTrue(r.isOk());
-        assertEquals(1, r.items().size());                // the other visit's value (a server that ignored the parameter) and the nameless one are dropped
-        assertEquals("HR", r.items().get(0).text());
+        assertEquals(1, r.items().size());                // the one in error and the resource of another type are dropped
+        assertEquals("a", r.items().get(0).id());
         m[0].verify();
     }
 
     @Test void nextLinkIsFollowedOnlyOnTheSameRegistry() throws Exception {
         ObjectMapper om = new ObjectMapper();
-        assertEquals("http://registry.test/fhir/Condition?page=2", RegistryClient.nextLink(om.readTree("{\"link\":[{\"relation\":\"next\",\"url\":\"http://registry.test/fhir/Condition?page=2\"}]}"), BASE).toString());
+        assertEquals("http://registry.test/fhir/Encounter?page=2", RegistryClient.nextLink(om.readTree("{\"link\":[{\"relation\":\"next\",\"url\":\"http://registry.test/fhir/Encounter?page=2\"}]}"), BASE).toString());
         assertNull(RegistryClient.nextLink(om.readTree("{\"link\":[{\"relation\":\"next\",\"url\":\"http://169.254.169.254/latest\"}]}"), BASE));
-        assertNull(RegistryClient.nextLink(om.readTree("{\"link\":[{\"relation\":\"self\",\"url\":\"http://registry.test/fhir/Condition\"}]}"), BASE));
+        assertNull(RegistryClient.nextLink(om.readTree("{\"link\":[{\"relation\":\"self\",\"url\":\"http://registry.test/fhir/Encounter\"}]}"), BASE));
         assertNull(RegistryClient.nextLink(om.readTree("{}"), BASE));
     }
 
     @Test void pagesAreFollowed() {
         MockRestServiceServer[] m = new MockRestServiceServer[1];
         RegistryClient c = client(m);
-        m[0].expect(requestTo(org.hamcrest.Matchers.startsWith(BASE + "/Condition?")))
-            .andRespond(withSuccess("{\"resourceType\":\"Bundle\",\"link\":[{\"relation\":\"next\",\"url\":\"" + BASE + "/Condition?page=2\"}],\"entry\":[{\"resource\":{\"resourceType\":\"Condition\",\"code\":{\"text\":\"one\"}}}]}", FHIR));
-        m[0].expect(requestTo(BASE + "/Condition?page=2"))
-            .andRespond(withSuccess("{\"resourceType\":\"Bundle\",\"entry\":[{\"resource\":{\"resourceType\":\"Condition\",\"code\":{\"text\":\"two\"}}}]}", FHIR));
-        assertEquals(2, c.conditions("P-1", null).items().size());
+        m[0].expect(requestTo(org.hamcrest.Matchers.startsWith(BASE + "/Encounter?")))
+            .andRespond(withSuccess("{\"resourceType\":\"Bundle\",\"link\":[{\"relation\":\"next\",\"url\":\"" + BASE + "/Encounter?page=2\"}],\"entry\":[{\"resource\":{\"resourceType\":\"Encounter\",\"period\":{\"start\":\"2026-10-01\"}}}]}", FHIR));
+        m[0].expect(requestTo(BASE + "/Encounter?page=2"))
+            .andRespond(withSuccess("{\"resourceType\":\"Bundle\",\"entry\":[{\"resource\":{\"resourceType\":\"Encounter\",\"period\":{\"start\":\"2026-10-02\"}}}]}", FHIR));
+        assertEquals(2, c.encounters("P-1").items().size());
         m[0].verify();
     }
 
@@ -107,7 +107,7 @@ class RegistryClientTest {
         assertEquals(1, c.encounters("P-1").items().size());
         m[0].reset();
         m[0].expect(requestTo(BASE + "/Encounter/E-404")).andRespond(withStatus(HttpStatus.NOT_FOUND));
-        assertEquals(Clinical.Status.NOT_PROVIDED, c.encounter("E-404").status());
+        assertEquals(Registry.Status.NOT_PROVIDED, c.encounter("E-404").status());
     }
 
     @Test void patientWithoutDemographicsConsentIsNeverRead() {

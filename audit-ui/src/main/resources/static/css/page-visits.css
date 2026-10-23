@@ -1,0 +1,73 @@
+/* Patient tabs, encounters tab, encounter page. Loads the patient page styles first, then adds its own. Colours come from the console tokens (light and dark). */
+@import url("page-patient.css");
+
+/* tabs */
+.cl-tabs{display:flex;gap:4px;flex-wrap:wrap;border-bottom:1px solid var(--border);margin-top:-2px}
+.cl-tabs a{display:inline-flex;gap:6px;align-items:center;padding:10px 16px;text-decoration:none;color:var(--ink-2);font-weight:500;border-bottom:3px solid transparent;margin-bottom:-1px}
+.cl-tabs a:hover{color:var(--ink)}
+.cl-tabs a[aria-current="page"]{color:var(--accent-text);border-bottom-color:var(--accent-line);font-weight:600}
+
+/* locked / state / none */
+.cl-locked{display:flex;gap:12px;align-items:flex-start;padding:10px 12px;border:1.5px dashed var(--ink-3);border-radius:var(--radius);background:var(--panel-tint)}
+.cl-locked b{display:block}
+.cl-lockicon{font-size:18px;line-height:1.2}
+.cl-state{padding:8px 12px;border:1px dashed var(--border-input);border-radius:var(--radius);color:var(--ink-2);background:var(--panel-tint);margin-top:6px}
+.cl-state:first-child{margin-top:0}
+.cl-none{color:var(--ink-2);padding:4px 0}
+.cl-none.ok{color:var(--ok-fg);background:var(--ok-bg);border-radius:var(--radius-sm);padding:6px 10px;display:inline-block;font-weight:600}
+.cl-src{font-weight:400;letter-spacing:0;text-transform:none}
+
+/* consent card and scopes */
+.cl-consent-now{gap:8px;display:flex;flex-wrap:wrap;align-items:center}
+.cl-dl{grid-template-columns:110px 1fr}
+.cl-scopes{display:flex;flex-wrap:wrap;gap:6px}
+.cl-scopes li{display:inline-flex;gap:6px;align-items:center;padding:3px 9px;border-radius:999px;font-size:12.5px;font-weight:600;border:1px solid transparent}
+.cl-scopes li.on{background:var(--ok-bg);color:var(--ok-fg);border-color:var(--ok-fg)}
+.cl-scopes li.off{background:var(--off-bg);color:var(--off-fg);border:1px dashed var(--ink-3)}
+.cl-side-wide{width:460px}
+.stack-lg{display:flex;flex-direction:column;gap:14px}
+
+/* explanation panel */
+.cl-explain{border-color:var(--warn-edge)}
+.cl-explain .panel-head{background:var(--warn-wash)}
+.cl-explain-grid{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:20px}
+.cl-explain h4{font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-2);margin-bottom:6px}
+.cl-explain li{display:flex;gap:8px;padding:3px 0}
+.cl-vis li span:first-child{color:var(--ok-fg);font-weight:700}
+.cl-ask{display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap}
+.cl-ask-form{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;width:100%}
+.cl-ask-form .field{flex:1;min-width:240px;max-width:460px}
+
+.tag-btg{background:var(--warn-bg);color:var(--warn-fg);box-shadow:inset 0 0 0 1px var(--warn-edge)}
+
+/* encounters tab */
+.cl-enc{display:flex;gap:14px;align-items:flex-start;padding:14px 18px;border-top:1px solid var(--border-soft)}
+.cl-enc:first-of-type{border-top:0}
+.cl-enc .pt-dot{margin-top:6px}
+.cl-enc-title{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.cl-enc-side{margin-inline-start:auto;text-align:end;display:flex;flex-direction:column;gap:2px;font-size:13px}
+
+/* encounter page */
+.en-head-top{display:flex;gap:16px;align-items:center;flex-wrap:wrap;padding:18px 20px}
+.en-head-top h1{font-size:22px}
+.en-id{font-size:15px;font-weight:500;color:var(--ink-2);margin-inline-start:6px}
+.en-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px 22px;padding:14px 20px 18px;border-top:1px solid var(--border-soft);margin:0}
+.en-facts dt{font-size:12px;color:var(--ink-2);margin-bottom:2px}
+.en-facts dd{margin:0;font-weight:500}
+.en-btg{display:flex;flex-direction:column;gap:8px}
+.en-btg .pt-btg{margin:0}
+.en-kinds{display:flex;flex-wrap:wrap;gap:8px;padding:14px 20px 16px}
+.en-kind{display:inline-flex;gap:10px;align-items:baseline;padding:6px 14px;border-radius:var(--radius);background:var(--panel-tint);border:1px solid var(--border)}
+.en-kind b{font-size:17px;font-weight:600}
+.en-care{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.en-links{display:flex;gap:10px;flex-wrap:wrap}
+
+@media (max-width:1100px){
+  .cl-explain-grid{grid-template-columns:1fr}
+  .cl-side-wide{width:auto}
+}
+@media (max-width:700px){
+  .cl-enc{flex-direction:column}
+  .cl-enc-side{margin-inline-start:0;text-align:start}
+}
+.cl-enc-side .tag{align-self:flex-end}

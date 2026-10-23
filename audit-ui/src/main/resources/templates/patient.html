@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}"
       th:attr="data-theme=${prefs.themeAttr()},data-density=${prefs.densityAttr()}">
-<head th:replace="~{fragments/layout :: headx(#{patient.title}, 'page-clinical.css')}"></head>
+<head th:replace="~{fragments/layout :: headx(#{patient.title}, 'page-visits.css')}"></head>
 <body>
 <th:block th:replace="~{fragments/layout :: header('people')}"></th:block>
 <main id="main" class="page">
@@ -57,12 +57,11 @@
     <div class="notice notice-warn" th:if="${state == 'shown' and registryMissing == true}" th:text="#{patient.registry.missing}">Not in registry</div>
     <div class="notice notice-bad" role="alert" th:if="${state == 'shown' and registryDown == true}" th:text="#{patient.registry.down}">Registry not answering</div>
 
-    <th:block th:replace="~{fragments/clinical :: tabs}"></th:block>
+    <th:block th:replace="~{fragments/patient-tabs :: tabs}"></th:block>
 
-    <th:block th:if="${tab == 'clinical'}"><th:block th:replace="~{fragments/clinical :: clinical360}"></th:block></th:block>
-    <th:block th:if="${tab == 'encounters'}"><th:block th:replace="~{fragments/clinical :: encounters}"></th:block></th:block>
-    <th:block th:if="${tab == 'access'}"><th:block th:replace="~{fragments/clinical :: accesslog}"></th:block></th:block>
-    <th:block th:if="${tab == 'consent'}"><th:block th:replace="~{fragments/clinical :: consenttab}"></th:block></th:block>
+    <th:block th:if="${tab == 'encounters'}"><th:block th:replace="~{fragments/patient-tabs :: encounters}"></th:block></th:block>
+    <th:block th:if="${tab == 'access'}"><th:block th:replace="~{fragments/patient-tabs :: accesslog}"></th:block></th:block>
+    <th:block th:if="${tab == 'consent'}"><th:block th:replace="~{fragments/patient-tabs :: consenttab}"></th:block></th:block>
 
     <div class="split" th:if="${tab == 'overview'}">
       <section class="panel grow" aria-labelledby="p-visits">
@@ -132,7 +131,7 @@
           </div>
         </section>
 
-        <th:block th:replace="~{fragments/clinical :: consentSummary}"></th:block>
+        <th:block th:replace="~{fragments/patient-tabs :: consentSummary}"></th:block>
       </div>
     </div>
   </th:block>
